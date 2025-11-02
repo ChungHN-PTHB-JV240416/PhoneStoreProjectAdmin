@@ -1,0 +1,95 @@
+﻿@model PhoneStore_New.Models.ViewModels.OrderHistoryViewModel
+@{
+    ViewBag.Title = "Lịch sử Đơn hàng của tôi";
+}
+
+<style>
+    .message-box {
+        padding: 10px;
+        border-radius: 5px;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .success {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .error {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .order-detail-link {
+        text-decoration: none;
+        color: #3498db;
+    }
+
+    .cancel-btn {
+        padding: 5px 10px;
+        background-color: #e74c3c;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        text-decoration: none;
+    }
+</style>
+
+<div class="container">
+    <h1 class="text-center">Lịch sử Đơn hàng của tôi</h1>
+
+    @* Hiển thị thông báo *@
+    @if (!string.IsNullOrEmpty(Model.Message))
+    {
+        <div class="message-box @(Model.Message.Contains("thành công") ? "success" : "error")">
+            @Model.Message
+        </div>
+    }
+
+    @if (Model.Orders != null && Model.Orders.Any())
+    {
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Mã Đơn hàng</th>
+                    <th>Ngày đặt</th>
+                    <th>Tổng tiền</th>
+                    <th>Trạng thái</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var order in Model.Orders)
+                {
+                    <tr>
+                        <td>@order.OrderId</td>
+                        <td>@order.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>@order.FormattedTotalAmount</td>
+                        <td>@order.Status</td>
+                        <td>
+                            @* Link Xem chi tiết (Chưa tạo Detail View trong User) *@
+                            @Html.ActionLink("Xem chi tiết", "Detail", "Order", new { id = order.OrderId }, new { @class = "order-detail-link" })
+
+                            @if (order.CanCancel)
+                            {
+                                @* Link Hủy đơn hàng (GET request) *@
+                                <a href="@Url.Action("Cancel", "Order", new { id = order.OrderId })"
+                                   class="cancel-btn"
+                                   onclick="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này?');">
+                                    Hủy
+                                </a>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p style="text-align: center;" class="alert alert-info">Bạn chưa có đơn hàng nào.</p>
+    }
+</div>

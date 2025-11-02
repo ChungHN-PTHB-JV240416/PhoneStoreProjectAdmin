@@ -1,0 +1,86 @@
+﻿@using PhoneStore_New.Models.ViewModels
+@model LoginViewModel
+@{
+    ViewBag.Title = "Đăng nhập";
+    Layout = null; // Trang độc lập, không dùng Layout chung
+}
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        /* BackgroundUrl được truyền từ LoginController qua ViewBag */
+        background-image: url('@Url.Content(ViewBag.BackgroundUrl)');
+        background-size: cover;
+        background-position: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        color: #333;
+    }
+    .login-container {
+        background: rgba(255, 255, 255, 0.9);
+        padding: 30px 40px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        text-align: center;
+    }
+    .error-message {
+        color: red;
+        margin-bottom: 15px;
+    }
+    input[type="text"], input[type="password"] {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-sizing: border-box;
+    }
+    button {
+        width: 100%;
+        padding: 10px;
+        border: none;
+        border-radius: 5px;
+        background-color: #007BFF;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+</style>
+
+<div class="login-container">
+    <h2>Đăng nhập</h2>
+
+    @* Hiển thị thông báo (từ TempData sau khi đăng ký hoặc lỗi) *@
+    @if (!string.IsNullOrEmpty(ViewBag.Message as string))
+    {
+        <p class="error-message" style="color: green;">@ViewBag.Message</p>
+    }
+
+    @* Hiển thị lỗi Model State (lỗi nhập liệu/xác thực) *@
+    @Html.ValidationSummary(true, "", new { @class = "error-message" })
+
+    @using (Html.BeginForm("Index", "Login", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+
+        @Html.LabelFor(m => m.Username, "Tên đăng nhập:")
+        @Html.TextBoxFor(m => m.Username, new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.Username, "", new { @class = "text-danger" })
+
+        <div style="margin-top: 15px;">
+            @Html.LabelFor(m => m.Password, "Mật khẩu:")
+            @Html.PasswordFor(m => m.Password, new { @class = "form-control" })
+            @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
+        </div>
+
+        <button type="submit" style="margin-top: 20px;">
+            Đăng nhập
+        </button>
+    }
+
+    <p style="margin-top: 20px;">Chưa có tài khoản? @Html.ActionLink("Đăng ký ngay", "Register", "Login")</p>
+</div>

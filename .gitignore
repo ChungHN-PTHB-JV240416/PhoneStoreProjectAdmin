@@ -1,0 +1,17 @@
+# Các thư mục chứa file tạm và file build
+.vs/
+[Bb]in/
+[Oo]bj/
+
+# Thư mục chứa các gói thư viện
+[Pp]ackages/
+
+# Các file cài đặt cá nhân của Visual Studio
+*.suo
+*.user
+
+# Các file upload
+[Uu]ploads/
+
+# Các file log
+*.log

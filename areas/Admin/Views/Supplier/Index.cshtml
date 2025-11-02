@@ -1,0 +1,169 @@
+﻿@model PhoneStore_New.Areas.Admin.Models.ViewModels.SupplierListViewModel
+@{
+    ViewBag.Title = "Quản lý Nhà cung cấp";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    /* CSS của bạn không thay đổi, giữ nguyên */
+    .message {
+        padding: 10px;
+        margin-bottom: 20px;
+        border-radius: 5px;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .success {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .error {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .form-section {
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background-color: #fafafa;
+        margin-bottom: 20px;
+    }
+
+        .form-section .form-control {
+            margin-bottom: 10px;
+        }
+
+    .table th, .table td {
+        vertical-align: middle;
+    }
+</style>
+
+<div class="admin-container">
+    <h2>Quản lý Nhà cung cấp</h2>
+
+    @* SỬA LỖI 1: Thêm @ vào trước if *@
+    @if (!string.IsNullOrEmpty(Model.Message))
+    {
+        <div class="message @(Model.Message.Contains("thành công") ? "success" : "error")">
+            @Model.Message
+        </div>
+    }
+
+    @* === 1. TÌM KIẾM NHÀ CUNG CẤP === *@
+    <div class="form-section">
+        <h3>Tìm kiếm Nhà cung cấp</h3>
+        @using (Html.BeginForm("Index", "Supplier", FormMethod.Get, new { @area = "Admin" }))
+        {
+            @* SỬA LỖI 3: Bỏ AntiForgeryToken cho form GET *@
+            <div class="input-group">
+                <input type="text" name="search_query" class="form-control" placeholder="Nhập tên, số điện thoại hoặc địa chỉ..." value="@Model.SearchQuery" />
+                <span class="input-group-btn">
+                    <button type="submit" class="btn btn-default">Tìm kiếm</button>
+                </span>
+            </div>
+        }
+    </div>
+
+    @* === 2. THÊM & SỬA NHÀ CUNG CẤP MỚI === *@
+    <div class="form-section">
+        <h3 id="supplier-form-title">Thêm Nhà cung cấp mới</h3>
+        @using (Html.BeginForm("Manage", "Supplier", FormMethod.Post, new { @area = "Admin", @id = "supplierForm" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+            <input type="hidden" name="SupplierId" id="supplierId" value="0" />
+
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="Name">Tên Nhà cung cấp:</label>
+                    <input type="text" name="Name" id="supplierName" class="form-control" placeholder="Tên công ty" required />
+                </div>
+                <div class="col-md-6">
+                    <label for="Phone">Số điện thoại:</label>
+                    <input type="text" name="Phone" id="supplierPhone" class="form-control" placeholder="Số điện thoại liên hệ" required />
+                </div>
+            </div>
+
+            <label for="Address">Địa chỉ:</label>
+            <input type="text" name="Address" id="supplierAddress" class="form-control" placeholder="Địa chỉ chi tiết" required />
+
+            <button type="submit" id="supplierFormButton" class="btn btn-success" style="margin-top: 10px;">Thêm Nhà cung cấp</button>
+        }
+    </div>
+
+    @* === 3. DANH SÁCH NHÀ CUNG CẤP === *@
+    <h3>Danh sách các Nhà cung cấp (@(Model.Suppliers?.Count() ?? 0) kết quả)</h3>
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Tên Nhà cung cấp</th>
+                <th>Số điện thoại</th>
+                <th>Địa chỉ</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Suppliers != null && Model.Suppliers.Any())
+            {
+                foreach (var supplier in Model.Suppliers)
+                {
+                    <tr data-id="@supplier.SupplierId" data-name="@supplier.Name" data-phone="@supplier.Phone" data-address="@supplier.Address">
+                        <td>@supplier.SupplierId</td>
+                        <td>@supplier.Name</td>
+                        <td>@supplier.Phone</td>
+                        <td>@supplier.Address</td>
+                        <td class="action-links">
+                            <button type="button" class="btn btn-info btn-xs edit-supplier-btn">Sửa</button>
+
+                            @* SỬA LỖI 2: Chuyển nút Xóa sang dùng form POST an toàn *@
+                            @using (Html.BeginForm("Delete", "Supplier", new { area = "Admin", id = supplier.SupplierId }, FormMethod.Post, new { @style = "display:inline;" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-danger btn-xs" onclick="return confirm('Bạn có chắc chắn muốn xóa nhà cung cấp này?');">Xóa</button>
+                            }
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr><td colspan="5" class="text-center">Không tìm thấy nhà cung cấp nào.</td></tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section scripts {
+    <script>
+        $(document).ready(function () {
+            // Logic Sửa (Tương tự như Setting/Index)
+            $('.edit-supplier-btn').on('click', function () {
+                var row = $(this).closest('tr');
+                var supplierId = row.data('id');
+                var name = row.data('name');
+                var phone = row.data('phone');
+                var address = row.data('address');
+
+                // Điền dữ liệu vào form
+                $('#supplierId').val(supplierId);
+                $('#supplierName').val(name);
+                $('#supplierPhone').val(phone);
+                $('#supplierAddress').val(address);
+
+                // Thay đổi tiêu đề và nút thành chế độ Sửa
+                $('#supplier-form-title').text('Sửa Nhà cung cấp ID: ' + supplierId);
+                $('#supplierFormButton').text('Lưu Thay Đổi').removeClass('btn-success').addClass('btn-primary');
+
+                // Cuộn lên đầu form
+                $('html, body').animate({
+                    scrollTop: $('#supplierForm').offset().top - 50
+                }, 500);
+            });
+        });
+    </script>
+}

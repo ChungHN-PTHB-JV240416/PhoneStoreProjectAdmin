@@ -1,0 +1,32 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - Cửa hàng ChungPhone</title>
+
+    <link href="@Url.Content("~/Content/bootstrap.min.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Content/Site.css")" rel="stylesheet" type="text/css" />
+    <script src="@Url.Content("~/Scripts/modernizr-2.8.3.js")"></script>
+
+    @RenderSection("styles", required: false)
+</head>
+<body>
+
+    @Html.Action("Header", "Home")
+
+    <div class="container body-content">
+        @RenderBody()
+        <hr style="display: none;" />
+    </div>
+
+    @Html.Action("Footer", "Home")
+
+    <script src="@Url.Content("~/Scripts/jquery-1.10.2.min.js")"></script>
+    <script src="@Url.Content("~/Scripts/bootstrap.min.js")"></script>
+
+    @* === XÓA BỎ KHỐI SCRIPT CỦA NÚT TÌM KIẾM TẠI ĐÂY === *@
+
+    @RenderSection("scripts", required: false)
+</body>
+</html>

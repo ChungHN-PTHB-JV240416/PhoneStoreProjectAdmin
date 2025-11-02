@@ -1,0 +1,105 @@
+﻿@model IEnumerable<PhoneStore_New.Areas.Admin.Models.ViewModels.BannerViewModel>
+
+@{
+    ViewBag.Title = "Quản lý Banner";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .banner-thumbnail {
+        max-width: 200px;
+        max-height: 80px;
+        object-fit: cover;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+
+    .status-active {
+        color: green;
+        font-weight: bold;
+    }
+
+    .status-inactive {
+        color: red;
+        font-weight: bold;
+    }
+</style>
+
+<div class="admin-container">
+    <h2>Quản lý Banner</h2>
+
+    <p style="margin-bottom: 20px;">
+        @Html.ActionLink("Thêm Banner Mới", "Create", null, new { @class = "btn btn-success" })
+    </p>
+
+    @* Hiển thị thông báo (nếu có) *@
+    @if (!string.IsNullOrEmpty(ViewBag.Message))
+    {
+        <div class="alert alert-info">@ViewBag.Message</div>
+    }
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>
+                        @Html.DisplayNameFor(model => model.ImageUrl)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.Title)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.LinkUrl)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.DisplayOrder)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.IsActive)
+                    </th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            <img src="@Url.Content(item.ImageUrl)" alt="@item.Title" class="banner-thumbnail" />
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Title)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.LinkUrl)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.DisplayOrder)
+                        </td>
+                        <td>
+                            @if (item.IsActive)
+                            {
+                                <span class="status-active">Đang hiển thị</span>
+                            }
+                            else
+                            {
+                                <span class="status-inactive">Đã tắt</span>
+                            }
+                        </td>
+                        <td class="action-links" style="min-width: 100px;">
+                            @Html.ActionLink("Sửa", "Edit", new { id = item.BannerId }, new { @class = "btn btn-warning btn-xs" })
+
+                            @using (Html.BeginForm("Delete", "BannerAdmin", new { id = item.BannerId }, FormMethod.Post, new { @style = "display:inline;" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-danger btn-xs" onclick="return confirm('Bạn có chắc chắn muốn xóa banner này?');">
+                                    Xóa
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

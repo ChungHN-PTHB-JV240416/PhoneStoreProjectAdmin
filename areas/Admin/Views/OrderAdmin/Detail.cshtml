@@ -1,0 +1,111 @@
+﻿@model PhoneStore_New.Models.Order
+@using PhoneStore_New.Models
+@{
+    ViewBag.Title = "Chi tiết Đơn hàng #" + Model.OrderId;
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .order-info, .customer-info, .payment-info, .item-list {
+        margin-bottom: 20px;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+    }
+
+    .bill-image {
+        max-width: 300px;
+        height: auto;
+        display: block;
+        margin-top: 10px;
+        border: 1px solid #ddd;
+    }
+
+    .item-list th {
+        background-color: #f2f2f2;
+    }
+
+    .item-list img {
+        width: 50px;
+        height: auto;
+    }
+</style>
+
+<div class="admin-container">
+    <a href="@Url.Action("Index", "OrderAdmin", new { area = "Admin" })" class="btn btn-default btn-sm mb-3">← Quay lại danh sách đơn hàng</a>
+    <h2>Chi tiết Đơn hàng #@Model.OrderId</h2>
+
+    @* === 1. THÔNG TIN ĐƠN HÀNG VÀ KHÁCH HÀNG === *@
+    <div class="row">
+        <div class="col-md-6">
+            <div class="order-info">
+                @* OrderDate là DateTime non-nullable *@
+                <h3>Thông tin Đơn hàng</h3>
+                <p><strong>Ngày đặt:</strong> @Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
+
+                @* TotalAmount là decimal non-nullable *@
+                <p><strong>Tổng tiền:</strong> @Model.TotalAmount.ToString("N0") VNĐ</p>
+                <p><strong>Trạng thái:</strong> @Model.Status</p>
+                <p><strong>Địa chỉ giao hàng:</strong> @Model.ShippingAddress</p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="customer-info">
+                <h3>Thông tin Khách hàng</h3>
+                @if (Model.User != null)
+                {
+                    <p><strong>Họ tên:</strong> @Model.User.FirstName @Model.User.LastName</p>
+                    <p><strong>Email:</strong> @Model.User.Email</p>
+                    <p><strong>Điện thoại:</strong> @Model.User.PhoneNumber</p>
+                    <p><strong>Tên đăng nhập:</strong> @Model.User.Username</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    @* === 2. THÔNG TIN THANH TOÁN === *@
+    <div class="payment-info">
+        <h3>Thông tin Thanh toán</h3>
+        <p><strong>Phương thức:</strong> @(Model.PaymentMethod == "cod" ? "Thanh toán khi nhận hàng (COD)" : "Chuyển khoản ngân hàng")</p>
+
+        @if (!string.IsNullOrEmpty(Model.BillImageUrl))
+        {
+            <p><strong>Hóa đơn chuyển khoản:</strong></p>
+            <a href="@Url.Content(Model.BillImageUrl)" target="_blank">
+                <img src="@Url.Content(Model.BillImageUrl)" alt="Hóa đơn" class="bill-image">
+            </a>
+        }
+    </div>
+
+    @* === 3. SẢN PHẨM ĐÃ MUA === *@
+    <div class="item-list">
+        <h3>Các sản phẩm đã mua (@(Model.OrderItems?.Count() ?? 0) mặt hàng)</h3>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Sản phẩm</th>
+                    <th>Giá tại Order</th>
+                    <th>Số lượng</th>
+                    <th>Thành tiền</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.OrderItems)
+                {
+                    <tr>
+                        <td>@(item.Product?.Name ?? "Sản phẩm không rõ")</td>
+
+                        @* SỬA LỖI: Bỏ .Value *@
+                        <td>@item.PriceAtOrder.ToString("N0") VNĐ</td>
+
+                        <td>@item.Quantity</td>
+
+                        @* SỬA LỖI: Bỏ .Value *@
+                        <td>@((item.PriceAtOrder * item.Quantity).ToString("N0")) VNĐ</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+

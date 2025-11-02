@@ -1,0 +1,110 @@
+﻿@model PhoneStore_New.Areas.Admin.Models.ViewModels.ProductAdminListViewModel
+@{
+    ViewBag.Title = "Quản lý Sản phẩm";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .message {
+        padding: 10px;
+        margin-bottom: 20px;
+        border-radius: 5px;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .success {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .error {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .sale-info {
+        color: #e74c3c;
+        font-weight: bold;
+    }
+</style>
+
+<div class="admin-container">
+    <h2>Quản lý Sản phẩm</h2>
+
+    @* Hiển thị thông báo *@
+    @if (!string.IsNullOrEmpty(Model.Message))
+    {
+    <div class="message @(Model.Message.Contains("thành công") ? "success" : "error")">
+        @Model.Message
+    </div>
+    }
+
+    @* === 1. FORM TÌM KIẾM === *@
+    <div class="search-form text-center" style="margin-bottom: 20px;">
+        @using (Html.BeginForm("Products", "ProductAdmin", FormMethod.Get, new { @area = "Admin", @class = "form-inline" }))
+        {
+            @Html.AntiForgeryToken()
+            <input type="text" name="search_query" placeholder="Tìm kiếm sản phẩm..." value="@Model.SearchQuery" class="form-control" style="width: 300px;" />
+            <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+        }
+    </div>
+
+    @* === 2. NÚT THÊM MỚI (Cần Action EditProduct/AddProduct) === *@
+    <div class="text-center" style="margin-bottom: 20px;">
+        <a href="@Url.Action("EditProduct", "ProductAdmin", new { area = "Admin", id = 0 })" class="btn btn-success">Thêm sản phẩm mới</a>
+    </div>
+
+    @* === 3. DANH SÁCH SẢN PHẨM === *@
+    <h3>Danh sách Sản phẩm (@(Model.Products?.Count ?? 0) kết quả)</h3>
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Tên sản phẩm</th>
+                <th>Giá</th>
+                <th>Tồn kho</th>
+                <th>Sale</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Products != null && Model.Products.Count > 0)
+            {
+                @* SỬA LỖI: Đã nằm trong khối C# của @if, không cần @ trước foreach *@
+                foreach (var product in Model.Products)
+                {
+                    <tr>
+                        <td>@product.ProductId</td>
+                        <td>@product.Name</td>
+                        <td>@product.FormattedPrice</td>
+                        <td>@product.StockQuantity</td>
+                        <td>
+                            @if (product.DiscountPercentage > 0)
+                            {
+                                <span class="sale-info">Có (@product.DiscountPercentage%)</span>
+                            }
+                            else
+                            {
+                                <span>Không</span>
+                            }
+                        </td>
+                        <td class="action-links">
+                            @Html.ActionLink("Sửa", "EditProduct", "ProductAdmin", new { area = "Admin", id = product.ProductId }, new { @class = "btn btn-warning btn-xs" })
+
+                            @using (Html.BeginForm("DeleteProduct", "ProductAdmin", new { area = "Admin", id = product.ProductId }, FormMethod.Post, new { @style = "display:inline;" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-danger btn-xs" onclick="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này?');">Xóa</button>
+                            }
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr><td colspan="6" class="text-center">Không tìm thấy sản phẩm nào.</td></tr>
+            }
+        </tbody>
+    </table>
+</div>

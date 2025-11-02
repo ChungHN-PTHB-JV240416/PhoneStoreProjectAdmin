@@ -1,0 +1,319 @@
+﻿/* === CÀI ĐẶT CHUNG & TYPOGRAPHY === */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f8f9fa;
+    padding-top: 70px; /* Khoảng trống cho navbar cố định */
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    color: #1a252f;
+}
+
+.container {
+    max-width: 1200px;
+}
+
+.body-content {
+    padding: 20px 15px;
+    background-color: #ffffff;
+    min-height: 70vh;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+/* === HEADER & NAVBAR === */
+.navbar-default {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e7e7e7;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    transition: all 0.3s;
+    padding: 10px 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1030;
+}
+
+.navbar-brand {
+    padding: 0 15px;
+}
+
+    .navbar-brand img {
+        height: 40px;
+        margin-top: 5px; /* Căn chỉnh logo */
+    }
+
+.navbar-default .navbar-nav > li > a {
+    color: #333;
+    font-weight: 500;
+    font-size: 15px;
+    padding-top: 15px;
+    padding-bottom: 15px;
+    transition: color 0.2s;
+}
+
+    .navbar-default .navbar-nav > li > a:hover,
+    .navbar-default .navbar-nav > li > a:focus {
+        color: #007bff; /* Màu xanh chủ đạo */
+        background-color: transparent;
+    }
+
+.dropdown-menu {
+    border: none;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    border-radius: 8px;
+}
+
+    .dropdown-menu > li > a {
+        padding: 10px 20px;
+        color: #333;
+    }
+
+        .dropdown-menu > li > a:hover {
+            background-color: #007bff;
+            color: #fff;
+        }
+
+/* ================================================= */
+/* === CSS MỚI CHO THANH TÌM KIẾM BẬT/TẮT === */
+/* ================================================= */
+
+#search-toggle-btn {
+    cursor: pointer;
+}
+
+    #search-toggle-btn:hover {
+        color: #007bff !important; /* Thêm hiệu ứng hover cho nút kính lúp */
+    }
+
+#search-bar-container {
+    display: none; /* Ẩn mặc định */
+    background-color: #333; /* Nền tối hơn để nổi bật */
+    border-bottom: 1px solid #222;
+    padding: 20px 0;
+    position: fixed;
+    top: 70px; /* Chiều cao của navbar (padding-top của body) */
+    left: 0;
+    right: 0;
+    z-index: 1020; /* Dưới navbar (1030) nhưng trên nội dung */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1); /* Thêm bóng nhẹ */
+}
+
+    #search-bar-container .navbar-form {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        display: flex; /* Dùng flexbox để co giãn */
+        border: none;
+        box-shadow: none; /* Tắt box-shadow mặc định của navbar-form */
+    }
+
+    #search-bar-container .form-group {
+        flex-grow: 1; /* Cho phép ô input co giãn đầy */
+        margin-right: 15px; /* Tăng khoảng cách */
+    }
+
+    #search-bar-container .form-control {
+        width: 100%;
+        height: 45px; /* Làm cho ô input cao hơn */
+        font-size: 16px; /* Chữ to hơn */
+        border-radius: 5px;
+    }
+
+    #search-bar-container .btn {
+        height: 45px; /* Làm nút cao bằng ô input */
+        font-size: 16px;
+        font-weight: 600;
+        padding-left: 25px;
+        padding-right: 25px;
+    }
+
+/* ================================================= */
+/* === PRODUCT CARD (ĐÃ TỐI ƯU HÓA) === */
+/* ================================================= */
+
+.product-card {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    background: #fff;
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .product-card .content {
+        padding: 20px;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .product-card img {
+        max-width: 100%;
+        height: 180px;
+        object-fit: contain;
+        margin-bottom: 15px;
+    }
+
+    .product-card h3 {
+        font-size: 16px;
+        margin: 0 0 10px 0;
+        height: 48px;
+        line-height: 24px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+.price-container {
+    margin: 10px 0;
+    font-size: 18px;
+}
+
+.original-price {
+    text-decoration: line-through;
+    color: #868e96;
+    font-size: 14px;
+    margin-bottom: -5px;
+}
+
+.sale-price {
+    font-weight: 700;
+    color: #dc3545;
+}
+
+.product-card .btn {
+    margin-top: auto;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    padding: 12px;
+    font-weight: 600;
+}
+
+.product-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #dc3545;
+    color: white;
+    padding: 5px 8px;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 4px;
+    z-index: 10;
+}
+
+.row.product-list {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+    .row.product-list > [class*="col-"] {
+        display: flex;
+        margin-bottom: 30px;
+    }
+
+/* === FOOTER === */
+.site-footer {
+    background-color: #1a2229;
+    color: #caced3;
+    padding: 40px 0 0 0;
+    margin-top: 40px;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    max-width: 1200px;
+    margin: auto;
+    padding: 0 20px;
+}
+
+.footer-section {
+    flex: 1;
+    min-width: 250px;
+    margin-bottom: 30px;
+}
+
+    .footer-section h3 {
+        color: #fff;
+        border-bottom: 2px solid #007bff;
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+        display: inline-block;
+    }
+
+.footer-bottom {
+    text-align: center;
+    padding: 20px;
+    border-top: 1px solid #444;
+    margin-top: 20px;
+}
+
+/* === ADMIN DASHBOARD STYLES === */
+.panel-primary .fa, .panel-green .fa, .panel-yellow .fa {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.panel-primary {
+    border-color: #337ab7;
+}
+
+    .panel-primary > .panel-heading {
+        color: #fff;
+        background-color: #337ab7;
+        border-color: #337ab7;
+    }
+
+.panel-green {
+    border-color: #5cb85c;
+}
+
+    .panel-green > .panel-heading {
+        color: #fff;
+        background-color: #5cb85c;
+        border-color: #5cb85c;
+    }
+
+.panel-yellow {
+    border-color: #f0ad4e;
+}
+
+    .panel-yellow > .panel-heading {
+        color: #fff;
+        background-color: #f0ad4e;
+        border-color: #f0ad4e;
+    }
+
+.panel-danger {
+    border-color: #d9534f;
+}
+
+    .panel-danger > .panel-heading {
+        color: #fff;
+        background-color: #d9534f;
+        border-color: #d9534f;
+    }
+
+.huge {
+    font-size: 40px;
+    line-height: normal;
+}
+    

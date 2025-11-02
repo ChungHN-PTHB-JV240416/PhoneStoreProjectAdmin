@@ -1,0 +1,74 @@
+﻿@model PhoneStore_New.Areas.Admin.Models.ViewModels.SalesReportViewModel
+@{
+    ViewBag.Title = "Báo cáo Doanh thu";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .report-summary {
+        text-align: center;
+        margin-bottom: 30px;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+    }
+
+        .report-summary p {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+
+    .revenue {
+        color: #2ecc71;
+    }
+
+    .profit {
+        color: #3498db;
+    }
+</style>
+
+<div class="admin-container">
+    <h2>Báo cáo Doanh thu</h2>
+
+    <div class="report-summary">
+        <p class="revenue">Tổng Doanh thu: @Model.TotalRevenue.ToString("N0") VNĐ</p>
+        <p class="profit">Tổng Lợi nhuận: @Model.TotalProfit.ToString("N0") VNĐ</p>
+    </div>
+
+    <h3>Doanh thu theo Ngày</h3>
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Ngày</th>
+                <th>Doanh thu</th>
+                <th>Lợi nhuận</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.ReportItems != null && Model.ReportItems.Any())
+            {
+                foreach (var report in Model.ReportItems)
+                {
+                    <tr>
+                        <td>@report.FormattedDay</td>
+                        <td class="revenue">@report.FormattedRevenue</td>
+                        <td class="profit">@report.FormattedProfit</td>
+                        <td>
+                            @* === SỬA ĐỔI QUAN TRỌNG: Định dạng lại ngày tháng trong link === *@
+                            @Html.ActionLink("Xem chi tiết", "SalesDetail", "Report",
+                                new { area = "Admin", date = report.OrderDay.ToString("yyyy-MM-dd") },
+                                new { @class = "btn btn-info btn-xs" })
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr><td colspan="4" class="text-center">Không có dữ liệu doanh thu.</td></tr>
+            }
+        </tbody>
+    </table>
+</div>

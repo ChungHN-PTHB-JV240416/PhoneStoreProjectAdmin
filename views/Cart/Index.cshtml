@@ -1,0 +1,80 @@
+﻿@model List<PhoneStore_New.Models.ViewModels.CartItem>
+@{
+    ViewBag.Title = "Giỏ hàng của tôi";
+}
+
+<div class="container">
+    <h1>Giỏ hàng của tôi</h1>
+
+    @if (Model != null && Model.Any())
+    {
+        <table>
+            <thead>
+                <tr>
+                    <th>Hình ảnh</th>
+                    <th>Sản phẩm</th>
+                    <th>Giá</th>
+                    <th>Số lượng</th>
+                    <th>Thành tiền</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            <img src="@Url.Content(item.ImageUrl)" alt="@item.Name" class="cart-item-image" style="width: 80px;">
+                        </td>
+                        <td>@item.Name</td>
+                        <td>@item.Price.ToString("N0") VNĐ</td>
+                        <td>
+                            @* Form cập nhật số lượng *@
+                            @using (Html.BeginForm("UpdateQuantity", "Cart", FormMethod.Post, new { style = "display:inline-block;" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="productId" value="@item.ProductId" />
+                                <input type="number"
+                                       name="quantity"
+                                       value="@item.Quantity"
+                                       min="1"
+                                       style="width: 50px;"
+                                       onchange="this.form.submit()" />
+                                @* Thêm input ẩn nếu bạn cần cho logic Controller, nhưng UpdateQuantity đã đơn giản *@
+                            }
+                        </td>
+                        <td>@item.Subtotal.ToString("N0") VNĐ</td>
+                        <td>
+                            @* Form xóa sản phẩm *@
+                            @using (Html.BeginForm("RemoveItem", "Cart", FormMethod.Post, new { style = "display:inline-block;" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="productId" value="@item.ProductId" />
+                                <button type="submit"
+                                        onclick="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này?');"
+                                        style="background: none; border: none; color: red; cursor: pointer;">
+                                    Xóa
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                }
+
+                <tr class="total-row">
+                    <td colspan="4">Tổng cộng</td>
+                    <td colspan="2">@Model.Sum(i => i.Subtotal).ToString("N0") VNĐ</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="cart-actions text-center" style="margin-top: 20px;">
+            <a href="@Url.Action("Index", "Home")" class="btn btn-info">Tiếp tục mua sắm</a>
+            <a href="@Url.Action("Index", "Checkout")" class="btn btn-success">Tiến hành thanh toán</a>
+        </div>
+    }
+    else
+    {
+        <p class="no-items text-center alert alert-warning">Giỏ hàng của bạn đang trống.</p>
+        <p class="text-center"><a href="@Url.Action("Index", "Home")">Quay lại trang chủ</a></p>
+    }
+</div>

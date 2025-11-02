@@ -1,0 +1,62 @@
+﻿@model PhoneStore_New.Models.ViewModels.SaleProductsViewModel
+@{
+    ViewBag.Title = "Sản phẩm Giảm giá";
+}
+
+<style>
+    /* Sử dụng biến động từ ViewModel để đặt số cột */
+    .product-container-dynamic {
+        display: grid;
+        grid-template-columns: repeat(@Model.ProductsPerRow, 1fr);
+        gap: 20px;
+        padding: 20px 0;
+    }
+    .category-section h2 {
+        text-align: center;
+        color: #34495e;
+        font-size: 2em;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #e74c3c;
+        padding-bottom: 10px;
+        margin-top: 40px;
+    }
+</style>
+
+<div class="container">
+    <h1 class="text-center" style="margin-top: 30px; color: #e74c3c;">Sản phẩm đang Giảm giá</h1>
+
+    @if (Model.ProductsByCategory != null && Model.ProductsByCategory.Any())
+    {
+        foreach (var categoryGroup in Model.ProductsByCategory)
+        {
+            <div class="category-section">
+                <h2>@categoryGroup.Key</h2>
+                <div class="product-container-dynamic">
+                    @foreach (var product in categoryGroup.Value)
+                    {
+                        <div class="product-card">
+                            <div class="content">
+                                <img src="@Url.Content(product.ImageUrl)" alt="@product.Name" class="img-responsive">
+
+                                <h3>@product.Name</h3>
+
+                                <div class="price-container">
+                                    <p class="original-price">@product.FormattedOriginalPrice</p>
+                                    <p class="sale-price">@product.FormattedSalePrice</p>
+                                </div>
+                            </div>
+                            @Html.ActionLink("Xem chi tiết", "Detail", "Product", new { id = product.ProductId }, new { @class = "btn btn-primary btn-block" })
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <p class="text-center alert alert-info">Hiện tại không có sản phẩm nào đang giảm giá.</p>
+    }
+</div>
+
+
+

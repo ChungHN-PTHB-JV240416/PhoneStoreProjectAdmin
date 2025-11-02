@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="47a315ac887c4528a86daac161e82ec9" Name="Diagram1">
+        <EntityTypeShape EntityType="PhoneStoreDBModel.Banner" Width="1.5" PointX="5.75" PointY="6.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="PhoneStoreDBModel.Category" Width="1.5" PointX="0.75" PointY="3.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="PhoneStoreDBModel.NavbarItem" Width="1.5" PointX="7.75" PointY="6.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="PhoneStoreDBModel.OrderItem" Width="1.5" PointX="5.25" PointY="2.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="PhoneStoreDBModel.Order" Width="1.5" PointX="3" PointY="7.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="PhoneStoreDBModel.PriceRanx" Width="1.5" PointX="9.75" PointY="6.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="PhoneStoreDBModel.Product" Width="1.5" PointX="3" PointY="2.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="PhoneStoreDBModel.Review" Width="1.5" PointX="8.25" PointY="2.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="PhoneStoreDBModel.Setting" Width="1.5" PointX="7.75" PointY="9.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="PhoneStoreDBModel.Supplier" Width="1.5" PointX="9.75" PointY="9.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="PhoneStoreDBModel.User" Width="1.5" PointX="0.75" PointY="6.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="PhoneStoreDBModel.Voucher" Width="1.5" PointX="10.75" PointY="0.75" IsExpanded="true" />
+        <AssociationConnector Association="PhoneStoreDBModel.FK_Products_Categories" ManuallyRouted="false" />
+        <AssociationConnector Association="PhoneStoreDBModel.FK_OrderItems_Orders" ManuallyRouted="false" />
+        <AssociationConnector Association="PhoneStoreDBModel.FK_OrderItems_Products" ManuallyRouted="false" />
+        <AssociationConnector Association="PhoneStoreDBModel.FK_Orders_Users" ManuallyRouted="false" />
+        <AssociationConnector Association="PhoneStoreDBModel.FK_Reviews_Products" ManuallyRouted="false" />
+        <AssociationConnector Association="PhoneStoreDBModel.FK_Reviews_Users" ManuallyRouted="false" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

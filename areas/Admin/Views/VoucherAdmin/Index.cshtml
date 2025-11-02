@@ -1,0 +1,124 @@
+﻿@model IEnumerable<PhoneStore_New.Areas.Admin.Models.ViewModels.VoucherViewModel>
+
+@{
+    ViewBag.Title = "Quản lý Voucher";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .status-active {
+        color: green;
+        font-weight: bold;
+    }
+
+    .status-inactive {
+        color: red;
+        font-weight: bold;
+    }
+
+    .status-expired {
+        color: #888;
+        font-weight: bold;
+    }
+
+    .action-links .btn {
+        margin-bottom: 5px;
+    }
+</style>
+
+<div class="admin-container">
+    <h2>Quản lý Voucher</h2>
+
+    <p style="margin-bottom: 20px;">
+        @Html.ActionLink("Tạo Voucher Mới", "Create", null, new { @class = "btn btn-success" })
+    </p>
+
+    @* Hiển thị thông báo (nếu có) *@
+    @if (!string.IsNullOrEmpty(ViewBag.Message))
+    {
+        <div class="alert alert-info">@ViewBag.Message</div>
+    }
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>
+                        @Html.DisplayNameFor(model => model.Code)
+                    </th>
+                    <th>
+                        Giá trị giảm
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.VipOnly)
+                    </th>
+                    <th>
+                        Giới hạn / Đã dùng
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.ExpiryDate)
+                    </th>
+                    <th>
+                        Trạng thái
+                    </th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            <strong>@Html.DisplayFor(modelItem => item.Code)</strong>
+                        </td>
+                        <td>
+                            @* === SỬA LỖI LOGIC HIỂN THỊ TẠI ĐÂY === *@
+                            @if (item.DiscountType == "fixed_amount")
+                            {
+                                <span>@item.DiscountValue.ToString("N0") VNĐ</span>
+                            }
+                            else
+                            {
+                                <span>@item.DiscountValue%</span>
+                            }
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.VipOnly)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.UsageLimit) / @Html.DisplayFor(modelItem => item.UsageCount)
+                        </td>
+                        <td>
+                            @(item.ExpiryDate.HasValue ? item.ExpiryDate.Value.ToString("dd/MM/yyyy") : "Không hết hạn")
+                        </td>
+                        <td>
+                            @if (item.Status == "Hoạt động")
+                            {
+                                <span class="status-active">@item.Status</span>
+                            }
+                            else if (item.Status == "Đã tắt")
+                            {
+                                <span class="status-inactive">@item.Status</span>
+                            }
+                            else
+                            {
+                                <span class="status-expired">@item.Status</span>
+                            }
+                        </td>
+                        <td class="action-links" style="min-width: 100px;">
+                            @Html.ActionLink("Sửa", "Edit", new { id = item.VoucherId }, new { @class = "btn btn-warning btn-xs" })
+
+                            @using (Html.BeginForm("Delete", "VoucherAdmin", new { id = item.VoucherId }, FormMethod.Post, new { @style = "display:inline;" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                <button type.submit" class="btn btn-danger btn-xs" onclick="return confirm('Bạn có chắc chắn muốn xóa voucher này? (Chỉ xóa được khi chưa có ai dùng)');">
+                                    Xóa
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,65 @@
+﻿@model PhoneStore_New.Models.ViewModels.RegisterViewModel
+@{
+    ViewBag.Title = "Đăng ký tài khoản";
+    // Đặt Layout = null nếu bạn muốn trang đăng ký là trang độc lập
+    Layout = null;
+}
+
+@* Sử dụng CSS từ register.php gốc của bạn (hoặc Tailwind CSS nếu bạn đang dùng) *@
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Các style tùy chỉnh khác từ file PHP gốc của bạn có thể đặt ở đây */
+    </style>
+</head>
+
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+        <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Đăng ký tài khoản</h2>
+
+        @* Hiển thị tất cả lỗi validation *@
+        @Html.ValidationSummary(true, "Vui lòng sửa các lỗi sau:", new { @class = "text-red-500 mb-4 font-medium" })
+
+        @using (Html.BeginForm("Register", "Login", FormMethod.Post, new { @class = "space-y-4" }))
+        {
+            @Html.AntiForgeryToken()
+
+            <div>
+                @Html.LabelFor(m => m.Username, new { @class = "block text-sm font-medium text-gray-700" })
+                @Html.TextBoxFor(m => m.Username, new { @class = "mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" })
+                @Html.ValidationMessageFor(m => m.Username, "", new { @class = "text-red-500 text-xs mt-1" })
+            </div>
+
+            <div>
+                @Html.LabelFor(m => m.Email, new { @class = "block text-sm font-medium text-gray-700" })
+                @Html.TextBoxFor(m => m.Email, new { @type = "email", @class = "mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" })
+                @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-red-500 text-xs mt-1" })
+            </div>
+
+            <div>
+                @Html.LabelFor(m => m.Password, new { @class = "block text-sm font-medium text-gray-700" })
+                @Html.PasswordFor(m => m.Password, new { @class = "mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" })
+                @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-red-500 text-xs mt-1" })
+            </div>
+
+            <div>
+                @Html.LabelFor(m => m.ConfirmPassword, new { @class = "block text-sm font-medium text-gray-700" })
+                @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" })
+                @Html.ValidationMessageFor(m => m.ConfirmPassword, "", new { @class = "text-red-500 text-xs mt-1" })
+            </div>
+
+            <button type="submit"
+                    class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200">
+                Đăng ký
+            </button>
+        }
+
+        <p class="mt-4 text-center text-sm text-gray-600">
+            Bạn đã có tài khoản?
+            <a href="@Url.Action("Index", "Login")" class="text-blue-600 hover:underline">Đăng nhập ngay</a>
+        </p>
+    </div>
+</body>

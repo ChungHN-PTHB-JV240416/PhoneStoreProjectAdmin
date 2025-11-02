@@ -1,0 +1,48 @@
+﻿@* Đảm bảo model là một danh sách *@
+@model IEnumerable<PhoneStore_New.Areas.Admin.Models.ViewModels.OrderAdminViewModel>
+
+@{
+    ViewBag.Title = "Chi tiết Doanh thu ngày " + ViewBag.ReportDate;
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="admin-container">
+    <a href="@Url.Action("Sales", "Report", new { area = "Admin" })" class="btn btn-default" style="margin-bottom: 20px;">← Quay lại Báo cáo Tổng quan</a>
+
+    <h2>Chi tiết Đơn hàng Hoàn tất - Ngày @ViewBag.ReportDate</h2>
+
+    @if (Model != null && Model.Any())
+    {
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Mã Đơn hàng</th>
+                    <th>Ngày đặt</th>
+                    <th>Khách hàng</th>
+                    <th>Tên đăng nhập</th>
+                    <th>Tổng tiền</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var order in Model)
+                {
+                    <tr>
+                        <td>@order.OrderId</td>
+                        <td>@order.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>@order.CustomerName</td>
+                        <td>@order.Username</td>
+                        <td>@order.FormattedTotalAmount</td>
+                        <td>
+                            @Html.ActionLink("Xem chi tiết đơn", "Detail", "OrderAdmin", new { area = "Admin", id = order.OrderId }, new { @class = "btn btn-info btn-xs" })
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p class="alert alert-info">Không có đơn hàng nào được hoàn tất trong ngày này.</p>
+    }
+</div>

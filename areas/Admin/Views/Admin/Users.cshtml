@@ -1,0 +1,94 @@
+﻿@model PhoneStore_New.Areas.Admin.Models.ViewModels.UserListViewModel
+@{
+    ViewBag.Title = "Quản lý Người dùng";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="admin-container">
+    <h2>Quản lý Người dùng</h2>
+
+    @if (!string.IsNullOrEmpty(Model.Message))
+    {
+        <div class="message-box @(Model.Message.Contains("thành công") ? "success" : "error")">
+            @Model.Message
+        </div>
+    }
+
+    <div class="search-form">
+        @using (Html.BeginForm("Users", "Admin", FormMethod.Get, new { @area = "Admin" }))
+        {
+            <div class="input-group">
+                <input type="text" name="search_query" placeholder="Tìm kiếm người dùng..." value="@Model.SearchQuery" class="form-control" />
+                <span class="input-group-btn">
+                    <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+                </span>
+            </div>
+        }
+    </div>
+
+    <h3>Danh sách Người dùng</h3>
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Họ tên</th>
+                    <th>Email</th>
+                    <th>Vai trò</th>
+                    <th>Loại TK</th>
+                    <th>VIP Hết hạn</th>
+                    <th style="width: 15%;">Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Users != null && Model.Users.Any())
+                {
+                    for (int i = 0; i < Model.Users.Count; i++)
+                    {
+                        var user = Model.Users[i];
+                        <tr>
+                            @using (Html.BeginForm("UpdateUser", "Admin", new { area = "Admin", index = i }, FormMethod.Post, new { @class = "form-inline" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                @Html.HiddenFor(m => m.Users[i].UserId)
+                                @Html.HiddenFor(m => m.SearchQuery)
+
+                                <td>@user.UserId</td>
+                                <td>
+                                    @Html.TextBoxFor(m => m.Users[i].FirstName, new { @class = "form-control input-sm", placeholder = "Tên", required = "required" })
+                                    @Html.TextBoxFor(m => m.Users[i].LastName, new { @class = "form-control input-sm", placeholder = "Họ", style = "margin-top: 5px;", required = "required" })
+                                </td>
+                                <td>
+                                    @Html.TextBoxFor(m => m.Users[i].Email, new { @class = "form-control input-sm", type = "email", required = "required" })
+                                </td>
+
+                                <td>
+                                    @user.Role
+                                </td>
+                                <td>
+                                    @user.UserType
+                                </td>
+                                <td>
+                                    @(user.VipExpiryDate?.ToString("dd/MM/yyyy") ?? "Không có")
+                                </td>
+
+                                <td class="action-links">
+                                    <button type="submit" class="btn btn-success btn-xs">Lưu</button>
+                                    @if (User.Identity.GetUserId() != user.UserId.ToString())
+                                    {
+                                        @Html.ActionLink("Xóa", "DeleteUser", new { area = "Admin", id = user.UserId },
+                                            new { @class = "btn btn-danger btn-xs", onclick = "return confirm('Bạn có chắc chắn muốn xóa người dùng này?');" })
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr><td colspan="7" class="text-center">Không tìm thấy người dùng nào.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,160 @@
+﻿@* THÊM 2 DÒNG USING NÀY *@
+@using PagedList.Mvc;
+@using PagedList;
+
+@* SỬA LẠI MODEL *@
+@model PhoneStore_New.Models.ViewModels.ProductSearchViewModel
+
+@{
+    ViewBag.Title = "Kết quả tìm kiếm";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@* THÊM CSS CHO NÚT PHÂN TRANG *@
+<style>
+    .pagination-container {
+        text-align: center;
+        margin-top: 30px;
+    }
+
+        .pagination-container .pagination > li > a,
+        .pagination-container .pagination > li > span {
+            color: #007bff;
+            border: 1px solid #ddd;
+            margin: 0 2px;
+            border-radius: 4px;
+        }
+
+        .pagination-container .pagination > .active > a,
+        .pagination-container .pagination > .active > span,
+        .pagination-container .pagination > .active > a:hover,
+        .pagination-container .pagination > .active > span:hover,
+        .pagination-container .pagination > .active > a:focus,
+        .pagination-container .pagination > .active > span:focus {
+            background-color: #007bff;
+            border-color: #007bff;
+            color: #fff;
+        }
+
+        .pagination-container .pagination > li > a:hover,
+        .pagination-container .pagination > li > span:hover {
+            background-color: #f4f4f4;
+        }
+
+    /* Đảm bảo grid sản phẩm hoạt động */
+    .product-container {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr); /* Mặc định 3 cột */
+        gap: 20px;
+        padding: 20px 0;
+        max-width: 1200px;
+        margin: auto;
+    }
+
+    /* Responsive cho di động */
+    @@media (max-width: 768px) {
+        .product-container {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .product-container {
+            grid-template-columns: repeat(1, 1fr);
+        }
+    }
+</style>
+
+<div class="container" style="margin-top: 20px;">
+    <h1>Kết quả tìm kiếm</h1>
+
+    @* === FORM LỌC (GIỮ NGUYÊN) === *@
+    @using (Html.BeginForm("Search", "Product", FormMethod.Get, new { @class = "form-inline", style = "padding: 20px; background-color: #f8f9fa; border-radius: 8px; margin-bottom: 30px;" }))
+    {
+        @* Giữ lại từ khóa tìm kiếm *@
+        @Html.HiddenFor(m => m.Keyword)
+
+        <div class="form-group" style="margin-right: 15px;">
+            @Html.Label("Thương hiệu:", new { @class = "control-label" })
+            @Html.DropDownListFor(m => m.SelectedCategoryId, Model.Categories, "--- Tất cả thương hiệu ---", new { @class = "form-control" })
+        </div>
+
+        <div class="form-group" style="margin-right: 15px;">
+            @Html.Label("Khoảng giá:", new { @class = "control-label" })
+            @Html.DropDownListFor(m => m.SelectedPriceRangeId, Model.PriceRanges, "--- Tất cả các mức giá ---", new { @class = "form-control" })
+        </div>
+
+        <button type="submit" class="btn btn-primary">Lọc kết quả</button>
+    }
+
+    <hr />
+
+    @* === HIỂN THỊ KẾT QUẢ (ĐÃ SỬA LẠI) === *@
+    @if (!string.IsNullOrEmpty(Model.Keyword))
+    {
+        <h3>Kết quả tìm kiếm cho: "@Model.Keyword" (@Model.Results.TotalItemCount kết quả)</h3>
+    }
+    else
+    {
+        <h3>Kết quả lọc (@Model.Results.TotalItemCount kết quả)</h3>
+    }
+
+    @if (Model.Results.Any())
+    {
+        <div class="product-container">
+            @* Lặp qua danh sách đã phân trang *@
+            @foreach (var product in Model.Results)
+            {
+                <div class="product-card">
+                    @if (product.IsVipPrice)
+                    {
+                        <span class="product-badge" style="background-color: #007bff;">👑 GIÁ VIP</span>
+                    }
+                    else if (product.DiscountPercentage > 0)
+                    {
+                        <span class="product-badge">-@product.DiscountPercentage%</span>
+                    }
+
+                    <div class="content">
+                        <img src="@Url.Content(product.ImageUrl)" alt="@product.Name">
+                        <h3>@product.Name</h3>
+                        <div class="price-container">
+                            @if (product.FinalPrice < product.OriginalPrice)
+                            {
+                                <p class="original-price">@product.FormattedOriginalPrice</p>
+                            }
+                            <p class="sale-price">@product.FormattedFinalPrice</p>
+                        </div>
+                    </div>
+                    @Html.ActionLink("Xem chi tiết", "Detail", "Product", new { id = product.ProductId }, new { @class = "btn btn-primary btn-block" })
+                </div>
+            }
+        </div>
+
+        @* === THÊM NÚT PHÂN TRANG TẠI ĐÂY === *@
+        <div class="pagination-container">
+            @Html.PagedListPager(Model.Results, page => Url.Action("Search", "Product",
+                new
+                     {
+                    page,
+                    keyword = Model.Keyword,
+                    selectedCategoryId = Model.SelectedCategoryId,
+                    selectedPriceRangeId = Model.SelectedPriceRangeId
+                }),
+                new PagedListRenderOptions
+                {
+                    LiElementClasses = new[] { "page-item" },
+                    UlElementClasses = new[] { "pagination" },
+                    DisplayLinkToIndividualPages = true,
+                    DisplayPageCountAndCurrentLocation = false,
+                    LinkToNextPageFormat = "Tiếp »",
+                    LinkToPreviousPageFormat = "« Trước",
+                })
+        </div>
+        @* === KẾT THÚC THÊM NÚT PHÂN TRANG === *@
+    }
+    else
+    {
+        <p class="alert alert-warning">Không tìm thấy sản phẩm nào phù hợp với tiêu chí của bạn.</p>
+    }
+</div>

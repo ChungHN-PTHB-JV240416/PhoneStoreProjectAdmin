@@ -1,0 +1,55 @@
+﻿@model PhoneStore_New.Models.ViewModels.OrderDetailViewModel
+@{
+    ViewBag.Title = "Chi tiết Đơn hàng #" + Model.OrderId;
+    Layout = "~/Views/Shared/_Layout.cshtml"; // Đảm bảo bạn sử dụng layout người dùng
+}
+
+<div class="container" style="margin-top: 30px;">
+    <h2>Chi tiết Đơn hàng #@Model.OrderId</h2>
+    <hr />
+
+    <div class="row">
+        <div class="col-md-6">
+            <h4>Thông tin đơn hàng</h4>
+            <p><strong>Ngày đặt:</strong> @Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
+            <p><strong>Tổng tiền:</strong> @Model.TotalAmount.ToString("N0") VNĐ</p>
+            <p><strong>Trạng thái:</strong> @Model.Status</p>
+            <p><strong>Phương thức thanh toán:</strong> @(Model.PaymentMethod == "cod" ? "Thanh toán khi nhận hàng" : "Chuyển khoản")</p>
+            <p><strong>Địa chỉ giao hàng:</strong> @Model.ShippingAddress</p>
+        </div>
+    </div>
+
+    <h4 style="margin-top: 30px;">Các sản phẩm đã mua</h4>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Sản phẩm</th>
+                <th>Giá tại thời điểm mua</th>
+                <th>Số lượng</th>
+                <th>Thành tiền</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Items != null && Model.Items.Any())
+            {
+                foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td>@item.ProductName</td>
+                        <td>@item.PriceAtOrder.ToString("N0") VNĐ</td>
+                        <td>@item.Quantity</td>
+                        <td>@item.Subtotal.ToString("N0") VNĐ</td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="4" class="text-center">Không có thông tin sản phẩm cho đơn hàng này.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <a href="@Url.Action("History", "Order")" class="btn btn-default" style="margin-top: 20px;">← Quay lại Lịch sử đơn hàng</a>
+</div>

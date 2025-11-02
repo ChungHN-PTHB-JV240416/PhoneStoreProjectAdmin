@@ -1,0 +1,100 @@
+﻿@model PhoneStore_New.Areas.Admin.Models.ViewModels.VoucherViewModel
+
+@{
+    ViewBag.Title = "Sửa Voucher: " + Model.Code;
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="admin-container">
+    <h2>Sửa Voucher: @Model.Code</h2>
+    <hr />
+
+    @using (Html.BeginForm("Edit", "VoucherAdmin", FormMethod.Post, new { @class = "form-horizontal" }))
+    {
+        @Html.AntiForgeryToken()
+
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+        @Html.HiddenFor(model => model.VoucherId)
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Code, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Code, new { htmlAttributes = new { @class = "form-control", @style = "text-transform:uppercase" } })
+                @Html.ValidationMessageFor(model => model.Code, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.DiscountType, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @* === SỬA LỖI QUAN TRỌNG: Đổi value="fixed" === *@
+                <select name="DiscountType" id="DiscountType" class="form-control">
+                    <option value="fixed_amount" @(Model.DiscountType == "fixed_amount" ? "selected" : "")>Giảm tiền mặt (VNĐ)</option>
+                    <option value="percentage" @(Model.DiscountType == "percentage" ? "selected" : "")>Giảm phần trăm (%)</option>
+                </select>
+                @Html.ValidationMessageFor(model => model.DiscountType, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.DiscountValue, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.DiscountValue, new { htmlAttributes = new { @class = "form-control", @type = "number", @step = "1" } })
+                @Html.ValidationMessageFor(model => model.DiscountValue, "", new { @class = "text-danger" })
+                <span class="help-block">Nếu giảm %, nhập số (ví dụ: 10). Nếu giảm tiền mặt, nhập số tiền (ví dụ: 100000).</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.ExpiryDate, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.ExpiryDate, new { htmlAttributes = new { @class = "form-control", @type = "date", @Value = Model.ExpiryDate.HasValue ? Model.ExpiryDate.Value.ToString("yyyy-MM-dd") : "" } })
+                @Html.ValidationMessageFor(model => model.ExpiryDate, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.UsageLimit, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.UsageLimit, new { htmlAttributes = new { @class = "form-control", @type = "number", @min = "1" } })
+                @Html.ValidationMessageFor(model => model.UsageLimit, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.UsageCount, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.UsageCount, new { htmlAttributes = new { @class = "form-control", @readonly = "readonly" } })
+                <span class="help-block">Số lượt đã dùng (không thể sửa).</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.VipOnly, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                <div class="checkbox">
+                    @Html.EditorFor(model => model.VipOnly)
+                    @Html.ValidationMessageFor(model => model.VipOnly, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.IsActive, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                <div class="checkbox">
+                    @Html.EditorFor(model => model.IsActive)
+                    @Html.ValidationMessageFor(model => model.IsActive, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Lưu thay đổi" class="btn btn-primary" />
+                @Html.ActionLink("Quay lại Danh sách", "Index", null, new { @class = "btn btn-default" })
+            </div>
+        </div>
+    }
+</div>

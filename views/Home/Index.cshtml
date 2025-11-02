@@ -1,0 +1,164 @@
+﻿@model PhoneStore_New.Models.ViewModels.HomeViewModel
+@{
+    ViewBag.Title = "Trang Chủ";
+}
+
+<style>
+    /* CSS cho Slider */
+    #bannerCarousel {
+        margin-bottom: 30px;
+        background-color: #f0f0f0;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    .carousel-inner .item img {
+        width: 100%;
+        min-height: 350px;
+        max-height: 450px;
+        object-fit: cover;
+        display: block;
+    }
+
+    /* === SỬA ĐỔI CSS CHO HIỂN THỊ THEO NHÓM === */
+    .brand-section {
+        margin-bottom: 40px; /* Khoảng cách giữa các thương hiệu */
+    }
+
+    .brand-title {
+        font-size: 2.5em; /* Kích thước tiêu đề thương hiệu */
+        font-weight: 700;
+        color: #333;
+        padding-bottom: 10px;
+        border-bottom: 3px solid #007bff; /* Đường gạch chân màu xanh */
+        margin-bottom: 25px;
+        display: inline-block; /* Để đường gạch chân vừa vặn với chữ */
+    }
+
+    /* CSS cho Grid Sản phẩm */
+    .product-grid {
+        display: grid;
+        /* Dùng biến ProductsPerRow từ ViewModel để chia cột */
+        grid-template-columns: repeat(@(Model.ProductsPerRow > 0 ? Model.ProductsPerRow : 4), 1fr);
+        gap: 20px;
+    }
+
+    /* Responsive cho di động */
+    @@media (max-width: 992px) {
+        .product-grid {
+            grid-template-columns: repeat(3, 1fr); /* 3 cột cho tablet */
+        }
+    }
+    @@media (max-width: 768px) {
+        .product-grid {
+            grid-template-columns: repeat(2, 1fr); /* 2 cột cho di động lớn */
+        }
+    }
+    @@media (max-width: 480px) {
+        .product-grid {
+            grid-template-columns: repeat(1, 1fr); /* 1 cột cho di động nhỏ */
+        }
+    }
+
+    /* Các style của product-card giữ nguyên */
+    .product-card {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        overflow: hidden;
+        text-align: center;
+        background-color: #fff;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        position: relative;
+        padding-bottom: 15px;
+    }
+</style>
+
+<div class="container">
+
+    @* PHẦN BANNER SLIDER *@
+    @if (Model.Banners != null && Model.Banners.Any())
+    {
+        <div id="bannerCarousel" class="carousel slide" data-ride="carousel">
+            <ol class="carousel-indicators">
+                @for (int i = 0; i < Model.Banners.Count; i++)
+                {
+                    <li data-target="#bannerCarousel" data-slide-to="@i" class="@(i == 0 ? "active" : "")"></li>
+                }
+            </ol>
+            <div class="carousel-inner" role="listbox">
+                @for (int i = 0; i < Model.Banners.Count; i++)
+                {
+                    var banner = Model.Banners[i];
+                    <div class="item @(i == 0 ? "active" : "")">
+                        <a href="@Url.Content(banner.LinkUrl ?? "#")">
+                            <img src="@Url.Content(banner.ImageUrl)" alt="@banner.Title">
+                        </a>
+                    </div>
+                }
+            </div>
+            <a class="left carousel-control" href="#bannerCarousel" role="button" data-slide="prev">
+                <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+            </a>
+            <a class="right carousel-control" href="#bannerCarousel" role="button" data-slide="next">
+                <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+            </a>
+        </div>
+    }
+
+
+    @* HIỂN THỊ SẢN PHẨM THEO TỪNG NHÓM THƯƠNG HIỆU *@
+
+    @if (Model.ProductsByBrand != null && Model.ProductsByBrand.Any())
+    {
+        foreach (var brandGroup in Model.ProductsByBrand)
+        {
+            <div class="brand-section">
+
+                <h2 class="brand-title">@brandGroup.Key</h2>
+
+                <div class="product-grid">
+
+                    @foreach (var product in brandGroup.Value)
+                    {
+                        <div class="product-card">
+
+                            @if (product.IsVipPrice)
+                            {
+                                <span class="product-badge" style="background-color: #007bff;">👑 GIÁ VIP</span>
+                            }
+                            else if (product.DiscountPercentage > 0)
+                            {
+                                <span class="product-badge">-@product.DiscountPercentage%</span>
+                            }
+
+                            <div class="content">
+                                <img src="@Url.Content(product.ImageUrl)" alt="@product.Name">
+                                <h3>@product.Name</h3>
+                                <div class="price-container">
+
+                                    @if (product.FinalPrice < product.OriginalPrice)
+                                    {
+                                        <p class="original-price">@product.FormattedOriginalPrice</p>
+                                    }
+
+                                    <p class="sale-price">@product.FormattedFinalPrice</p>
+
+                                </div>
+                            </div>
+                            <a href="@Url.Action("Detail", "Product", new { id = product.ProductId })" class="btn btn-primary btn-block">Xem chi tiết</a>
+                        </div>
+                    }
+
+                </div>
+            </div> }
+    }
+    else
+    {
+        <p class="text-center alert alert-info">Hiện tại không có sản phẩm nào để hiển thị.</p>
+    }
+
+</div>

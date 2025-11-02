@@ -1,0 +1,272 @@
+﻿@model PhoneStore_New.Areas.Admin.Models.ViewModels.SettingViewModel
+@{
+    ViewBag.Title = "Quản lý Giao diện và Cài đặt";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .message {
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 5px;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .form-section {
+        margin-bottom: 30px;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background-color: #fafafa;
+    }
+
+        .form-section h3 {
+            margin-top: 0;
+            color: #34495e;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+        }
+
+    .logo-preview, .qr-preview {
+        max-width: 150px;
+        height: auto;
+        display: block;
+        margin-top: 10px;
+        border: 1px solid #ddd;
+        padding: 5px;
+        border-radius: 5px;
+    }
+
+    .navbar-table input[type="text"], .navbar-table input[type="number"] {
+        width: 100%;
+        padding: 5px;
+    }
+    /* Thêm khoảng đệm cho label checkbox */
+    .checkbox-label {
+        padding-top: 7px; /* Căn chỉnh label cho thẳng hàng */
+    }
+</style>
+
+<h2>Quản lý Giao diện và Cài đặt</h2>
+
+@if (!string.IsNullOrEmpty(Model.Message))
+{
+    <p class="message @(Model.Message.Contains("thành công") ? "success" : "error")">@Model.Message</p>
+}
+
+@* === 1. QUẢN LÝ LOGO & FILES === *@
+<div class="form-section">
+    <h3>Quản lý Logo</h3>
+    @using (Html.BeginForm("SaveFile", "Setting", FormMethod.Post, new { enctype = "multipart/form-data", @area = "Admin" }))
+    {
+        @Html.AntiForgeryToken()
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <input type="hidden" name="settingKey" value="logo_url" />
+        <label for="logo_image">Chọn logo mới:</label>
+        <input type="file" id="logo_image" name="fileUpload" accept="image/*" class="form-control" style="margin-bottom: 10px;">
+        <button type="submit" class="btn btn-primary">Cập nhật Logo</button>
+    }
+    @if (!string.IsNullOrEmpty(Model.CurrentLogoUrl))
+    {
+        <h4>Logo hiện tại:</h4>
+        <img src="@Url.Content(Model.CurrentLogoUrl)" alt="Logo hiện tại" class="logo-preview">
+    }
+</div>
+
+@* === 2. QUẢN LÝ QR CODE === *@
+<div class="form-section">
+    <h3>Quản lý Mã QR</h3>
+    @using (Html.BeginForm("SaveFile", "Setting", FormMethod.Post, new { enctype = "multipart/form-data", @area = "Admin" }))
+    {
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="settingKey" value="qr_code_url" />
+        <label for="qr_code_image">Chọn ảnh Mã QR:</label>
+        <input type="file" id="qr_code_image" name="fileUpload" accept="image/*" class="form-control" style="margin-bottom: 10px;">
+        <button type="submit" class="btn btn-primary">Cập nhật Mã QR</button>
+    }
+    @if (!string.IsNullOrEmpty(Model.CurrentQrCodeUrl))
+    {
+        <h4>Mã QR hiện tại:</h4>
+        <img src="@Url.Content(Model.CurrentQrCodeUrl)" alt="Mã QR" class="qr-preview">
+    }
+</div>
+
+@* === 3. CÀI ĐẶT VĂN BẢN & BỐ CỤC (TEXT & LAYOUT) === *@
+<div class="form-section">
+    <h3>Cài đặt Văn bản và Bố cục</h3>
+    @using (Html.BeginForm("SaveTextSettings", "Setting", FormMethod.Post, new { @area = "Admin" }))
+    {
+        @Html.AntiForgeryToken()
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+        <div class="row">
+            <div class="col-md-6">
+                @Html.LabelFor(m => m.WelcomeText, "Nội dung Lời chào:")
+                @Html.TextBoxFor(m => m.WelcomeText, new { @class = "form-control" })
+            </div>
+            <div class="col-md-6">
+                @Html.LabelFor(m => m.ProductsPerRow, "Số sản phẩm trên một dòng:")
+                @Html.TextBoxFor(m => m.ProductsPerRow, new { @class = "form-control", @type = "number", @min = "1", @max = "6" })
+            </div>
+        </div>
+
+        @* === SỬA LỖI CSS BẰNG CÁCH BỌC VÀO .row === *@
+        <div class="row" style="margin-top: 15px;">
+            <div class="form-group">
+                @Html.LabelFor(model => model.ShowSearchBar, htmlAttributes: new { @class = "control-label col-md-3 checkbox-label" })
+                <div class="col-md-9">
+                    <div class="checkbox">
+                        <input type="checkbox" id="ShowSearchBar" name="ShowSearchBar" value="true" @(Model.ShowSearchBar ? "checked" : "") />
+                        <input type="hidden" name="ShowSearchBar" value="false" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* === KẾT THÚC SỬA LỖI === *@
+
+        <h3 style="margin-top: 20px;">Thông tin Chân trang (Footer)</h3>
+
+        @Html.LabelFor(m => m.FooterText, "Nội dung Chân trang (Về chúng tôi):")
+        @Html.TextAreaFor(m => m.FooterText, new { @class = "form-control", @rows = "3" })
+
+        @Html.LabelFor(m => m.FooterAddress, "Địa chỉ:")
+        @Html.TextBoxFor(m => m.FooterAddress, new { @class = "form-control" })
+
+        @Html.LabelFor(m => m.FooterPhone, "Số điện thoại:")
+        @Html.TextBoxFor(m => m.FooterPhone, new { @class = "form-control" })
+
+        <button type="submit" class="btn btn-success" style="margin-top: 15px;">Lưu Cài đặt Chung</button>
+    }
+</div>
+
+@* === 4. QUẢN LÝ THANH ĐIỀU HƯỚNG (NAVBAR ITEMS) === *@
+<div class="form-section">
+    @* ... (Toàn bộ code HTML của phần Navbar giữ nguyên) ... *@
+    <h3>Quản lý Thanh điều hướng (Navbar)</h3>
+    <h4 id="navbar-form-title">Thêm mục mới:</h4>
+    @using (Html.BeginForm("ManageNavbar", "Setting", FormMethod.Post, new { @area = "Admin", @id = "navbarForm" }))
+    {
+        @Html.AntiForgeryToken()
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <input type="hidden" name="ItemId" id="navbarItemId" value="0" />
+        <div class="row">
+            <div class="col-md-4">@Html.TextBox("ItemText", "", new { @class = "form-control", placeholder = "Tên liên kết", required = "required", @id = "navbarItemText" })</div>
+            <div class="col-md-4">@Html.TextBox("ItemUrl", "", new { @class = "form-control", placeholder = "Đường dẫn (VD: /Product/SaleProducts)", required = "required", @id = "navbarItemUrl" })</div>
+            <div class="col-md-2">@Html.TextBox("ItemOrder", "0", new { @class = "form-control", type = "number", @id = "navbarItemOrder" })</div>
+            <div class="col-md-2"><button type="submit" id="navbarFormButton" class="btn btn-primary btn-block">Thêm</button></div>
+        </div>
+    }
+    <h4 style="margin-top: 20px;">Sửa các mục hiện có:</h4>
+    <table class="table table-bordered navbar-table">
+        <thead>
+            <tr><th>Tên</th><th>Đường dẫn</th><th>Thứ tự</th><th>Hành động</th></tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.NavbarItems)
+            {
+                <tr data-id="@item.ItemId" data-text="@item.ItemText" data-url="@item.ItemUrl" data-order="@item.ItemOrder">
+                    <td>@item.ItemText</td>
+                    <td>@item.ItemUrl</td>
+                    <td>@item.ItemOrder</td>
+                    <td>
+                        <button type="button" class="btn btn-info btn-xs edit-navbar-btn" data-id="@item.ItemId">Sửa</button>
+                        <a href="@Url.Action("DeleteNavbarItem", "Setting", new { area = "Admin", id = item.ItemId })"
+                           class="btn btn-danger btn-xs"
+                           onclick="return confirm('Bạn có chắc chắn muốn xóa mục này?');">Xóa</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@* === 5. QUẢN LÝ KHOẢNG GIÁ (PRICE RANGES) === *@
+<div class="form-section">
+    @* ... (Toàn bộ code HTML của phần PriceRange giữ nguyên) ... *@
+    <h3>Quản lý Khoảng giá (Bộ lọc)</h3>
+    @using (Html.BeginForm("ManagePriceRange", "Setting", FormMethod.Post, new { @area = "Admin" }))
+    {
+        @Html.AntiForgeryToken()
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <input type="hidden" name="RangeId" id="priceRangeId" value="0" />
+        <div class="row">
+            <div class="col-md-3">@Html.TextBox("RangeLabel", "", new { @class = "form-control", placeholder = "Tên hiển thị (Dưới 1M)", required = "required", @id = "priceRangeLabel" })</div>
+            <div class="col-md-3">@Html.TextBox("MinPrice", "0", new { @class = "form-control", placeholder = "Giá tối thiểu", type = "number", @id = "priceMinPrice" })</div>
+            <div class="col-md-3">@Html.TextBox("MaxPrice", "0", new { @class = "form-control", placeholder = "Giá tối đa", type = "number", @id = "priceMaxPrice" })</div>
+            <div class="col-md-1">@Html.TextBox("RangeOrder", "0", new { @class = "form-control", placeholder = "Thứ tự", type = "number", @id = "priceRangeOrder" })</div>
+            <div class="col-md-2"><button type="submit" id="priceRangeFormButton" class="btn btn-info btn-block">Thêm</button></div>
+        </div>
+    }
+    <h4 style="margin-top: 20px;">Các khoảng giá hiện có:</h4>
+    <table class="table table-bordered">
+        <thead>
+            <tr><th>Tên</th><th>Khoảng giá</th><th>Thứ tự</th><th>Hành động</th></tr>
+        </thead>
+        <tbody>
+            @if (Model.PriceRanges.Any())
+            {
+                foreach (var range in Model.PriceRanges)
+                {
+                    <tr data-id="@range.RangeId" data-label="@range.RangeLabel" data-min="@range.MinPrice" data-max="@range.MaxPrice" data-order="@range.RangeOrder">
+                        <td>@range.RangeLabel</td>
+                        <td>@range.MinPrice.ToString("N0") VNĐ - @range.MaxPrice.ToString("N0") VNĐ</td>
+                        <td>@range.RangeOrder</td>
+                        <td>
+                            <button type="button" class="btn btn-info btn-xs edit-price-range-btn" data-id="@range.RangeId">Sửa</button>
+                            <a href="@Url.Action("DeletePriceRange", "Setting", new { area = "Admin", id = range.RangeId })"
+                               class="btn btn-danger btn-xs"
+                               onclick="return confirm('Bạn có chắc chắn muốn xóa khoảng giá này?');">Xóa</a>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr><td colspan="4" class="text-center">Chưa có khoảng giá nào được thiết lập.</td></tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section scripts {
+    <script>
+        $(document).ready(function () {
+            // === SCRIPT CHO NAVBAR VÀ PRICE RANGE ===
+
+            $('.edit-navbar-btn').on('click', function () {
+                var row = $(this).closest('tr');
+                $('#navbarItemId').val(row.data('id'));
+                $('#navbarItemText').val(row.data('text'));
+                $('#navbarItemUrl').val(row.data('url'));
+                $('#navbarItemOrder').val(row.data('order'));
+                $('#navbar-form-title').text('Sửa mục Navbar ID: ' + row.data('id'));
+                $('#navbarFormButton').text('Lưu Thay Đổi').removeClass('btn-primary').addClass('btn-success');
+                $('html, body').animate({ scrollTop: $('#navbarForm').offset().top - 50 }, 500);
+            });
+
+            $('.edit-price-range-btn').on('click', function () {
+                var row = $(this).closest('tr');
+                $('#priceRangeId').val(row.data('id'));
+                $('#priceRangeLabel').val(row.data('label'));
+                $('#priceMinPrice').val(row.data('min'));
+                $('#priceMaxPrice').val(row.data('max'));
+                $('#priceRangeOrder').val(row.data('order'));
+                $('#priceRangeFormButton').text('Lưu Thay Đổi').removeClass('btn-info').addClass('btn-success');
+                $('html, body').animate({ scrollTop: $('#priceRangeFormButton').closest('.form-section').offset().top - 50 }, 500);
+            });
+        });
+    </script>
+}

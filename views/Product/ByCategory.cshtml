@@ -1,0 +1,132 @@
+﻿@* THÊM 2 DÒNG USING NÀY *@
+@using PagedList.Mvc;
+@using PagedList;
+
+@* SỬA LẠI MODEL: Từ List<> thành IPagedList<> *@
+@model IPagedList<PhoneStore_New.Models.ViewModels.ProductCardViewModel>
+
+@{
+    ViewBag.Title = "Sản phẩm " + ViewBag.CategoryName;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    /* CSS cho Grid Sản phẩm (Copy từ Bestsellers/Search) */
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr); /* 3 cột mặc định */
+        gap: 20px;
+        padding: 20px 0;
+        max-width: 1200px;
+        margin: auto;
+    }
+
+    @@media (max-width: 992px) {
+        .product-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .product-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .product-grid {
+            grid-template-columns: repeat(1, 1fr);
+        }
+    }
+
+    /* CSS cho Phân trang (Copy từ Search) */
+    .pagination-container {
+        text-align: center;
+        margin-top: 30px;
+    }
+
+        .pagination-container .pagination > li > a,
+        .pagination-container .pagination > li > span {
+            color: #007bff;
+            border: 1px solid #ddd;
+            margin: 0 2px;
+            border-radius: 4px;
+        }
+
+        .pagination-container .pagination > .active > a,
+        .pagination-container .pagination > .active > span,
+        .pagination-container .pagination > .active > a:hover,
+        .pagination-container .pagination > .active > span:hover,
+        .pagination-container .pagination > .active > a:focus,
+        .pagination-container .pagination > .active > span:focus {
+            background-color: #007bff;
+            border-color: #007bff;
+            color: #fff;
+        }
+
+        .pagination-container .pagination > li > a:hover,
+        .pagination-container .pagination > li > span:hover {
+            background-color: #f4f4f4;
+        }
+</style>
+
+<div class="container">
+    <h1 class="text-center" style="margin-top: 30px; margin-bottom: 30px;">Sản phẩm: @ViewBag.CategoryName</h1>
+    <p class="text-center">(@Model.TotalItemCount kết quả)</p>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="product-grid">
+            @* Vòng lặp foreach này vẫn hoạt động bình thường với IPagedList *@
+            @foreach (var product in Model)
+            {
+                <div class="product-card">
+                    @if (product.IsVipPrice)
+                    {
+                        <span class="product-badge" style="background-color: #007bff;">👑 GIÁ VIP</span>
+                    }
+                    else if (product.DiscountPercentage > 0)
+                    {
+                        <span class="product-badge">-@product.DiscountPercentage%</span>
+                    }
+
+                    <div class="content">
+                        <img src="@Url.Content(product.ImageUrl)" alt="@product.Name" class="img-responsive">
+                        <h3>@product.Name</h3>
+                        <div class="price-container">
+                            @if (product.FinalPrice < product.OriginalPrice)
+                            {
+                                <p class="original-price">@product.FormattedOriginalPrice</p>
+                            }
+                            <p class="sale-price">@product.FormattedFinalPrice</p>
+                        </div>
+                    </div>
+                    @Html.ActionLink("Xem chi tiết", "Detail", "Product", new { id = product.ProductId }, new { @class = "btn btn-primary btn-block" })
+                </div>
+            }
+        </div>
+
+        @* === THÊM NÚT PHÂN TRANG TẠI ĐÂY === *@
+        <div class="pagination-container">
+            @Html.PagedListPager(Model, page => Url.Action("ByCategory",
+                new
+                     {
+                    id = ViewContext.RouteData.Values["id"],
+                    page
+                }),
+                new PagedListRenderOptions
+                {
+                    LiElementClasses = new[] { "page-item" },
+                    UlElementClasses = new[] { "pagination" },
+                    DisplayLinkToIndividualPages = true,
+                    DisplayPageCountAndCurrentLocation = false,
+                    LinkToNextPageFormat = "Tiếp »",
+                    LinkToPreviousPageFormat = "« Trước",
+                })
+        </div>
+    }
+    else
+    {
+        <p class="text-center alert alert-info">Hiện tại không có sản phẩm nào trong danh mục này.</p>
+    }
+</div>

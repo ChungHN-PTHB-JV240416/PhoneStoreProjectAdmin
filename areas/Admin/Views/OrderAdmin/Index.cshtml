@@ -1,0 +1,107 @@
+﻿@model PhoneStore_New.Areas.Admin.Models.ViewModels.OrderAdminListViewModel
+@{
+    ViewBag.Title = "Quản lý Đơn hàng";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .message {
+        padding: 10px;
+        margin-bottom: 20px;
+        border-radius: 5px;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .success {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .error {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .status-form select {
+        padding: 5px;
+        border-radius: 5px;
+    }
+
+    .order-detail-link {
+        text-decoration: none;
+        color: #3498db;
+    }
+</style>
+
+<div class="admin-container">
+    <h2>Quản lý Đơn hàng</h2>
+
+    @* Hiển thị thông báo *@
+    @if (!string.IsNullOrEmpty(Model.Message))
+    {
+        <div class="message @(Model.Message.Contains("thành công") ? "success" : "error")">
+            @Model.Message
+        </div>
+    }
+
+    @* === 1. DANH SÁCH ĐƠN HÀNG === *@
+    <h3>Danh sách Đơn hàng (@(Model.Orders?.Count() ?? 0) đơn)</h3>
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Mã ĐH</th>
+                <th>Ngày đặt</th>
+                <th>Khách hàng</th>
+                <th>P.Thức TT</th>
+                <th>Tổng tiền</th>
+                <th>Trạng thái</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Orders != null && Model.Orders.Any())
+            {
+               foreach (var order in Model.Orders)
+                {
+                    <tr>
+                        <td>
+                            @* Link xem chi tiết đơn hàng *@
+                            @Html.ActionLink(order.OrderId.ToString(), "Detail", "OrderAdmin", new { area = "Admin", id = order.OrderId }, new { @class = "order-detail-link" })
+                        </td>
+                        <td>@order.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>@order.CustomerName (@order.Username)</td>
+                        <td>
+                            @(order.PaymentMethod == "cod" ? "COD" : "Chuyển khoản")
+                        </td>
+                        <td>@order.FormattedTotalAmount</td>
+
+                        @* Form cập nhật trạng thái *@
+                        <td>
+                            @using (Html.BeginForm("UpdateStatus", "OrderAdmin", FormMethod.Post, new { @area = "Admin", @class = "status-form" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="order_id" value="@order.OrderId" />
+
+                                <select name="status" onchange="this.form.submit()" class="form-control">
+                                    <option value="pending" @(order.Status == "pending" ? "selected" : "")>Chờ xử lý</option>
+                                    <option value="processing" @(order.Status == "processing" ? "selected" : "")>Đang xử lý</option>
+                                    <option value="shipped" @(order.Status == "shipped" ? "selected" : "")>Đã giao hàng</option>
+                                    <option value="completed" @(order.Status == "completed" ? "selected" : "")>Hoàn tất</option>
+                                    <option value="cancelled" @(order.Status == "cancelled" ? "selected" : "")>Đã hủy</option>
+                                </select>
+                            }
+                        </td>
+                        <td>
+                            @Html.ActionLink("Chi tiết", "Detail", "OrderAdmin", new { area = "Admin", id = order.OrderId }, new { @class = "btn btn-info btn-xs" })
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr><td colspan="7" class="text-center">Không có đơn hàng nào.</td></tr>
+            }
+        </tbody>
+    </table>
+</div>

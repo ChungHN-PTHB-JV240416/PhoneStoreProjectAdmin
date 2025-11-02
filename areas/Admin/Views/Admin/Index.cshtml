@@ -1,0 +1,110 @@
+﻿@model PhoneStore_New.Areas.Admin.Models.ViewModels.DashboardViewModel
+@{
+    ViewBag.Title = "Bảng điều khiển";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="row">
+    <div class="col-lg-4 col-md-6">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <div class="row">
+                    <div class="col-xs-3"><i class="fa fa-shopping-cart fa-5x"></i></div>
+                    <div class="col-xs-9 text-right">
+                        <div class="huge">@Model.NewOrdersCount</div>
+                        <div>Đơn hàng mới!</div>
+                    </div>
+                </div>
+            </div>
+            <a href="@Url.Action("Index", "OrderAdmin", new { area = "Admin" })">
+                <div class="panel-footer">
+                    <span class="pull-left">Xem chi tiết</span>
+                    <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                    <div class="clearfix"></div>
+                </div>
+            </a>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6">
+        <div class="panel panel-green">
+            <div class="panel-heading">
+                <div class="row">
+                    <div class="col-xs-3"><i class="fa fa-money fa-5x"></i></div>
+                    <div class="col-xs-9 text-right">
+                        <div class="huge">@Model.DailyRevenue.ToString("N0")</div>
+                        <div>Doanh thu hôm nay (VNĐ)</div>
+                    </div>
+                </div>
+            </div>
+            <a href="@Url.Action("Sales", "Report", new { area = "Admin" })">
+                <div class="panel-footer">
+                    <span class="pull-left">Xem báo cáo</span>
+                    <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                    <div class="clearfix"></div>
+                </div>
+            </a>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6">
+        <div class="panel panel-yellow">
+            <div class="panel-heading">
+                <div class="row">
+                    <div class="col-xs-3"><i class="fa fa-users fa-5x"></i></div>
+                    <div class="col-xs-9 text-right">
+                        <div class="huge">@Model.NewUsersCount</div>
+                        <div>Khách hàng mới!</div>
+                    </div>
+                </div>
+            </div>
+            <a href="@Url.Action("Users", "Admin", new { area = "Admin" })">
+                <div class="panel-footer">
+                    <span class="pull-left">Xem danh sách</span>
+                    <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                    <div class="clearfix"></div>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-danger">
+            <div class="panel-heading">
+                <h3 class="panel-title"><i class="fa fa-warning"></i> Sản phẩm sắp hết hàng</h3>
+            </div>
+            <div class="panel-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th>Tên sản phẩm</th>
+                                <th>Số lượng còn lại</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.LowStockProducts.Any())
+                            {
+                                foreach (var product in Model.LowStockProducts)
+                                {
+                                    <tr>
+                                        <td>@product.Name</td>
+                                        <td><strong style="color: #d9534f;">@product.StockQuantity</strong></td>
+                                        <td>@Html.ActionLink("Xem & Cập nhật", "EditProduct", "ProductAdmin", new { area = "Admin", id = product.ProductId }, new { @class = "btn btn-xs btn-warning" })</td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="3" class="text-center">Không có sản phẩm nào sắp hết hàng.</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

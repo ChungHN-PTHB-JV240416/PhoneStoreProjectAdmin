@@ -1,0 +1,150 @@
+﻿@model PhoneStore_New.Models.ViewModels.ProfileViewModel
+@{
+    ViewBag.Title = "Quản lý Hồ sơ Cá nhân";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .profile-container {
+        max-width: 800px;
+        margin: 30px auto;
+        padding: 30px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+
+    .profile-form .form-group {
+        margin-bottom: 20px;
+    }
+
+    .profile-form label {
+        font-weight: 600;
+    }
+
+    .profile-form .btn-submit {
+        width: 100%;
+        padding: 12px;
+        font-size: 1.1em;
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+
+        .profile-form .btn-submit:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+
+    /* CSS cho thông báo */
+    .message-box {
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 5px;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .success {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .error {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    /* === CSS MỚI CHO AVATAR === */
+    .avatar-upload-container {
+        text-align: center;
+        margin-bottom: 25px;
+    }
+
+    .avatar-preview {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%; /* Bo tròn ảnh đại diện */
+        border: 4px solid #f0f0f0;
+        object-fit: cover; /* Đảm bảo ảnh lấp đầy khung tròn */
+        background-color: #e9ecef;
+        margin-bottom: 15px;
+    }
+</style>
+
+<div class="profile-container">
+    <h2 class="text-center">Quản lý Hồ sơ Cá nhân</h2>
+    <hr />
+
+    @if (!string.IsNullOrEmpty(Model.Message))
+    {
+        <div class="message-box @(Model.Message.Contains("thành công") ? "success" : "error")">
+            @Model.Message
+        </div>
+    }
+
+    @* SỬA ĐỔI: Thêm enctype="multipart/form-data" để cho phép tải file *@
+    @using (Html.BeginForm("Index", "Profile", FormMethod.Post, new { @class = "profile-form", enctype = "multipart/form-data" }))
+    {
+        @Html.AntiForgeryToken()
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        @Html.HiddenFor(m => m.UserId)
+        @Html.HiddenFor(m => m.AvatarUrl) @* Thêm dòng này để giữ lại ảnh cũ nếu không tải ảnh mới *@
+
+
+        @* === THÊM MỚI: KHUNG TẢI AVATAR === *@
+        <div class="avatar-upload-container">
+            @Html.LabelFor(m => m.AvatarUrl)
+            <div>
+                <img src="@Url.Content(string.IsNullOrEmpty(Model.AvatarUrl) ? "~/Content/images/autoimage.jpg" : Model.AvatarUrl)"
+                     alt="Ảnh đại diện" class="avatar-preview" />
+            </div>
+            @Html.LabelFor(m => m.ImageFile)
+            @* Dùng input thủ công cho HttpPostedFileBase *@
+            <input type="file" name="ImageFile" id="ImageFile" class="form-control" accept="image/*" />
+            @Html.ValidationMessageFor(m => m.ImageFile, "", new { @class = "text-danger" })
+        </div>
+        @* === KẾT THÚC THÊM MỚI === *@
+
+        <div class="form-group">
+            @Html.LabelFor(m => m.Username)
+            @Html.TextBoxFor(m => m.Username, new { @class = "form-control", @readonly = "readonly", @disabled = "disabled" })
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    @Html.LabelFor(m => m.FirstName)
+                    @Html.TextBoxFor(m => m.FirstName, new { @class = "form-control", @required = "required" })
+                    @Html.ValidationMessageFor(m => m.FirstName, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    @Html.LabelFor(m => m.LastName)
+                    @Html.TextBoxFor(m => m.LastName, new { @class = "form-control", @required = "required" })
+                    @Html.ValidationMessageFor(m => m.LastName, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(m => m.Email)
+            @Html.TextBoxFor(m => m.Email, new { @class = "form-control", @type = "email", @required = "required" })
+            @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(m => m.PhoneNumber)
+            @Html.TextBoxFor(m => m.PhoneNumber, new { @class = "form-control" })
+            @Html.ValidationMessageFor(m => m.PhoneNumber, "", new { @class = "text-danger" })
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(m => m.Address)
+            @Html.TextAreaFor(m => m.Address, new { @class = "form-control", @rows = 3 })
+            @Html.ValidationMessageFor(m => m.Address, "", new { @class = "text-danger" })
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-submit">Cập nhật hồ sơ</button>
+    }
+</div>

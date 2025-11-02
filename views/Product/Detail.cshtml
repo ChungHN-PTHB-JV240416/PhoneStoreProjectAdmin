@@ -1,0 +1,127 @@
+﻿@model PhoneStore_New.Models.ViewModels.ProductDetailViewModel
+@{
+    ViewBag.Title = Model.Product != null ? Model.Product.Name : "Sản phẩm không tồn tại";
+}
+
+<div class="container">
+    @if (Model.Product != null)
+    {
+        <div class="product-detail row">
+            <div class="col-md-6 text-center">
+                <img src="@Url.Content(Model.Product.ImageUrl)" alt="@Model.Product.Name" class="img-responsive" style="max-height: 400px; object-fit: contain;">
+            </div>
+
+            <div class="col-md-6 product-info">
+
+                <h1>@Model.Product.Name</h1>
+
+                @* === SỬA ĐỔI LOGIC HIỂN THỊ HUY HIỆU === *@
+                @if (Model.IsVipPrice)
+                {
+                    <span class="product-badge" style="background-color: #007bff; position: static; display: inline-block; margin-bottom: 15px;">👑 GIÁ VIP</span>
+                }
+                else if (Model.Product.DiscountPercentage > 0)
+                {
+                    <span class="product-badge" style="position: static; display: inline-block; margin-bottom: 15px;">-@Model.Product.DiscountPercentage%</span>
+                }
+                @* === KẾT THÚC SỬA ĐỔI === *@
+
+
+                <div class="price-container" style="border-top: 1px solid #eee; padding-top: 15px;">
+
+                    @if (Model.FinalPrice < Model.OriginalPrice)
+                    {
+                        <p class="original-price" style="font-size: 1.2em;">@Model.FormattedOriginalPrice</p>
+                    }
+
+                    <p class="sale-price" style="font-size: 2em;">@Model.FormattedFinalPrice</p>
+
+                </div>
+
+                <p class="description" style="margin-top: 20px;"><strong>Mô tả:</strong> @Html.Raw(Model.Product.Description)</p>
+                <p class="stock"><strong>Số lượng tồn kho:</strong> @Model.Product.StockQuantity</p>
+
+                @using (Html.BeginForm("AddToCart", "Cart", FormMethod.Post, new { @class = "add-to-cart-form" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="productId" value="@Model.Product.ProductId" />
+
+                    <label for="quantity">Số lượng:</label>
+                    <input type="number" id="quantity" name="quantity" value="1" min="1" max="@Model.Product.StockQuantity" class="form-control" style="width: 100px; display: inline-block; margin-right: 10px;">
+
+                    <button type="submit" class="btn btn-success" style="margin-top: 10px;">Thêm vào giỏ hàng</button>
+                }
+            </div>
+        </div>
+
+        <div class="review-section" style="margin-top: 40px;">
+            <h3>Bình luận và Đánh giá</h3>
+
+            @if (Model.AverageRating > 0)
+            {
+                <p><strong>Điểm trung bình:</strong> @Model.AverageRating.ToString("N1") / 5 sao</p>
+            }
+            else
+            {
+                <p>Chưa có đánh giá nào.</p>
+            }
+
+            @if (User.Identity.IsAuthenticated)
+            {
+                <div class="review-form">
+                    <h4>Viết bình luận của bạn</h4>
+                    @if (!string.IsNullOrEmpty(Model.Message))
+                    {
+                        <p class="alert alert-info">@Model.Message</p>
+                    }
+                    @using (Html.BeginForm("AddReview", "Product", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="productId" value="@Model.Product.ProductId" />
+
+                        <div class="form-group">
+                            <label for="rating">Đánh giá (1-5):</label>
+                            <input type="number" id="rating" name="Rating" min="1" max="5" required class="form-control" style="width: 100px;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="comment_text">Bình luận:</label>
+                            <textarea id="comment_text" name="CommentText" required class="form-control" rows="4"></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Gửi bình luận</button>
+                    }
+                </div>
+            }
+            else
+            {
+                <p>Vui lòng @Html.ActionLink("đăng nhập", "Index", "Login") để bình luận và đánh giá.</p>
+            }
+
+            <h4 style="margin-top: 30px;">Các bình luận khác (@Model.Reviews.Count())</h4>
+            @if (Model.Reviews != null && Model.Reviews.Any())
+            {
+                foreach (var review in Model.Reviews)
+                {
+                    <div class="review" style="border-bottom: 1px solid #eee; padding: 15px 0;">
+                        <div class="review-meta">
+                            <strong>@review.FirstName</strong>
+                            <span class="review-rating pull-right">Đánh giá: @review.Rating sao</span>
+                        </div>
+                        <p>@review.CommentText</p>
+                        <small>Ngày: @review.CreatedAt.ToString("dd/MM/yyyy")</small>
+                    </div>
+                }
+            }
+            else
+            {
+                <p>Chưa có bình luận nào cho sản phẩm này.</p>
+            }
+        </div>
+        <a href="@Url.Action("Index", "Home")" class="back-link btn btn-link">← Quay lại trang chủ</a>
+    }
+    else
+    {
+        <p class="text-center alert alert-danger">Sản phẩm này không tồn tại.</p>
+    }
+</div>

@@ -1,0 +1,77 @@
+﻿@model PhoneStore_New.Models.ViewModels.HomeViewModel
+@{
+    ViewBag.Title = "Sản phẩm Bán chạy nhất";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    /* CSS Grid mới cho Bestsellers */
+    .product-container-bestsellers {
+        display: grid;
+        grid-template-columns: repeat(@(Model.ProductsPerRow > 0 ? Model.ProductsPerRow : 4), 1fr);
+        gap: 20px;
+        padding: 20px 0;
+        max-width: 1200px;
+        margin: auto;
+    }
+    /* Responsive (Tùy chọn) */
+    @@media (max-width: 992px) {
+        .product-container-bestsellers {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+    @@media (max-width: 768px) {
+        .product-container-bestsellers {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
+
+<div class="container">
+
+    @if (Model.ProductsByBrand != null && Model.ProductsByBrand.Any())
+    {
+        @* Vòng lặp ngoài: Lặp qua (chỉ 1) nhóm "Top 10 Bán chạy" *@
+        foreach (var brandGroup in Model.ProductsByBrand)
+        {
+            <h1 class="text-center" style="margin-top: 30px; margin-bottom: 30px; color: #e74c3c;">
+                @brandGroup.Key
+            </h1>
+
+            <div class="product-container-bestsellers">
+                @* Vòng lặp trong: Lặp qua từng sản phẩm *@
+                @foreach (var product in brandGroup.Value)
+                {
+                    <div class="product-card">
+                        @if (product.IsVipPrice)
+                        {
+                            <span class="product-badge" style="background-color: #007bff;">👑 GIÁ VIP</span>
+                        }
+                        else if (product.DiscountPercentage > 0)
+                        {
+                            <span class="product-badge">-@product.DiscountPercentage%</span>
+                        }
+
+                        <div class="content">
+                            <img src="@Url.Content(product.ImageUrl)" alt="@product.Name" class="img-responsive">
+                            <h3>@product.Name</h3>
+                            <div class="price-container">
+                                @if (product.FinalPrice < product.OriginalPrice)
+                                {
+                                    <p class="original-price">@product.FormattedOriginalPrice</p>
+                                }
+                                <p class="sale-price">@product.FormattedFinalPrice</p>
+                            </div>
+                        </div>
+                        @Html.ActionLink("Xem chi tiết", "Detail", "Product", new { id = product.ProductId }, new { @class = "btn btn-primary btn-block" })
+                    </div>
+                }
+            </div>
+        }
+    }
+    else
+    {
+        <p class="text-center alert alert-info">Hiện tại không có sản phẩm nào bán chạy.</p>
+    }
+
+</div>

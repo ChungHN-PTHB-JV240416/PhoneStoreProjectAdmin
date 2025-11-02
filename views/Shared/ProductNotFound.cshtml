@@ -1,0 +1,11 @@
+﻿@{
+    ViewBag.Title = "Không Tìm Thấy Sản Phẩm";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container text-center" style="padding: 60px 15px;">
+    <h1 style="font-size: 3em; color: #dc3545;">Lỗi 404</h1>
+    <h2>Không Tìm Thấy Sản Phẩm</h2>
+    <p class="lead" style="color: #6c757d;">Sản phẩm bạn đang tìm kiếm có thể đã bị xóa, đổi tên hoặc tạm thời không có sẵn.</p>
+    <a href="@Url.Action("Index", "Home")" class="btn btn-primary btn-lg" style="margin-top: 20px;">Quay Lại Trang Chủ</a>
+</div>

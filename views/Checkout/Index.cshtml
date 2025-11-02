@@ -1,0 +1,276 @@
+﻿@model PhoneStore_New.Models.ViewModels.CheckoutViewModel
+@{
+    ViewBag.Title = "Thanh toán";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section styles {
+    <style>
+        .qr-code-section {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .payment-option-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .payment-options h3 {
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+            margin-top: 20px;
+        }
+        /* CSS MỚI CHO VOUCHER */
+        .voucher-section {
+            padding: 15px;
+            background-color: #f9f9f9;
+            border: 1px dashed #ccc;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .voucher-message {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .text-success {
+            color: green;
+        }
+
+        .text-danger {
+            color: red;
+        }
+    </style>
+}
+
+<div class="container">
+    <h1 class="text-center">Thanh toán</h1>
+
+    @if (!string.IsNullOrEmpty(Model.Message))
+    {
+        <div class="message alert alert-success text-center">
+            @Model.Message
+        </div>
+    }
+
+    @if (Model.CartItems != null && Model.CartItems.Any())
+    {
+        using (Html.BeginForm("Index", "Checkout", FormMethod.Post, new { enctype = "multipart/form-data" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.ValidationSummary(true, "Vui lòng kiểm tra lại các lỗi sau:", new { @class = "alert alert-danger" })
+
+            <div class="row">
+
+                @* === Cột 1: TÓM TẮT ĐƠN HÀNG (ĐÃ CẬP NHẬT) === *@
+                <div class="col-md-6">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Tóm tắt đơn hàng</h3>
+                        </div>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Sản phẩm</th>
+                                    <th>Giá</th>
+                                    <th>SL</th>
+                                    <th>Thành tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.CartItems)
+                                {
+                                    <tr>
+                                        <td>@item.Name</td>
+                                        <td>@item.Price.ToString("N0") VNĐ</td>
+                                        <td>@item.Quantity</td>
+                                        <td>@item.Subtotal.ToString("N0") VNĐ</td>
+                                    </tr>
+                                }
+
+                                @* === SỬA ĐỔI: CẬP NHẬT BẢNG TỔNG KẾT === *@
+                                <tr class="active">
+                                    <td colspan="3">Tạm tính</td>
+                                    <td id="subtotal-amount">@Model.FormattedSubtotalAmount</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3">Giảm giá (Voucher)</td>
+                                    <td id="discount-amount">@Model.FormattedDiscountAmount</td>
+                                </tr>
+                                <tr class="total-row active" style="font-size: 1.2em; font-weight: bold;">
+                                    <td colspan="3">Tổng cộng</td>
+                                    <td id="total-amount">@Model.FormattedTotalAmount</td>
+                                </tr>
+                                @* === KẾT THÚC SỬA ĐỔI === *@
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                @* === Cột 2: THÔNG TIN GIAO HÀNG & THANH TOÁN (ĐÃ CẬP NHẬT) === *@
+                <div class="col-md-6">
+                    <div class="shipping-form">
+                        <h3>Thông tin giao hàng</h3>
+                        @Html.LabelFor(m => m.FirstName)
+                        @Html.TextBoxFor(m => m.FirstName, new { @class = "form-control", @required = "required" })
+                        @Html.LabelFor(m => m.LastName)
+                        @Html.TextBoxFor(m => m.LastName, new { @class = "form-control", @required = "required" })
+                        @Html.LabelFor(m => m.PhoneNumber)
+                        @Html.TextBoxFor(m => m.PhoneNumber, new { @class = "form-control", @required = "required" })
+                        @Html.LabelFor(m => m.ShippingAddress)
+                        @Html.TextBoxFor(m => m.ShippingAddress, new { @class = "form-control", @required = "required" })
+                        @Html.ValidationMessageFor(m => m.ShippingAddress, "", new { @class = "text-danger" })
+
+                        @* === SỬA ĐỔI: THÊM KHUNG NHẬP VOUCHER === *@
+                        <div class="voucher-section">
+                            <h4>Mã giảm giá</h4>
+                            <div class="input-group">
+                                @Html.TextBoxFor(m => m.VoucherCode, new { @class = "form-control", @id = "voucher-code-input", @placeholder = "Nhập mã voucher..." })
+                                <span class="input-group-btn">
+                                    <button type="button" class="btn btn-primary" id="apply-voucher-btn">Áp dụng</button>
+                                </span>
+                            </div>
+                            <a href="#" id="remove-voucher-btn" style="display: @(string.IsNullOrEmpty(Model.VoucherCode) ? "none" : "inline-block"); margin-top: 10px;">Xóa mã</a>
+                            <div id="voucher-message" class="voucher-message"></div>
+                        </div>
+                        @* === KẾT THÚC SỬA ĐỔI === *@
+
+                        <div class="payment-options">
+                            <h3>Chọn phương thức thanh toán</h3>
+                            <div class="payment-option-item">
+                                @Html.RadioButtonFor(m => m.PaymentMethod, "cod", new { @id = "cash_on_delivery" })
+                                <label for="cash_on_delivery">Thanh toán khi nhận hàng (COD)</label>
+                            </div>
+                            <div class="payment-option-item">
+                                @Html.RadioButtonFor(m => m.PaymentMethod, "transfer", new { @id = "bank_transfer" })
+                                <label for="bank_transfer">Chuyển khoản ngân hàng</label>
+                            </div>
+                        </div>
+
+                        <div id="transfer_details" class="qr-code-section">
+                            <h4>Vui lòng chuyển khoản số tiền: <span id="total-amount-qr">@Model.FormattedTotalAmount</span></h4>
+                            @if (!string.IsNullOrEmpty(Model.QrCodeUrl))
+                            {
+                                <img src="@Url.Content(Model.QrCodeUrl)" alt="Mã QR chuyển khoản" style="max-width: 200px; border: 1px solid #ddd; padding: 5px;">
+                            }
+                            <br>
+                            <label for="bill_image" class="control-label">Tải lên hóa đơn chuyển khoản (Bill):</label>
+                            <input type="file" id="bill_image" name="bill_image" class="form-control" accept="image/*">
+                        </div>
+
+                        <button type="submit" class="checkout-btn btn btn-success btn-lg" style="margin-top: 20px;">Hoàn tất đặt hàng</button>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <p class="alert alert-warning text-center">Giỏ hàng của bạn đang trống. Vui lòng quay lại mua sắm.</p>
+    }
+</div>
+
+@section scripts {
+
+    @* SCRIPT CŨ CHO PHƯƠNG THỨC THANH TOÁN *@
+    <script>
+        $(document).ready(function () {
+            const transferRadio = $('#bank_transfer');
+            const codRadio = $('#cash_on_delivery');
+            const transferSection = $('#transfer_details');
+            const billImageInput = $('#bill_image');
+
+            function toggleTransferSection() {
+                if (transferRadio.is(':checked')) {
+                    transferSection.show();
+                    billImageInput.attr('required', 'required');
+                } else {
+                    transferSection.hide();
+                    billImageInput.removeAttr('required');
+                }
+            }
+            transferRadio.on('change', toggleTransferSection);
+            codRadio.on('change', toggleTransferSection);
+            toggleTransferSection();
+        });
+    </script>
+
+    @* === SCRIPT AJAX MỚI CHO VOUCHER === *@
+    <script>
+        $(document).ready(function () {
+            // Lấy token chống giả mạo từ form chính
+            var token = $('input[name="__RequestVerificationToken"]').val();
+
+            // Hàm cập nhật giá tiền trên giao diện
+            function updatePriceFields(discount, total, qrTotal) {
+                $('#discount-amount').text(discount);
+                $('#total-amount').text(total);
+                $('#total-amount-qr').text(qrTotal);
+            }
+
+            // Xử lý nút "Áp dụng"
+            $('#apply-voucher-btn').on('click', function () {
+                var code = $('#voucher-code-input').val();
+                var msgBox = $('#voucher-message');
+
+                $.ajax({
+                    url: '@Url.Action("ApplyVoucher", "Checkout")',
+                    type: 'POST',
+                    data: {
+                        __RequestVerificationToken: token,
+                        voucherCode: code
+                    },
+                    success: function (response) {
+                        msgBox.text(response.message);
+                        if (response.success) {
+                            msgBox.removeClass('text-danger').addClass('text-success');
+                            updatePriceFields(response.formattedDiscount, response.formattedTotal, response.formattedTotal);
+                            $('#remove-voucher-btn').show();
+                            $('#apply-voucher-btn').hide();
+                        } else {
+                            msgBox.removeClass('text-success').addClass('text-danger');
+                        }
+                    },
+                    error: function () {
+                        msgBox.text('Có lỗi xảy ra, vui lòng thử lại.').removeClass('text-success').addClass('text-danger');
+                    }
+                });
+            });
+
+            // Xử lý nút "Xóa mã"
+            $('#remove-voucher-btn').on('click', function (e) {
+                e.preventDefault();
+                var msgBox = $('#voucher-message');
+
+                $.ajax({
+                    url: '@Url.Action("RemoveVoucher", "Checkout")',
+                    type: 'POST',
+                    data: {
+                        __RequestVerificationToken: token
+                    },
+                    success: function (response) {
+                        msgBox.text(response.message).removeClass('text-danger').addClass('text-success');
+                        updatePriceFields(response.formattedDiscount, response.formattedTotal, response.formattedTotal);
+                        $('#voucher-code-input').val('');
+                        $('#remove-voucher-btn').hide();
+                        $('#apply-voucher-btn').show();
+                    },
+                    error: function () {
+                        msgBox.text('Có lỗi xảy ra, vui lòng thử lại.').removeClass('text-success').addClass('text-danger');
+                    }
+                });
+            });
+
+            // Hiển thị nút "Xóa" nếu trang tải lại mà đã có voucher
+            if ($('#voucher-code-input').val() != '') {
+                $('#remove-voucher-btn').show();
+                $('#apply-voucher-btn').hide();
+            }
+
+        });
+    </script>
+}

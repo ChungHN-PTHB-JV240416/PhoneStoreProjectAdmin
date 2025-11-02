@@ -1,0 +1,162 @@
+﻿@using PhoneStore_New.Models.ViewModels
+@model HeaderViewModel
+
+<style>
+    /* CSS cho ảnh đại diện trên navbar */
+    .navbar-avatar {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-right: 8px;
+        margin-top: -5px;
+    }
+
+    .navbar-brand-text {
+        font-size: 24px;
+        font-weight: 700;
+        color: #333 !important;
+        padding-top: 15px;
+    }
+
+    /* === CSS MỚI CHO FORM TÌM KIẾM NẰM TRONG NAVBAR === */
+    .navbar-form-inline {
+        display: flex;
+        align-items: center;
+        margin-top: 8px; /* Căn chỉnh form cho thẳng hàng với các nút */
+        margin-bottom: 8px;
+    }
+
+        .navbar-form-inline .form-control {
+            width: 200px; /* Độ rộng ô tìm kiếm */
+            margin-right: 5px;
+        }
+</style>
+
+<div class="navbar navbar-default navbar-static-top">
+    <div class="container">
+        <div class="navbar-header">
+
+            @if (string.IsNullOrEmpty(Model.LogoUrl))
+            {
+                <a class="navbar-brand navbar-brand-text" href="@Url.Action("Index", "Home")">
+                    Phone Store
+                </a>
+            }
+            else
+            {
+                <a class="navbar-brand" href="@Url.Action("Index", "Home")">
+                    <img src="@Url.Content(Model.LogoUrl)" alt="Logo" height="40" style="display:inline-block; margin-top:-10px;">
+                </a>
+            }
+
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse-main">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+        </div>
+
+        <div class="collapse navbar-collapse" id="navbar-collapse-main">
+            <ul class="nav navbar-nav">
+                @if (Model.NavbarItems != null)
+                {
+                    foreach (var item in Model.NavbarItems)
+                    {
+                        <li><a href="@item.ItemUrl">@item.ItemText</a></li>
+                    }
+                }
+
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Thương hiệu <span class="caret"></span></a>
+                    <ul class="dropdown-menu" role="menu">
+                        @if (Model.Categories != null)
+                        {
+                            foreach (var category in Model.Categories)
+                            {
+                                <li>@Html.ActionLink(category.Name, "ByCategory", "Product", new { id = category.CategoryId }, null)</li>
+                            }
+                        }
+                    </ul>
+                </li>
+            </ul>
+
+            <ul class="nav navbar-nav navbar-right">
+
+                @* === BẮT ĐẦU SỬA ĐỔI: DÙNG @IF ĐỂ BẬT/TẮT === *@
+                @if (Model.ShowSearchBar)
+                {
+                    <li>
+                        @using (Html.BeginForm("Search", "Product", FormMethod.Get, new { @class = "navbar-form navbar-form-inline", @role = "search" }))
+                        {
+                            <div class="form-group">
+                                <input type="text" name="keyword" class="form-control" placeholder="Tìm sản phẩm...">
+                            </div>
+                            <button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-search"></span></button>
+                        }
+                    </li>
+                }
+                @* === KẾT THÚC SỬA ĐỔI === *@
+
+                <li>@Html.ActionLink("Giỏ hàng", "Index", "Cart")</li>
+
+                @if (Model.IsLoggedIn)
+                {
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+
+                            @if (!string.IsNullOrEmpty(Model.UserAvatarUrl))
+                            {
+                                <img src="@Url.Content(Model.UserAvatarUrl)" alt="Avatar" class="navbar-avatar" />
+                            }
+                            else
+                            {
+                                <span class="glyphicon glyphicon-user" style="margin-right: 5px;"></span>
+                            }
+
+                            @Model.WelcomeText
+                            <strong>
+                                @{
+                                    string userType = Session["UserType"] as string;
+                                    if ("vip".Equals(userType, StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        <span>👑 </span>
+                                    }
+                                }
+                                @Model.UserFirstName
+                            </strong>
+                            <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu" role="menu">
+                            <li>@Html.ActionLink("Hồ sơ cá nhân", "Index", "Profile")</li>
+                            <li>@Html.ActionLink("Lịch sử Đơn hàng", "History", "Order")</li>
+
+                            @if (User.IsInRole("admin"))
+                            {
+                                <li class="divider"></li>
+                                <li>@Html.ActionLink("Quản trị hệ thống", "Index", "Admin", new { area = "Admin" }, null)</li>
+                            }
+
+                            <li class="divider"></li>
+                            <li>
+                                @using (Html.BeginForm("Logout", "Login", new { area = "" }, FormMethod.Post, new { id = "logoutForm" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <a href="javascript:document.getElementById('logoutForm').submit()" style="padding-left: 20px;">Đăng xuất</a>
+                                }
+                            </li>
+                        </ul>
+                    </li>
+                }
+                else
+                {
+                    <li>@Html.ActionLink("Đăng nhập", "Index", "Login")</li>
+                    <li>@Html.ActionLink("Đăng ký", "Register", "Login")</li>
+                }
+            </ul>
+        </div>
+    </div>
+</div>
+
+@* === ĐÃ XÓA BỎ HOÀN TOÀN THANH TÌM KIẾM TRƯỢT Ở ĐÂY === *@
