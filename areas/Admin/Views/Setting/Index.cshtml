@@ -5,6 +5,7 @@
 }
 
 <style>
+    /* ... (Toàn bộ CSS cũ của bạn không thay đổi) ... */
     .message {
         padding: 15px;
         margin-bottom: 20px;
@@ -54,10 +55,21 @@
         width: 100%;
         padding: 5px;
     }
-    /* Thêm khoảng đệm cho label checkbox */
+
     .checkbox-label {
-        padding-top: 7px; /* Căn chỉnh label cho thẳng hàng */
+        padding-top: 7px;
     }
+
+    .navbar-child-item {
+        padding-left: 30px;
+        font-style: italic;
+        color: #555;
+    }
+
+        .navbar-child-item::before {
+            content: "↳ ";
+            font-weight: bold;
+        }
 </style>
 
 <h2>Quản lý Giao diện và Cài đặt</h2>
@@ -67,7 +79,8 @@
     <p class="message @(Model.Message.Contains("thành công") ? "success" : "error")">@Model.Message</p>
 }
 
-@* === 1. QUẢN LÝ LOGO & FILES === *@
+@* === CÁC MỤC 1, 2, 3 (LOGO, QR, CÀI ĐẶT CHUNG) GIỮ NGUYÊN === *@
+@* ... (Tôi sẽ ẩn đi cho gọn, bạn chỉ cần giữ nguyên code cũ của 3 phần này) ... *@
 <div class="form-section">
     <h3>Quản lý Logo</h3>
     @using (Html.BeginForm("SaveFile", "Setting", FormMethod.Post, new { enctype = "multipart/form-data", @area = "Admin" }))
@@ -85,8 +98,6 @@
         <img src="@Url.Content(Model.CurrentLogoUrl)" alt="Logo hiện tại" class="logo-preview">
     }
 </div>
-
-@* === 2. QUẢN LÝ QR CODE === *@
 <div class="form-section">
     <h3>Quản lý Mã QR</h3>
     @using (Html.BeginForm("SaveFile", "Setting", FormMethod.Post, new { enctype = "multipart/form-data", @area = "Admin" }))
@@ -103,15 +114,12 @@
         <img src="@Url.Content(Model.CurrentQrCodeUrl)" alt="Mã QR" class="qr-preview">
     }
 </div>
-
-@* === 3. CÀI ĐẶT VĂN BẢN & BỐ CỤC (TEXT & LAYOUT) === *@
 <div class="form-section">
     <h3>Cài đặt Văn bản và Bố cục</h3>
     @using (Html.BeginForm("SaveTextSettings", "Setting", FormMethod.Post, new { @area = "Admin" }))
     {
         @Html.AntiForgeryToken()
         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-
         <div class="row">
             <div class="col-md-6">
                 @Html.LabelFor(m => m.WelcomeText, "Nội dung Lời chào:")
@@ -122,8 +130,6 @@
                 @Html.TextBoxFor(m => m.ProductsPerRow, new { @class = "form-control", @type = "number", @min = "1", @max = "6" })
             </div>
         </div>
-
-        @* === SỬA LỖI CSS BẰNG CÁCH BỌC VÀO .row === *@
         <div class="row" style="margin-top: 15px;">
             <div class="form-group">
                 @Html.LabelFor(model => model.ShowSearchBar, htmlAttributes: new { @class = "control-label col-md-3 checkbox-label" })
@@ -135,59 +141,98 @@
                 </div>
             </div>
         </div>
-        @* === KẾT THÚC SỬA LỖI === *@
-
         <h3 style="margin-top: 20px;">Thông tin Chân trang (Footer)</h3>
-
         @Html.LabelFor(m => m.FooterText, "Nội dung Chân trang (Về chúng tôi):")
         @Html.TextAreaFor(m => m.FooterText, new { @class = "form-control", @rows = "3" })
-
         @Html.LabelFor(m => m.FooterAddress, "Địa chỉ:")
         @Html.TextBoxFor(m => m.FooterAddress, new { @class = "form-control" })
-
         @Html.LabelFor(m => m.FooterPhone, "Số điện thoại:")
         @Html.TextBoxFor(m => m.FooterPhone, new { @class = "form-control" })
-
         <button type="submit" class="btn btn-success" style="margin-top: 15px;">Lưu Cài đặt Chung</button>
     }
 </div>
 
-@* === 4. QUẢN LÝ THANH ĐIỀU HƯỚNG (NAVBAR ITEMS) === *@
+
+@* === 4. QUẢN LÝ THANH ĐIỀU HƯỚNG (NAVBAR ITEMS) - ĐÃ SỬA ĐỔI === *@
 <div class="form-section">
-    @* ... (Toàn bộ code HTML của phần Navbar giữ nguyên) ... *@
-    <h3>Quản lý Thanh điều hướng (Navbar)</h3>
-    <h4 id="navbar-form-title">Thêm mục mới:</h4>
+    <h3>Quản lý Thanh điều hướng (Menu Đa cấp)</h3>
+    <h4 id="navbar-form-title">Thêm/Sửa mục</h4>
+
     @using (Html.BeginForm("ManageNavbar", "Setting", FormMethod.Post, new { @area = "Admin", @id = "navbarForm" }))
     {
         @Html.AntiForgeryToken()
-        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        @Html.ValidationSummary(false, "Vui lòng sửa các lỗi sau:", new { @class = "text-danger" })
+
         <input type="hidden" name="ItemId" id="navbarItemId" value="0" />
+
         <div class="row">
-            <div class="col-md-4">@Html.TextBox("ItemText", "", new { @class = "form-control", placeholder = "Tên liên kết", required = "required", @id = "navbarItemText" })</div>
-            <div class="col-md-4">@Html.TextBox("ItemUrl", "", new { @class = "form-control", placeholder = "Đường dẫn (VD: /Product/SaleProducts)", required = "required", @id = "navbarItemUrl" })</div>
-            <div class="col-md-2">@Html.TextBox("ItemOrder", "0", new { @class = "form-control", type = "number", @id = "navbarItemOrder" })</div>
-            <div class="col-md-2"><button type="submit" id="navbarFormButton" class="btn btn-primary btn-block">Thêm</button></div>
+            <div class="col-md-3">
+                @Html.Label("Tên mục")
+                @Html.TextBox("ItemText", "", new { @class = "form-control", placeholder = "Tên liên kết", required = "required", @id = "navbarItemText" })
+            </div>
+            <div class="col-md-3">
+                @Html.Label("Hoặc chọn Trang (Nội dung)")
+                @* Dropdown mới cho Pages *@
+                @Html.DropDownList("pageLink", Model.PageLinks, new { @class = "form-control", @id = "pageSelector" })
+            </div>
+            <div class="col-md-3">
+                @Html.Label("Đường dẫn (URL)")
+                @Html.TextBox("ItemUrl", "", new { @class = "form-control", placeholder = "VD: /Product/SaleProducts", @id = "navbarItemUrl" })
+            </div>
+            <div class="col-md-3">
+                @Html.Label("Mục cha (Nếu có)")
+                @* Dropdown mới cho ParentId *@
+                @Html.DropDownList("ParentId", Model.ParentNavbarItems, new { @class = "form-control", @id = "navbarParentId" })
+            </div>
+        </div>
+        <div class="row" style="margin-top: 15px;">
+            <div class="col-md-2">
+                @Html.Label("Thứ tự")
+                @Html.TextBox("ItemOrder", "0", new { @class = "form-control", type = "number", @id = "navbarItemOrder" })
+            </div>
+            <div class="col-md-4" style="margin-top: 25px;">
+                <button type="submit" id="navbarFormButton" class="btn btn-primary">Thêm</button>
+                <a href="@Url.Action("Index")" class="btn btn-default">Hủy (Reset Form)</a>
+            </div>
         </div>
     }
-    <h4 style="margin-top: 20px;">Sửa các mục hiện có:</h4>
+
+    <h4 style="margin-top: 20px;">Các mục hiện có:</h4>
     <table class="table table-bordered navbar-table">
         <thead>
             <tr><th>Tên</th><th>Đường dẫn</th><th>Thứ tự</th><th>Hành động</th></tr>
         </thead>
         <tbody>
-            @foreach (var item in Model.NavbarItems)
+            @* Lặp qua các mục cha trước *@
+            @foreach (var item in Model.NavbarItems.Where(n => n.ParentId == null).OrderBy(n => n.ItemOrder))
             {
-                <tr data-id="@item.ItemId" data-text="@item.ItemText" data-url="@item.ItemUrl" data-order="@item.ItemOrder">
-                    <td>@item.ItemText</td>
+                <tr data-id="@item.ItemId" data-text="@item.ItemText" data-url="@item.ItemUrl" data-order="@item.ItemOrder" data-parentid="">
+                    <td><strong>@item.ItemText</strong></td>
                     <td>@item.ItemUrl</td>
                     <td>@item.ItemOrder</td>
                     <td>
-                        <button type="button" class="btn btn-info btn-xs edit-navbar-btn" data-id="@item.ItemId">Sửa</button>
+                        <button type="button" class="btn btn-info btn-xs edit-navbar-btn">Sửa</button>
                         <a href="@Url.Action("DeleteNavbarItem", "Setting", new { area = "Admin", id = item.ItemId })"
                            class="btn btn-danger btn-xs"
                            onclick="return confirm('Bạn có chắc chắn muốn xóa mục này?');">Xóa</a>
                     </td>
                 </tr>
+
+                @* Lặp qua các mục con của mục cha này *@
+                foreach (var childItem in Model.NavbarItems.Where(n => n.ParentId == item.ItemId).OrderBy(n => n.ItemOrder))
+                {
+                    <tr class="navbar-child-item" data-id="@childItem.ItemId" data-text="@childItem.ItemText" data-url="@childItem.ItemUrl" data-order="@childItem.ItemOrder" data-parentid="@childItem.ParentId">
+                        <td>@childItem.ItemText</td>
+                        <td>@childItem.ItemUrl</td>
+                        <td>@childItem.ItemOrder</td>
+                        <td>
+                            <button type="button" class="btn btn-info btn-xs edit-navbar-btn">Sửa</button>
+                            <a href="@Url.Action("DeleteNavbarItem", "Setting", new { area = "Admin", id = childItem.ItemId })"
+                               class="btn btn-danger btn-xs"
+                               onclick="return confirm('Bạn có chắc chắn muốn xóa mục này?');">Xóa</a>
+                        </td>
+                    </tr>
+                }
             }
         </tbody>
     </table>
@@ -244,19 +289,34 @@
 @section scripts {
     <script>
         $(document).ready(function () {
-            // === SCRIPT CHO NAVBAR VÀ PRICE RANGE ===
 
+            // === SCRIPT MỚI: TỰ ĐỘNG ĐIỀN LINK KHI CHỌN TRANG ===
+            $('#pageSelector').on('change', function () {
+                var selectedUrl = $(this).val();
+                if (selectedUrl) {
+                    $('#navbarItemUrl').val(selectedUrl);
+                    // Tự động điền tên nếu ô Tên mục đang trống
+                    if ($('#navbarItemText').val() == '') {
+                        $('#navbarItemText').val($(this).find('option:selected').text());
+                    }
+                }
+            });
+
+            // Logic chỉnh sửa Navbar Items (đã cập nhật để lấy ParentId)
             $('.edit-navbar-btn').on('click', function () {
                 var row = $(this).closest('tr');
                 $('#navbarItemId').val(row.data('id'));
                 $('#navbarItemText').val(row.data('text'));
                 $('#navbarItemUrl').val(row.data('url'));
                 $('#navbarItemOrder').val(row.data('order'));
+                $('#navbarParentId').val(row.data('parentid')); // Gán giá trị ParentId
+
                 $('#navbar-form-title').text('Sửa mục Navbar ID: ' + row.data('id'));
                 $('#navbarFormButton').text('Lưu Thay Đổi').removeClass('btn-primary').addClass('btn-success');
                 $('html, body').animate({ scrollTop: $('#navbarForm').offset().top - 50 }, 500);
             });
 
+            // Logic chỉnh sửa Price Range
             $('.edit-price-range-btn').on('click', function () {
                 var row = $(this).closest('tr');
                 $('#priceRangeId').val(row.data('id'));

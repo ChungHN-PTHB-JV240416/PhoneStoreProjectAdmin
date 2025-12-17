@@ -1,15 +1,13 @@
-﻿using System.Linq;
-using System.Web.Mvc;
+﻿using System;
 using System.Data.Entity;
-using PhoneStore_New.Models;
-using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Web;
-using System;
-using PhoneStore_New;
-
-// Sửa lại using alias cho ViewModel của Admin
-using AdminVMs = PhoneStore_New.Areas.Admin.Models.ViewModels;
+using System.Web.Mvc;
+using PhoneStore_New.Areas.Admin.Models.ViewModels;
+using PhoneStore_New.Models;
+using System.Collections.Generic; // Cần cho List
+using PhoneStore_New; // Cần cho IdentityExtensions
 
 namespace PhoneStore_New.Areas.Admin.Controllers
 {
@@ -31,27 +29,56 @@ namespace PhoneStore_New.Areas.Admin.Controllers
                 setting.SettingValue = value;
                 db.Entry(setting).State = EntityState.Modified;
             }
-            // Di chuyển SaveChanges ra ngoài để gọi một lần
         }
 
         // GET: Admin/Setting/Index (Tải và hiển thị tất cả cài đặt)
         public ActionResult Index(string message)
         {
             var settingsDict = db.Settings.ToDictionary(s => s.SettingKey, s => s.SettingValue);
+
+            // === BẮT ĐẦU SỬA ĐỔI: TẢI DỮ LIỆU CHO MENU ĐA CẤP ===
+
+            // 1. Lấy danh sách Navbar Items
             var navItems = db.NavbarItems
                              .OrderBy(n => n.ItemOrder)
-                             .Select(n => new AdminVMs.NavbarItemViewModel
+                             .Select(n => new NavbarItemViewModel
                              {
                                  ItemId = n.ItemId,
                                  ItemText = n.ItemText,
                                  ItemUrl = n.ItemUrl,
-                                 ItemOrder = n.ItemOrder ?? 0
+                                 ItemOrder = n.ItemOrder ?? 0,
+                                 ParentId = n.ParentId // Lấy ParentId
                              })
                              .ToList();
 
+            // 2. Lấy danh sách các mục có thể làm cha (là các mục không có ParentId)
+            var parentList = navItems
+                .Where(n => n.ParentId == null)
+                .Select(n => new SelectListItem
+                {
+                    Value = n.ItemId.ToString(),
+                    Text = n.ItemText
+                })
+                .ToList();
+            parentList.Insert(0, new SelectListItem { Value = "", Text = "--- (Là mục cha)" });
+
+            // 3. Lấy danh sách các Trang (Pages) (để gán link)
+            var pageLinks = db.Pages
+                .Where(c => c.IsPublished)
+                .OrderBy(c => c.Title)
+                .Select(c => new SelectListItem
+                {
+                    Value = "/Page/View/" + c.Slug, // Giá trị là đường link
+                    Text = c.Title // Tên hiển thị
+                })
+                .ToList();
+            pageLinks.Insert(0, new SelectListItem { Value = "", Text = "--- Chọn Trang (Nội dung) ---" });
+
+            // === KẾT THÚC SỬA ĐỔI ===
+
             var priceRanges = db.PriceRanges
                                 .OrderBy(r => r.RangeOrder)
-                                .Select(r => new AdminVMs.PriceRangeViewModel
+                                .Select(r => new PriceRangeViewModel
                                 {
                                     RangeId = r.RangeId,
                                     RangeLabel = r.RangeLabel,
@@ -61,70 +88,33 @@ namespace PhoneStore_New.Areas.Admin.Controllers
                                 })
                                 .ToList();
 
-            var model = new AdminVMs.SettingViewModel
+            var model = new SettingViewModel
             {
                 WelcomeText = settingsDict.GetValueOrDefault("welcome_text"),
                 ProductsPerRow = int.Parse(settingsDict.GetValueOrDefault("products_per_row", "4")),
+                ShowSearchBar = bool.Parse(settingsDict.GetValueOrDefault("show_search_bar", "true")),
                 FooterText = settingsDict.GetValueOrDefault("footer_text"),
                 FooterAddress = settingsDict.GetValueOrDefault("footer_address"),
                 FooterPhone = settingsDict.GetValueOrDefault("footer_phone"),
                 CurrentLogoUrl = settingsDict.GetValueOrDefault("logo_url"),
                 CurrentBackgroundUrl = settingsDict.GetValueOrDefault("background_image_url"),
                 CurrentQrCodeUrl = settingsDict.GetValueOrDefault("qr_code_url"),
+
                 NavbarItems = navItems,
                 PriceRanges = priceRanges,
                 Message = (TempData["Message"] as string) ?? message,
 
-                // === SỬA ĐỔI: TẢI GIÁ TRỊ TỪ CSDL ===
-                // Mặc định là "true" (bật) nếu chưa có cài đặt
-                ShowSearchBar = bool.Parse(settingsDict.GetValueOrDefault("show_search_bar", "true"))
+                // Gán các danh sách mới vào ViewModel
+                ParentNavbarItems = parentList,
+                PageLinks = pageLinks
             };
 
             return View(model);
         }
 
-        // POST: Admin/Setting/SaveFile (Xử lý upload Logo, QR, Background)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult SaveFile(HttpPostedFileBase fileUpload, string settingKey)
-        {
-            if (fileUpload != null && fileUpload.ContentLength > 0 && !string.IsNullOrEmpty(settingKey))
-            {
-                try
-                {
-                    var uploadDir = Server.MapPath("~/uploads/");
-                    if (!Directory.Exists(uploadDir))
-                    {
-                        Directory.CreateDirectory(uploadDir);
-                    }
-
-                    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(fileUpload.FileName);
-                    var path = Path.Combine(uploadDir, fileName);
-                    fileUpload.SaveAs(path);
-
-                    var newUrl = "~/uploads/" + fileName;
-                    UpdateSetting(settingKey, newUrl);
-                    db.SaveChanges(); // Lưu thay đổi
-
-                    TempData["Message"] = $"File cho {settingKey} đã được cập nhật thành công.";
-                }
-                catch (Exception ex)
-                {
-                    TempData["Message"] = $"Lỗi khi tải file lên: {ex.Message}";
-                }
-            }
-            else
-            {
-                TempData["Message"] = "Vui lòng chọn file.";
-            }
-
-            return RedirectToAction("Index");
-        }
-
-        // POST: Admin/Setting/SaveTextSettings (Xử lý cập nhật văn bản và bố cục)
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult SaveTextSettings(AdminVMs.SettingViewModel model)
+        public ActionResult SaveTextSettings(SettingViewModel model)
         {
             if (ModelState.IsValid)
             {
@@ -133,21 +123,26 @@ namespace PhoneStore_New.Areas.Admin.Controllers
                 UpdateSetting("footer_text", model.FooterText);
                 UpdateSetting("footer_address", model.FooterAddress);
                 UpdateSetting("footer_phone", model.FooterPhone);
-
-                // === SỬA ĐỔI: LƯU CÀI ĐẶT MỚI VÀO CSDL ===
-                // Lưu dưới dạng chuỗi "true" hoặc "false"
                 UpdateSetting("show_search_bar", model.ShowSearchBar.ToString().ToLower());
 
-                db.SaveChanges(); // Lưu tất cả thay đổi chung
+                db.SaveChanges();
                 TempData["Message"] = "Cài đặt văn bản đã được lưu thành công.";
+                return RedirectToAction("Index"); // Redirect để tải lại
             }
-            return RedirectToAction("Index");
+
+            // Nếu lỗi, tải lại các danh sách
+            model.ParentNavbarItems = db.NavbarItems.Where(n => n.ParentId == null).Select(n => new SelectListItem { Value = n.ItemId.ToString(), Text = n.ItemText }).ToList();
+            model.PageLinks = db.Pages.Where(c => c.IsPublished).OrderBy(c => c.Title).Select(c => new SelectListItem { Value = "/Page/View/" + c.Slug, Text = c.Title }).ToList();
+            model.NavbarItems = db.NavbarItems.OrderBy(n => n.ItemOrder).Select(n => new NavbarItemViewModel { ItemId = n.ItemId, ItemText = n.ItemText, ItemUrl = n.ItemUrl, ItemOrder = n.ItemOrder ?? 0, ParentId = n.ParentId }).ToList();
+            model.PriceRanges = db.PriceRanges.OrderBy(r => r.RangeOrder).Select(r => new PriceRangeViewModel { RangeId = r.RangeId, RangeLabel = r.RangeLabel, MinPrice = r.MinPrice, MaxPrice = r.MaxPrice, RangeOrder = r.RangeOrder ?? 0 }).ToList();
+
+            return View("Index", model);
         }
 
-        // POST: Admin/Setting/ManageNavbar (Thêm/Sửa mục Navbar)
+        // === SỬA ĐỔI LOGIC LƯU ParentId ===
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult ManageNavbar(AdminVMs.NavbarItemViewModel model)
+        public ActionResult ManageNavbar(NavbarItemViewModel model)
         {
             if (ModelState.IsValid)
             {
@@ -158,6 +153,7 @@ namespace PhoneStore_New.Areas.Admin.Controllers
                         ItemText = model.ItemText,
                         ItemUrl = model.ItemUrl,
                         ItemOrder = model.ItemOrder,
+                        ParentId = model.ParentId, // Lưu ParentId
                         ItemVisible = true
                     };
                     db.NavbarItems.Add(newItem);
@@ -171,6 +167,7 @@ namespace PhoneStore_New.Areas.Admin.Controllers
                         item.ItemText = model.ItemText;
                         item.ItemUrl = model.ItemUrl;
                         item.ItemOrder = model.ItemOrder;
+                        item.ParentId = model.ParentId; // Lưu ParentId
                         db.Entry(item).State = EntityState.Modified;
                         TempData["Message"] = "Mục Navbar đã được cập nhật thành công!";
                     }
@@ -186,23 +183,62 @@ namespace PhoneStore_New.Areas.Admin.Controllers
             var item = db.NavbarItems.Find(id);
             if (item != null)
             {
-                db.NavbarItems.Remove(item);
-                db.SaveChanges();
-                TempData["Message"] = "Mục Navbar đã được xóa thành công.";
+                // Kiểm tra xem có mục con nào không
+                if (db.NavbarItems.Any(n => n.ParentId == id))
+                {
+                    TempData["Message"] = "Lỗi: Không thể xóa mục này vì nó đang là mục cha của các mục khác.";
+                }
+                else
+                {
+                    db.NavbarItems.Remove(item);
+                    db.SaveChanges();
+                    TempData["Message"] = "Mục Navbar đã được xóa thành công.";
+                }
             }
             return RedirectToAction("Index");
         }
 
-        // POST: Admin/Setting/ManagePriceRange (Thêm/Sửa khoảng giá)
+        // --- Các Action khác (SaveFile, PriceRange...) giữ nguyên ---
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult ManagePriceRange(AdminVMs.PriceRangeViewModel model)
+        public ActionResult SaveFile(HttpPostedFileBase fileUpload, string settingKey)
+        {
+            if (fileUpload != null && fileUpload.ContentLength > 0 && !string.IsNullOrEmpty(settingKey))
+            {
+                try
+                {
+                    var uploadDir = Server.MapPath("~/uploads/");
+                    if (!Directory.Exists(uploadDir)) Directory.CreateDirectory(uploadDir);
+                    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(fileUpload.FileName);
+                    var path = Path.Combine(uploadDir, fileName);
+                    fileUpload.SaveAs(path);
+                    var newUrl = "~/uploads/" + fileName;
+                    UpdateSetting(settingKey, newUrl);
+                    db.SaveChanges();
+                    TempData["Message"] = $"File cho {settingKey} đã được cập nhật thành công.";
+                }
+                catch (Exception ex)
+                {
+                    TempData["Message"] = $"Lỗi khi tải file lên: {ex.Message}";
+                }
+            }
+            else
+            {
+                TempData["Message"] = "Vui lòng chọn file.";
+            }
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ManagePriceRange(PriceRangeViewModel model)
         {
             if (ModelState.IsValid)
             {
-                if (model.RangeId == 0) // Thêm mới
+                if (model.RangeId == 0)
                 {
-                    var newRange = new PriceRanx // Tên bảng CSDL của bạn
+                    var newRange = new PriceRanx
                     {
                         RangeLabel = model.RangeLabel,
                         MinPrice = model.MinPrice,
@@ -211,7 +247,7 @@ namespace PhoneStore_New.Areas.Admin.Controllers
                     };
                     db.PriceRanges.Add(newRange);
                 }
-                else // Sửa
+                else
                 {
                     var rangeToUpdate = db.PriceRanges.Find(model.RangeId);
                     if (rangeToUpdate != null)
@@ -229,7 +265,6 @@ namespace PhoneStore_New.Areas.Admin.Controllers
             return RedirectToAction("Index");
         }
 
-        // GET: Admin/Setting/DeletePriceRange/5
         public ActionResult DeletePriceRange(int id)
         {
             var range = db.PriceRanges.Find(id);
@@ -240,6 +275,15 @@ namespace PhoneStore_New.Areas.Admin.Controllers
                 TempData["Message"] = "Khoảng giá đã được xóa thành công.";
             }
             return RedirectToAction("Index");
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                db.Dispose();
+            }
+            base.Dispose(disposing);
         }
     }
 }

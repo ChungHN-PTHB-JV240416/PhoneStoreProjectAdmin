@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Web;
+using System.Web.Mvc; // <-- THÊM DÒNG NÀY (RẤT QUAN TRỌNG)
 
 namespace PhoneStore_New.Areas.Admin.Models.ViewModels
 {
@@ -9,11 +9,7 @@ namespace PhoneStore_New.Areas.Admin.Models.ViewModels
         // Settings chung
         public string WelcomeText { get; set; }
         public int ProductsPerRow { get; set; }
-
-        // === THÊM MỚI TẠI ĐÂY ===
-        [Display(Name = "Hiển thị Thanh Tìm kiếm")]
         public bool ShowSearchBar { get; set; }
-        // === KẾT THÚC THÊM MỚI ===
 
         // Footer Info
         public string FooterText { get; set; }
@@ -23,10 +19,8 @@ namespace PhoneStore_New.Areas.Admin.Models.ViewModels
         // Quản lý file upload
         public HttpPostedFileBase LogoFile { get; set; }
         public string CurrentLogoUrl { get; set; }
-
         public HttpPostedFileBase BackgroundFile { get; set; }
         public string CurrentBackgroundUrl { get; set; }
-
         public HttpPostedFileBase QrCodeFile { get; set; }
         public string CurrentQrCodeUrl { get; set; }
 
@@ -35,5 +29,19 @@ namespace PhoneStore_New.Areas.Admin.Models.ViewModels
         public List<PriceRangeViewModel> PriceRanges { get; set; }
 
         public string Message { get; set; }
+
+        // === BẮT ĐẦU THÊM MỚI CHO MENU ĐA CẤP ===
+
+        /// <summary>
+        /// Danh sách các mục có thể làm cha (để đổ vào Dropdown)
+        /// </summary>
+        public List<SelectListItem> ParentNavbarItems { get; set; }
+
+        /// <summary>
+        /// Danh sách các Trang (Pages) có thể liên kết đến (để đổ vào Dropdown)
+        /// </summary>
+        public List<SelectListItem> PageLinks { get; set; }
+
+        // === KẾT THÚC THÊM MỚI ===
     }
 }

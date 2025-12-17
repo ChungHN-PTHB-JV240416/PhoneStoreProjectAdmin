@@ -12,23 +12,20 @@ namespace PhoneStore_New.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class Category
+    public partial class ProductCollection
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public Category()
+        public ProductCollection()
         {
-            this.Products = new HashSet<Product>();
-            this.Categories1 = new HashSet<Category>();
+            this.ProductCollectionItems = new HashSet<ProductCollectionItem>();
         }
     
-        public int CategoryId { get; set; }
+        public int CollectionId { get; set; }
         public string Name { get; set; }
-        public Nullable<int> ParentId { get; set; }
+        public string Handle { get; set; }
+        public bool IsPublished { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Product> Products { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Category> Categories1 { get; set; }
-        public virtual Category Category1 { get; set; }
+        public virtual ICollection<ProductCollectionItem> ProductCollectionItems { get; set; }
     }
 }

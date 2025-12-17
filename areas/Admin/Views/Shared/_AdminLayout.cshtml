@@ -176,6 +176,7 @@
             <a href="@Url.Action("Index", "Setting", new { area = "Admin" })">Quản lý Giao diện</a>
             <a href="@Url.Action("Sales", "Report", new { area = "Admin" })">Báo cáo Doanh thu</a>
             <a href="@Url.Action("Bestsellers", "Report", new { area = "Admin" })">Báo cáo Bán chạy</a>
+            <a href="@Url.Action("Index", "PageAdmin", new { area = "Admin" })">Quản Lý Trang</a>
         </nav>
         @using (Html.BeginForm("Logout", "Login", new { area = "" }, FormMethod.Post, new { id = "logoutFormAdmin", style = "margin-top: 30px;" }))
         {

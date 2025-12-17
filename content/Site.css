@@ -45,7 +45,7 @@ h1, h2, h3, h4, h5, h6 {
 
     .navbar-brand img {
         height: 40px;
-        margin-top: 5px; /* Căn chỉnh logo */
+        margin-top: 5px;
     }
 
 .navbar-default .navbar-nav > li > a {
@@ -59,7 +59,7 @@ h1, h2, h3, h4, h5, h6 {
 
     .navbar-default .navbar-nav > li > a:hover,
     .navbar-default .navbar-nav > li > a:focus {
-        color: #007bff; /* Màu xanh chủ đạo */
+        color: #007bff;
         background-color: transparent;
     }
 
@@ -80,7 +80,7 @@ h1, h2, h3, h4, h5, h6 {
         }
 
 /* ================================================= */
-/* === CSS MỚI CHO THANH TÌM KIẾM BẬT/TẮT === */
+/* === SỬA LỖI CSS THANH TÌM KIẾM BẬT/TẮT === */
 /* ================================================= */
 
 #search-toggle-btn {
@@ -88,45 +88,45 @@ h1, h2, h3, h4, h5, h6 {
 }
 
     #search-toggle-btn:hover {
-        color: #007bff !important; /* Thêm hiệu ứng hover cho nút kính lúp */
+        color: #007bff !important;
     }
 
 #search-bar-container {
-    display: none; /* Ẩn mặc định */
-    background-color: #333; /* Nền tối hơn để nổi bật */
+    display: none; /* 1. ẨN NÓ ĐI MẶC ĐỊNH */
+    background-color: #333; /* Nền tối */
     border-bottom: 1px solid #222;
     padding: 20px 0;
-    position: fixed;
-    top: 70px; /* Chiều cao của navbar (padding-top của body) */
+    position: fixed; /* 2. CỐ ĐỊNH NÓ */
+    top: 70px; /* 3. NẰM NGAY DƯỚI NAVBAR (chiều cao của navbar) */
     left: 0;
     right: 0;
-    z-index: 1020; /* Dưới navbar (1030) nhưng trên nội dung */
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1); /* Thêm bóng nhẹ */
+    z-index: 1020;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
     #search-bar-container .navbar-form {
         margin: 0;
         padding: 0;
         width: 100%;
-        display: flex; /* Dùng flexbox để co giãn */
+        display: flex;
         border: none;
-        box-shadow: none; /* Tắt box-shadow mặc định của navbar-form */
+        box-shadow: none;
     }
 
     #search-bar-container .form-group {
-        flex-grow: 1; /* Cho phép ô input co giãn đầy */
-        margin-right: 15px; /* Tăng khoảng cách */
+        flex-grow: 1;
+        margin-right: 15px;
     }
 
     #search-bar-container .form-control {
         width: 100%;
-        height: 45px; /* Làm cho ô input cao hơn */
-        font-size: 16px; /* Chữ to hơn */
+        height: 45px;
+        font-size: 16px;
         border-radius: 5px;
     }
 
     #search-bar-container .btn {
-        height: 45px; /* Làm nút cao bằng ô input */
+        height: 45px;
         font-size: 16px;
         font-weight: 600;
         padding-left: 25px;
@@ -134,7 +134,7 @@ h1, h2, h3, h4, h5, h6 {
     }
 
 /* ================================================= */
-/* === PRODUCT CARD (ĐÃ TỐI ƯU HÓA) === */
+/* === PRODUCT CARD === */
 /* ================================================= */
 
 .product-card {
@@ -316,4 +316,3 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 40px;
     line-height: normal;
 }
-    

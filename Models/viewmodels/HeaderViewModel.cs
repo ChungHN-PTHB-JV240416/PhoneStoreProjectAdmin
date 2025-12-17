@@ -10,13 +10,13 @@ namespace PhoneStore_New.Models.ViewModels
         public string UserFirstName { get; set; }
         public string UserAvatarUrl { get; set; }
         public bool IsLoggedIn { get; set; }
-        public List<NavbarItemViewModel> NavbarItems { get; set; }
-        public List<Category> Categories { get; set; }
 
-        // === THÊM DÒNG MỚI NÀY VÀO ===
-        /// <summary>
-        /// Cài đặt (lấy từ CSDL) để quyết định có hiện thanh tìm kiếm hay không.
-        /// </summary>
+        // === SỬA ĐỔI: DÙNG LẠI NavbarItem TỪ CSDL ===
+        // Thay vì NavbarItemViewModel, chúng ta dùng luôn Model gốc
+        // để có thể truy cập ParentId
+        public List<NavbarItem> NavbarItems { get; set; }
+
+        public List<Category> Categories { get; set; }
         public bool ShowSearchBar { get; set; }
     }
 }

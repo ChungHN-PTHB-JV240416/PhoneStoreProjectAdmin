@@ -1,0 +1,188 @@
+﻿@model PhoneStore_New.Areas.Admin.Models.ViewModels.ProductCollectionEditViewModel
+@using PagedList.Mvc; // Cần cho phân trang
+@using PagedList;     // Cần cho phân trang
+
+@{
+    ViewBag.Title = "Sửa Bộ sưu tập: " + Model.Collection.Name;
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    /* Bố cục 2 cột */
+    .collection-manager {
+        display: flex;
+        gap: 30px;
+    }
+
+    .collection-column {
+        flex: 1;
+        min-width: 0; /* Fix lỗi flexbox */
+    }
+    /* Danh sách sản phẩm thu nhỏ */
+    .product-list-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        margin-bottom: 10px;
+        background-color: #fff;
+    }
+
+        .product-list-item img {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+
+        .product-list-item .product-name {
+            flex-grow: 1;
+            font-weight: 600;
+        }
+    /* CSS cho Phân trang */
+    .pagination-container {
+        text-align: center;
+        margin-top: 20px;
+    }
+
+        .pagination-container .pagination > li > a,
+        .pagination-container .pagination > li > span {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+</style>
+
+<div class="admin-container">
+    <a href="@Url.Action("Index")" class="btn btn-default" style="margin-bottom: 20px;">← Quay lại Danh sách</a>
+    <h2>Sửa Bộ sưu tập: @Model.Collection.Name</h2>
+
+    @* === 1. FORM SỬA THÔNG TIN CƠ BẢN === *@
+    <div class="form-section">
+        <h3>Thông tin cơ bản</h3>
+        @using (Html.BeginForm("Edit", "ProductCollectionAdmin", FormMethod.Post, new { @class = "form-horizontal" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+            @Html.HiddenFor(model => model.Collection.CollectionId)
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.Collection.Name, htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    @Html.EditorFor(model => model.Collection.Name, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.Collection.Name, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(model => model.Collection.Handle, htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    @Html.EditorFor(model => model.Collection.Handle, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.Collection.Handle, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(model => model.Collection.IsPublished, htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    <div class="checkbox">
+                        @Html.EditorFor(model => model.Collection.IsPublished)
+                        @Html.ValidationMessageFor(model => model.Collection.IsPublished, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-offset-2 col-md-10">
+                    <input type="submit" value="Lưu thay đổi" class="btn btn-primary" />
+                </div>
+            </div>
+        }
+    </div>
+
+    @* === 2. BỐ CỤC 2 CỘT ĐỂ QUẢN LÝ SẢN PHẨM === *@
+    <hr />
+    <h3>Quản lý Sản phẩm</h3>
+    <div class="collection-manager">
+
+        @* CỘT BÊN TRÁI: SẢN PHẨM ĐÃ CÓ *@
+        <div class="collection-column form-section">
+            <h4>Sản phẩm đã có trong Bộ sưu tập (@Model.ProductsInCollection.Count)</h4>
+            @if (Model.ProductsInCollection.Any())
+            {
+                foreach (var product in Model.ProductsInCollection)
+                {
+                    <div class="product-list-item">
+                        <img src="@Url.Content(product.ImageUrl)" alt="@product.Name" />
+                        <span class="product-name">@product.Name</span>
+                        @using (Html.BeginForm("RemoveProductFromCollection", "ProductCollectionAdmin", FormMethod.Post))
+                        {
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="collectionId" value="@Model.Collection.CollectionId" />
+                            <input type="hidden" name="productId" value="@product.ProductId" />
+                            <button type="submit" class="btn btn-danger btn-xs">Xóa</button>
+                        }
+                    </div>
+                }
+            }
+            else
+            {
+                <p>Chưa có sản phẩm nào trong bộ sưu tập này.</p>
+            }
+        </div>
+
+        @* CỘT BÊN PHẢI: THÊM SẢN PHẨM MỚI (CÓ TÌM KIẾM & PHÂN TRANG) *@
+        <div class="collection-column form-section">
+            <h4>Thêm sản phẩm mới</h4>
+
+            @* Form Tìm kiếm *@
+            @using (Html.BeginForm("Edit", "ProductCollectionAdmin", FormMethod.Get, new { @class = "form-inline", style = "margin-bottom: 20px;" }))
+            {
+                <input type="hidden" name="id" value="@Model.Collection.CollectionId" />
+                <div class="form-group">
+                    <input type="text" name="searchKeyword" class="form-control input-sm" placeholder="Tìm tên sản phẩm..." value="@Model.SearchKeyword" />
+                </div>
+                <button type="submit" class="btn btn-default btn-sm">Tìm</button>
+            }
+
+            @* Danh sách kết quả tìm kiếm *@
+            @if (Model.ProductsNotInCollection.Any())
+            {
+                foreach (var product in Model.ProductsNotInCollection)
+                {
+                    <div class="product-list-item">
+                        <img src="@Url.Content(product.ImageUrl)" alt="@product.Name" />
+                        <span class="product-name">@product.Name</span>
+                        @using (Html.BeginForm("AddProductToCollection", "ProductCollectionAdmin", FormMethod.Post))
+                        {
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="collectionId" value="@Model.Collection.CollectionId" />
+                            <input type="hidden" name="productId" value="@product.ProductId" />
+                            <button type="submit" class="btn btn-success btn-xs">Thêm</button>
+                        }
+                    </div>
+                }
+
+                @* Phân trang cho kết quả tìm kiếm *@
+                <div class="pagination-container">
+                    @Html.PagedListPager(Model.ProductsNotInCollection, page => Url.Action("Edit",
+                        new
+                             {
+                            id = Model.Collection.CollectionId,
+                            page,
+                            searchKeyword = Model.SearchKeyword
+                        }),
+                        new PagedListRenderOptions
+                        {
+                            LiElementClasses = new[] { "page-item" },
+                            UlElementClasses = new[] { "pagination", "pagination-sm" },
+                            DisplayLinkToIndividualPages = true
+                        })
+                </div>
+            }
+            else
+            {
+                <p>Không tìm thấy sản phẩm nào, hoặc tất cả sản phẩm đã được thêm.</p>
+            }
+        </div>
+    </div>
+</div>

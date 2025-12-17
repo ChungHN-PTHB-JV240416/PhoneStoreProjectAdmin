@@ -1,0 +1,99 @@
+﻿@model PhoneStore_New.Areas.Admin.Models.ViewModels.PageViewModel
+
+@{
+    ViewBag.Title = "Sửa Trang: " + Model.Title;
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="admin-container">
+    <h2>Sửa Trang: @Model.Title</h2>
+    <hr />
+
+    @using (Html.BeginForm("Edit", "PageAdmin", FormMethod.Post, new { @class = "form-horizontal" }))
+    {
+        @Html.AntiForgeryToken()
+
+        @* Hiển thị lỗi validation (nếu có) *@
+        @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+
+        @* Trường ID bắt buộc phải có để biết đang sửa trang nào *@
+        @Html.HiddenFor(model => model.PageId)
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Title, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Title, new { htmlAttributes = new { @class = "form-control", @id = "pageTitle" } })
+                @Html.ValidationMessageFor(model => model.Title, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Slug, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Slug, new { htmlAttributes = new { @class = "form-control", @id = "pageSlug" } })
+                @Html.ValidationMessageFor(model => model.Slug, "", new { @class = "text-danger" })
+                <span class="help-block">Lưu ý: Đường dẫn này phải là duy nhất, không dấu, không khoảng trắng (ví dụ: ve-chung-toi, giay-dep).</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Content, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @* CKEditor sẽ được gắn vào đây *@
+                @Html.TextAreaFor(model => model.Content, new { @class = "form-control", @id = "editorContent" })
+                @Html.ValidationMessageFor(model => model.Content, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.IsPublished, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                <div class="checkbox">
+                    @Html.EditorFor(model => model.IsPublished)
+                    @Html.ValidationMessageFor(model => model.IsPublished, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Lưu thay đổi" class="btn btn-primary" />
+                @Html.ActionLink("Quay lại Danh sách", "Index", null, new { @class = "btn btn-default" })
+            </div>
+        </div>
+    }
+</div>
+
+@section scripts {
+    @* Tải thư viện CKEditor 4 từ CDN *@
+    <script src="//cdn.ckeditor.com/4.20.0/standard/ckeditor.js"></script>
+    <script>
+        // Gắn CKEditor vào ô nội dung
+        CKEDITOR.replace('editorContent');
+
+        // Hàm tự động tạo slug (URL) từ Tiêu đề
+        function convertToSlug(text) {
+            return text
+                .toLowerCase()
+                .replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a")
+                .replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e")
+                .replace(/ì|í|ị|ỉ|ĩ/g, "i")
+                .replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, "o")
+                .replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u")
+                .replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y")
+                .replace(/đ/g, "d")
+                .replace(/\s+/g, '-') // Thay khoảng trắng bằng -
+                .replace(/[^\w\-]+/g, '') // Xóa ký tự đặc biệt
+                .replace(/\-\-+/g, '-') // Thay 2 dấu -- liên tiếp bằng 1
+                .replace(/^-+/, '') // Xóa dấu - ở đầu
+                .replace(/-+$/, ''); // Xóa dấu - ở cuối
+        }
+
+        // Tự động điền vào ô Slug khi gõ Tiêu đề
+        $('#pageTitle').on('keyup', function () {
+            var title = $(this).val();
+            var slug = convertToSlug(title);
+            $('#pageSlug').val(slug);
+        });
+    </script>
+}

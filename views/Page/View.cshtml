@@ -1,0 +1,44 @@
+﻿@model PhoneStore_New.Models.Page
+
+@{
+    ViewBag.Title = Model.Title;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    /* CSS tùy chỉnh cho trang nội dung */
+    .page-content {
+        padding-top: 20px;
+    }
+
+        .page-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        .page-content h1,
+        .page-content h2,
+        .page-content h3 {
+            margin-top: 30px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+</style>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+
+            <h1 class="text-center">@Model.Title</h1>
+
+            <hr />
+
+            <div class="page-content">
+                @Html.Raw(Model.Content)
+            </div>
+
+        </div>
+    </div>
+</div>

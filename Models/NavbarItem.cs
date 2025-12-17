@@ -14,10 +14,21 @@ namespace PhoneStore_New.Models
     
     public partial class NavbarItem
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public NavbarItem()
+        {
+            this.NavbarItems1 = new HashSet<NavbarItem>();
+        }
+    
         public int ItemId { get; set; }
         public string ItemText { get; set; }
         public string ItemUrl { get; set; }
         public Nullable<int> ItemOrder { get; set; }
         public Nullable<bool> ItemVisible { get; set; }
+        public Nullable<int> ParentId { get; set; }
+    
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<NavbarItem> NavbarItems1 { get; set; }
+        public virtual NavbarItem NavbarItem1 { get; set; }
     }
 }

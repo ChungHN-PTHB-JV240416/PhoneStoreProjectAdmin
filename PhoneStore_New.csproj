@@ -136,7 +136,9 @@
     <Compile Include="areas\Admin\Controllers\BannerAdminController.cs" />
     <Compile Include="areas\Admin\Controllers\CategoryController.cs" />
     <Compile Include="areas\Admin\Controllers\OrderAdminController.cs" />
+    <Compile Include="areas\Admin\Controllers\PageAdminController.cs" />
     <Compile Include="areas\Admin\Controllers\ProductAdminController .cs" />
+    <Compile Include="areas\Admin\Controllers\ProductCollectionAdminController.cs" />
     <Compile Include="areas\Admin\Controllers\ReportController.cs" />
     <Compile Include="areas\Admin\Controllers\SettingController.cs" />
     <Compile Include="areas\Admin\Controllers\SupplierController.cs" />
@@ -146,6 +148,9 @@
     <Compile Include="areas\Admin\Models\ViewModels\BestsellerReportViewModel.cs" />
     <Compile Include="areas\Admin\Models\ViewModels\CategoryListViewModel.cs" />
     <Compile Include="areas\Admin\Models\ViewModels\CategoryViewModel.cs" />
+    <Compile Include="areas\Admin\Models\ViewModels\PageViewModel.cs" />
+    <Compile Include="areas\Admin\Models\ViewModels\ProductCollectionEditViewModel.cs" />
+    <Compile Include="areas\Admin\Models\ViewModels\ProductCollectionViewModel.cs" />
     <Compile Include="areas\Admin\Models\ViewModels\VoucherViewModel.cs" />
     <Compile Include="areas\Admin\Models\ViewModels\DashboardViewModel.cs" />
     <Compile Include="areas\Admin\Models\ViewModels\NavbarItemViewModel.cs" />
@@ -167,6 +172,7 @@
     <Compile Include="controllers\HomeController.cs" />
     <Compile Include="controllers\LoginController.cs" />
     <Compile Include="controllers\OrderController.cs" />
+    <Compile Include="controllers\PageController.cs" />
     <Compile Include="controllers\ProductController.cs" />
     <Compile Include="controllers\ProfileController.cs" />
     <Compile Include="Global.asax.cs">
@@ -202,10 +208,19 @@
     <Compile Include="Models\OrderItem.cs">
       <DependentUpon>Model1.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\Page.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\PriceRanx.cs">
       <DependentUpon>Model1.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\Product.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ProductCollection.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ProductCollectionItem.cs">
       <DependentUpon>Model1.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\Review.cs">
@@ -302,6 +317,12 @@
     <Content Include="areas\Admin\Views\BannerAdmin\Index.cshtml" />
     <Content Include="areas\Admin\Views\BannerAdmin\Create.cshtml" />
     <Content Include="areas\Admin\Views\BannerAdmin\Edit.cshtml" />
+    <Content Include="areas\Admin\Views\ProductCollectionAdmin\Index.cshtml" />
+    <Content Include="areas\Admin\Views\ProductCollectionAdmin\Create.cshtml" />
+    <Content Include="areas\Admin\Views\ProductCollectionAdmin\Edit.cshtml" />
+    <Content Include="areas\Admin\Views\PageAdmin\Index.cshtml" />
+    <Content Include="areas\Admin\Views\PageAdmin\Create.cshtml" />
+    <Content Include="areas\Admin\Views\PageAdmin\Edit.cshtml" />
     <None Include="scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="scripts\jquery-1.10.2.js" />
     <Content Include="scripts\jquery-1.10.2.min.js" />
@@ -332,6 +353,7 @@
     <Content Include="views\Shared\_Layout.cshtml" />
     <Content Include="views\web.config" />
     <Content Include="views\_ViewStart.cshtml" />
+    <Content Include="views\Page\View.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

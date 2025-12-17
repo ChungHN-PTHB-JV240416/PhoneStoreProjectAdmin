@@ -23,6 +23,13 @@
         <AssociationConnector Association="PhoneStoreDBModel.FK_Orders_Users" ManuallyRouted="false" />
         <AssociationConnector Association="PhoneStoreDBModel.FK_Reviews_Products" ManuallyRouted="false" />
         <AssociationConnector Association="PhoneStoreDBModel.FK_Reviews_Users" ManuallyRouted="false" />
+        <EntityTypeShape EntityType="PhoneStoreDBModel.ProductCollectionItem" Width="1.5" PointX="5.375" PointY="0.5" />
+        <EntityTypeShape EntityType="PhoneStoreDBModel.ProductCollection" Width="1.5" PointX="2.875" PointY="13.25" />
+        <AssociationConnector Association="PhoneStoreDBModel.FK_NavbarItems_Parent" />
+        <AssociationConnector Association="PhoneStoreDBModel.FK_CollectionItems_Collection" />
+        <AssociationConnector Association="PhoneStoreDBModel.FK_CollectionItems_Product" />
+        <EntityTypeShape EntityType="PhoneStoreDBModel.Page" Width="1.5" PointX="12.375" PointY="4.75" />
+        <AssociationConnector Association="PhoneStoreDBModel.FK_Categories_Parent" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

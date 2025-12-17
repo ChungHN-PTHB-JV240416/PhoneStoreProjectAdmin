@@ -5,14 +5,12 @@ namespace PhoneStore_New.Models.ViewModels
     public class SaleProductsViewModel
     {
         /// <summary>
-        /// Số lượng sản phẩm trên mỗi hàng (được lấy từ Cài đặt Giao diện trong Admin).
+        /// Số cột hiển thị sản phẩm (được lấy từ Settings).
         /// </summary>
         public int ProductsPerRow { get; set; }
 
         /// <summary>
-        /// Danh sách sản phẩm giảm giá, được nhóm theo tên Danh mục (Thương hiệu).
-        /// Key: Tên thương hiệu (ví dụ: "iPhone", "Samsung")
-        /// Value: Danh sách các sản phẩm (ProductCardViewModel)
+        /// Danh sách sản phẩm được nhóm theo tên Danh mục (đã được lọc sale).
         /// </summary>
         public Dictionary<string, List<ProductCardViewModel>> ProductsByCategory { get; set; }
     }

@@ -1,8 +1,67 @@
 ﻿@using PhoneStore_New.Models.ViewModels
+@using PhoneStore_New.Models; @* <-- THÊM DÒNG NÀY ĐỂ HIỂU LỚP 'NavbarItem' *@
 @model HeaderViewModel
 
+@* === BẮT ĐẦU SỬA ĐỔI: THÊM HÀM ĐỆ QUY ĐỂ VẼ MENU === *@
+@helper RenderMenu(List<NavbarItem> allItems, int? parentId)
+{
+    // Tìm các mục con của cấp hiện tại
+    var children = allItems.Where(i => i.ParentId == parentId).OrderBy(i => i.ItemOrder).ToList();
+
+    if (children.Any())
+    {
+        // Nếu là menu con (cấp 2, 3...), dùng class 'dropdown-menu'
+        if (parentId.HasValue)
+        {
+            <ul class="dropdown-menu" role="menu">
+                @foreach (var item in children)
+                {
+                    // Kiểm tra xem mục con này có con nữa không
+                    bool hasChildren = allItems.Any(i => i.ParentId == item.ItemId);
+                    if (hasChildren)
+                    {
+                        <li class="dropdown-submenu">
+                            <a href="@Url.Content(item.ItemUrl ?? "#")" class="dropdown-toggle" data-toggle="dropdown">@item.ItemText</a>
+                            @RenderMenu(allItems, item.ItemId) @* Đệ quy: Vẽ menu cháu *@
+                        </li>
+                    }
+                    else
+                    {
+                        <li><a href="@Url.Content(item.ItemUrl ?? "#")">@item.ItemText</a></li>
+                    }
+                }
+            </ul>
+        }
+        // Nếu là menu cha (cấp 1), dùng class 'nav navbar-nav'
+        else
+        {
+            <ul class="nav navbar-nav">
+                @foreach (var item in children)
+                {
+                    bool hasChildren = allItems.Any(i => i.ParentId == item.ItemId);
+                    if (hasChildren)
+                    {
+                        <li class="dropdown">
+                            <a href="@Url.Content(item.ItemUrl ?? "#")" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+                                @item.ItemText <span class="caret"></span>
+                            </a>
+                            @RenderMenu(allItems, item.ItemId) @* Đệ quy: Vẽ menu con *@
+                        </li>
+                    }
+                    else
+                    {
+                        <li><a href="@Url.Content(item.ItemUrl ?? "#")">@item.ItemText</a></li>
+                    }
+                }
+            </ul>
+        }
+    }
+}
+@* === KẾT THÚC HÀM ĐỆ QUY === *@
+
+
 <style>
-    /* CSS cho ảnh đại diện trên navbar */
+    /* ... (CSS cũ của bạn cho avatar, brand... giữ nguyên) ... */
     .navbar-avatar {
         width: 30px;
         height: 30px;
@@ -19,17 +78,38 @@
         padding-top: 15px;
     }
 
-    /* === CSS MỚI CHO FORM TÌM KIẾM NẰM TRONG NAVBAR === */
-    .navbar-form-inline {
-        display: flex;
-        align-items: center;
-        margin-top: 8px; /* Căn chỉnh form cho thẳng hàng với các nút */
-        margin-bottom: 8px;
+    /* CSS MỚI CHO MENU ĐA CẤP */
+    .dropdown-submenu {
+        position: relative;
     }
 
-        .navbar-form-inline .form-control {
-            width: 200px; /* Độ rộng ô tìm kiếm */
-            margin-right: 5px;
+        .dropdown-submenu > .dropdown-menu {
+            top: 0;
+            left: 100%;
+            margin-top: -6px;
+            margin-left: -1px;
+        }
+
+        .dropdown-submenu:hover > .dropdown-menu {
+            display: block;
+        }
+
+        .dropdown-submenu > a:after {
+            display: block;
+            content: " ";
+            float: right;
+            width: 0;
+            height: 0;
+            border-color: transparent;
+            border-style: solid;
+            border-width: 5px 0 5px 5px;
+            border-left-color: #ccc;
+            margin-top: 5px;
+            margin-right: -10px;
+        }
+
+        .dropdown-submenu:hover > a:after {
+            border-left-color: #fff;
         }
 </style>
 
@@ -59,15 +139,14 @@
         </div>
 
         <div class="collapse navbar-collapse" id="navbar-collapse-main">
-            <ul class="nav navbar-nav">
-                @if (Model.NavbarItems != null)
-                {
-                    foreach (var item in Model.NavbarItems)
-                    {
-                        <li><a href="@item.ItemUrl">@item.ItemText</a></li>
-                    }
-                }
 
+            @* === BẮT ĐẦU SỬA ĐỔI: GỌI HÀM VẼ MENU === *@
+            @* Xóa bỏ vòng lặp cũ *@
+            @RenderMenu(Model.NavbarItems, null)
+            @* === KẾT THÚC SỬA ĐỔI === *@
+
+            @* Menu "Thương hiệu" (Category) - Chúng ta sẽ gộp nó vào NavbarItems sau nếu bạn muốn *@
+            <ul class="nav navbar-nav">
                 <li class="dropdown">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Thương hiệu <span class="caret"></span></a>
                     <ul class="dropdown-menu" role="menu">
@@ -84,11 +163,10 @@
 
             <ul class="nav navbar-nav navbar-right">
 
-                @* === BẮT ĐẦU SỬA ĐỔI: DÙNG @IF ĐỂ BẬT/TẮT === *@
                 @if (Model.ShowSearchBar)
                 {
                     <li>
-                        @using (Html.BeginForm("Search", "Product", FormMethod.Get, new { @class = "navbar-form navbar-form-inline", @role = "search" }))
+                        @using (Html.BeginForm("Search", "Product", FormMethod.Get, new { @class = "navbar-form", @role = "search" }))
                         {
                             <div class="form-group">
                                 <input type="text" name="keyword" class="form-control" placeholder="Tìm sản phẩm...">
@@ -97,7 +175,6 @@
                         }
                     </li>
                 }
-                @* === KẾT THÚC SỬA ĐỔI === *@
 
                 <li>@Html.ActionLink("Giỏ hàng", "Index", "Cart")</li>
 
@@ -114,7 +191,6 @@
                             {
                                 <span class="glyphicon glyphicon-user" style="margin-right: 5px;"></span>
                             }
-
                             @Model.WelcomeText
                             <strong>
                                 @{
@@ -131,13 +207,11 @@
                         <ul class="dropdown-menu" role="menu">
                             <li>@Html.ActionLink("Hồ sơ cá nhân", "Index", "Profile")</li>
                             <li>@Html.ActionLink("Lịch sử Đơn hàng", "History", "Order")</li>
-
                             @if (User.IsInRole("admin"))
                             {
                                 <li class="divider"></li>
                                 <li>@Html.ActionLink("Quản trị hệ thống", "Index", "Admin", new { area = "Admin" }, null)</li>
                             }
-
                             <li class="divider"></li>
                             <li>
                                 @using (Html.BeginForm("Logout", "Login", new { area = "" }, FormMethod.Post, new { id = "logoutForm" }))
@@ -158,5 +232,3 @@
         </div>
     </div>
 </div>
-
-@* === ĐÃ XÓA BỎ HOÀN TOÀN THANH TÌM KIẾM TRƯỢT Ở ĐÂY === *@

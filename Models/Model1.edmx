@@ -25,6 +25,7 @@
           </Key>
           <Property Name="CategoryId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="Name" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="ParentId" Type="int" />
         </EntityType>
         <EntityType Name="NavbarItems">
           <Key>
@@ -32,9 +33,10 @@
           </Key>
           <Property Name="ItemId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="ItemText" Type="nvarchar" MaxLength="50" Nullable="false" />
-          <Property Name="ItemUrl" Type="nvarchar" MaxLength="255" Nullable="false" />
+          <Property Name="ItemUrl" Type="nvarchar" MaxLength="500" />
           <Property Name="ItemOrder" Type="int" />
           <Property Name="ItemVisible" Type="bit" />
+          <Property Name="ParentId" Type="int" />
         </EntityType>
         <EntityType Name="OrderItems">
           <Key>
@@ -61,6 +63,17 @@
           <Property Name="voucher_code" Type="nvarchar" MaxLength="50" />
           <Property Name="discount_amount" Type="decimal" Precision="18" Scale="2" Nullable="false" />
         </EntityType>
+        <EntityType Name="Pages">
+          <Key>
+            <PropertyRef Name="PageId" />
+          </Key>
+          <Property Name="PageId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Title" Type="nvarchar" MaxLength="255" Nullable="false" />
+          <Property Name="Slug" Type="nvarchar" MaxLength="255" Nullable="false" />
+          <Property Name="Content" Type="nvarchar(max)" />
+          <Property Name="IsPublished" Type="bit" Nullable="false" />
+          <Property Name="CreatedAt" Type="datetime" Nullable="false" />
+        </EntityType>
         <EntityType Name="PriceRanges">
           <Key>
             <PropertyRef Name="RangeId" />
@@ -70,6 +83,24 @@
           <Property Name="MinPrice" Type="decimal" Precision="10" Scale="2" Nullable="false" />
           <Property Name="MaxPrice" Type="decimal" Precision="10" Scale="2" Nullable="false" />
           <Property Name="RangeOrder" Type="int" />
+        </EntityType>
+        <EntityType Name="ProductCollectionItems">
+          <Key>
+            <PropertyRef Name="CollectionId" />
+            <PropertyRef Name="ProductId" />
+          </Key>
+          <Property Name="CollectionId" Type="int" Nullable="false" />
+          <Property Name="ProductId" Type="int" Nullable="false" />
+          <Property Name="DisplayOrder" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="ProductCollections">
+          <Key>
+            <PropertyRef Name="CollectionId" />
+          </Key>
+          <Property Name="CollectionId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="255" Nullable="false" />
+          <Property Name="Handle" Type="nvarchar" MaxLength="255" Nullable="false" />
+          <Property Name="IsPublished" Type="bit" Nullable="false" />
         </EntityType>
         <EntityType Name="Products">
           <Key>
@@ -153,6 +184,58 @@
           <Property Name="VipOnly" Type="bit" Nullable="false" />
           <Property Name="CreatedAt" Type="datetime" Nullable="false" />
         </EntityType>
+        <Association Name="FK_Categories_Parent">
+          <End Role="Categories" Type="Self.Categories" Multiplicity="0..1" />
+          <End Role="Categories1" Type="Self.Categories" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Categories">
+              <PropertyRef Name="CategoryId" />
+            </Principal>
+            <Dependent Role="Categories1">
+              <PropertyRef Name="ParentId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_CollectionItems_Collection">
+          <End Role="ProductCollections" Type="Self.ProductCollections" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="ProductCollectionItems" Type="Self.ProductCollectionItems" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ProductCollections">
+              <PropertyRef Name="CollectionId" />
+            </Principal>
+            <Dependent Role="ProductCollectionItems">
+              <PropertyRef Name="CollectionId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_CollectionItems_Product">
+          <End Role="Products" Type="Self.Products" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="ProductCollectionItems" Type="Self.ProductCollectionItems" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Products">
+              <PropertyRef Name="ProductId" />
+            </Principal>
+            <Dependent Role="ProductCollectionItems">
+              <PropertyRef Name="ProductId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_NavbarItems_Parent">
+          <End Role="NavbarItems" Type="Self.NavbarItems" Multiplicity="0..1" />
+          <End Role="NavbarItems1" Type="Self.NavbarItems" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="NavbarItems">
+              <PropertyRef Name="ItemId" />
+            </Principal>
+            <Dependent Role="NavbarItems1">
+              <PropertyRef Name="ParentId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_OrderItems_Orders">
           <End Role="Orders" Type="Self.Orders" Multiplicity="1" />
           <End Role="OrderItems" Type="Self.OrderItems" Multiplicity="*" />
@@ -231,13 +314,32 @@
           <EntitySet Name="NavbarItems" EntityType="Self.NavbarItems" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="OrderItems" EntityType="Self.OrderItems" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Orders" EntityType="Self.Orders" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Pages" EntityType="Self.Pages" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PriceRanges" EntityType="Self.PriceRanges" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ProductCollectionItems" EntityType="Self.ProductCollectionItems" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ProductCollections" EntityType="Self.ProductCollections" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Products" EntityType="Self.Products" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Reviews" EntityType="Self.Reviews" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Settings" EntityType="Self.Settings" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Suppliers" EntityType="Self.Suppliers" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Users" EntityType="Self.Users" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Vouchers" EntityType="Self.Vouchers" Schema="dbo" store:Type="Tables" />
+          <AssociationSet Name="FK_Categories_Parent" Association="Self.FK_Categories_Parent">
+            <End Role="Categories" EntitySet="Categories" />
+            <End Role="Categories1" EntitySet="Categories" />
+          </AssociationSet>
+          <AssociationSet Name="FK_CollectionItems_Collection" Association="Self.FK_CollectionItems_Collection">
+            <End Role="ProductCollections" EntitySet="ProductCollections" />
+            <End Role="ProductCollectionItems" EntitySet="ProductCollectionItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_CollectionItems_Product" Association="Self.FK_CollectionItems_Product">
+            <End Role="Products" EntitySet="Products" />
+            <End Role="ProductCollectionItems" EntitySet="ProductCollectionItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_NavbarItems_Parent" Association="Self.FK_NavbarItems_Parent">
+            <End Role="NavbarItems" EntitySet="NavbarItems" />
+            <End Role="NavbarItems1" EntitySet="NavbarItems" />
+          </AssociationSet>
           <AssociationSet Name="FK_OrderItems_Orders" Association="Self.FK_OrderItems_Orders">
             <End Role="Orders" EntitySet="Orders" />
             <End Role="OrderItems" EntitySet="OrderItems" />
@@ -288,6 +390,9 @@
           <Property Name="CategoryId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="Name" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
           <NavigationProperty Name="Products" Relationship="Self.FK_Products_Categories" FromRole="Categories" ToRole="Products" />
+          <Property Name="ParentId" Type="Int32" />
+          <NavigationProperty Name="Categories1" Relationship="PhoneStoreDBModel.FK_Categories_Parent" FromRole="Category" ToRole="Category1" />
+          <NavigationProperty Name="Category1" Relationship="PhoneStoreDBModel.FK_Categories_Parent" FromRole="Category1" ToRole="Category" />
         </EntityType>
         <EntityType Name="NavbarItem">
           <Key>
@@ -295,9 +400,12 @@
           </Key>
           <Property Name="ItemId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="ItemText" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="ItemUrl" Type="String" MaxLength="255" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="ItemUrl" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
           <Property Name="ItemOrder" Type="Int32" />
           <Property Name="ItemVisible" Type="Boolean" />
+          <Property Name="ParentId" Type="Int32" />
+          <NavigationProperty Name="NavbarItems1" Relationship="PhoneStoreDBModel.FK_NavbarItems_Parent" FromRole="NavbarItem" ToRole="NavbarItem1" />
+          <NavigationProperty Name="NavbarItem1" Relationship="PhoneStoreDBModel.FK_NavbarItems_Parent" FromRole="NavbarItem1" ToRole="NavbarItem" />
         </EntityType>
         <EntityType Name="OrderItem">
           <Key>
@@ -356,6 +464,7 @@
           <NavigationProperty Name="Category" Relationship="Self.FK_Products_Categories" FromRole="Products" ToRole="Categories" />
           <NavigationProperty Name="OrderItems" Relationship="Self.FK_OrderItems_Products" FromRole="Products" ToRole="OrderItems" />
           <NavigationProperty Name="Reviews" Relationship="Self.FK_Reviews_Products" FromRole="Products" ToRole="Reviews" />
+          <NavigationProperty Name="ProductCollectionItems" Relationship="PhoneStoreDBModel.FK_CollectionItems_Product" FromRole="Product" ToRole="ProductCollectionItem" />
         </EntityType>
         <EntityType Name="Review">
           <Key>
@@ -536,7 +645,110 @@
             <End Role="Users" EntitySet="Users" />
             <End Role="Reviews" EntitySet="Reviews" />
           </AssociationSet>
+          <EntitySet Name="ProductCollectionItems" EntityType="PhoneStoreDBModel.ProductCollectionItem" />
+          <EntitySet Name="ProductCollections" EntityType="PhoneStoreDBModel.ProductCollection" />
+          <AssociationSet Name="FK_NavbarItems_Parent" Association="PhoneStoreDBModel.FK_NavbarItems_Parent">
+            <End Role="NavbarItem" EntitySet="NavbarItems" />
+            <End Role="NavbarItem1" EntitySet="NavbarItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_CollectionItems_Collection" Association="PhoneStoreDBModel.FK_CollectionItems_Collection">
+            <End Role="ProductCollection" EntitySet="ProductCollections" />
+            <End Role="ProductCollectionItem" EntitySet="ProductCollectionItems" />
+          </AssociationSet>
+          <AssociationSet Name="FK_CollectionItems_Product" Association="PhoneStoreDBModel.FK_CollectionItems_Product">
+            <End Role="Product" EntitySet="Products" />
+            <End Role="ProductCollectionItem" EntitySet="ProductCollectionItems" />
+          </AssociationSet>
+          <EntitySet Name="Pages" EntityType="PhoneStoreDBModel.Page" />
+          <AssociationSet Name="FK_Categories_Parent" Association="PhoneStoreDBModel.FK_Categories_Parent">
+            <End Role="Category" EntitySet="Categories" />
+            <End Role="Category1" EntitySet="Categories" />
+          </AssociationSet>
         </EntityContainer>
+        <EntityType Name="ProductCollectionItem">
+          <Key>
+            <PropertyRef Name="CollectionId" />
+            <PropertyRef Name="ProductId" />
+          </Key>
+          <Property Name="CollectionId" Type="Int32" Nullable="false" />
+          <Property Name="ProductId" Type="Int32" Nullable="false" />
+          <Property Name="DisplayOrder" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="ProductCollection" Relationship="PhoneStoreDBModel.FK_CollectionItems_Collection" FromRole="ProductCollectionItem" ToRole="ProductCollection" />
+          <NavigationProperty Name="Product" Relationship="PhoneStoreDBModel.FK_CollectionItems_Product" FromRole="ProductCollectionItem" ToRole="Product" />
+        </EntityType>
+        <EntityType Name="ProductCollection">
+          <Key>
+            <PropertyRef Name="CollectionId" />
+          </Key>
+          <Property Name="CollectionId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="Handle" Type="String" Nullable="false" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="IsPublished" Type="Boolean" Nullable="false" />
+          <NavigationProperty Name="ProductCollectionItems" Relationship="PhoneStoreDBModel.FK_CollectionItems_Collection" FromRole="ProductCollection" ToRole="ProductCollectionItem" />
+        </EntityType>
+        <Association Name="FK_NavbarItems_Parent">
+          <End Type="PhoneStoreDBModel.NavbarItem" Role="NavbarItem" Multiplicity="0..1" />
+          <End Type="PhoneStoreDBModel.NavbarItem" Role="NavbarItem1" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="NavbarItem">
+              <PropertyRef Name="ItemId" />
+            </Principal>
+            <Dependent Role="NavbarItem1">
+              <PropertyRef Name="ParentId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_CollectionItems_Collection">
+          <End Type="PhoneStoreDBModel.ProductCollection" Role="ProductCollection" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="PhoneStoreDBModel.ProductCollectionItem" Role="ProductCollectionItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ProductCollection">
+              <PropertyRef Name="CollectionId" />
+            </Principal>
+            <Dependent Role="ProductCollectionItem">
+              <PropertyRef Name="CollectionId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_CollectionItems_Product">
+          <End Type="PhoneStoreDBModel.Product" Role="Product" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="PhoneStoreDBModel.ProductCollectionItem" Role="ProductCollectionItem" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Product">
+              <PropertyRef Name="ProductId" />
+            </Principal>
+            <Dependent Role="ProductCollectionItem">
+              <PropertyRef Name="ProductId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="Page">
+          <Key>
+            <PropertyRef Name="PageId" />
+          </Key>
+          <Property Name="PageId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Title" Type="String" Nullable="false" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="Slug" Type="String" Nullable="false" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="Content" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="IsPublished" Type="Boolean" Nullable="false" />
+          <Property Name="CreatedAt" Type="DateTime" Nullable="false" Precision="3" />
+        </EntityType>
+        <Association Name="FK_Categories_Parent">
+          <End Type="PhoneStoreDBModel.Category" Role="Category" Multiplicity="0..1" />
+          <End Type="PhoneStoreDBModel.Category" Role="Category1" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Category">
+              <PropertyRef Name="CategoryId" />
+            </Principal>
+            <Dependent Role="Category1">
+              <PropertyRef Name="ParentId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -561,6 +773,7 @@
           <EntitySetMapping Name="Categories">
             <EntityTypeMapping TypeName="PhoneStoreDBModel.Category">
               <MappingFragment StoreEntitySet="Categories">
+                <ScalarProperty Name="ParentId" ColumnName="ParentId" />
                 <ScalarProperty Name="CategoryId" ColumnName="CategoryId" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
               </MappingFragment>
@@ -569,6 +782,7 @@
           <EntitySetMapping Name="NavbarItems">
             <EntityTypeMapping TypeName="PhoneStoreDBModel.NavbarItem">
               <MappingFragment StoreEntitySet="NavbarItems">
+                <ScalarProperty Name="ParentId" ColumnName="ParentId" />
                 <ScalarProperty Name="ItemId" ColumnName="ItemId" />
                 <ScalarProperty Name="ItemText" ColumnName="ItemText" />
                 <ScalarProperty Name="ItemUrl" ColumnName="ItemUrl" />
@@ -700,6 +914,37 @@
                 <ScalarProperty Name="IsActive" ColumnName="IsActive" />
                 <ScalarProperty Name="VipOnly" ColumnName="VipOnly" />
                 <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ProductCollectionItems">
+            <EntityTypeMapping TypeName="PhoneStoreDBModel.ProductCollectionItem">
+              <MappingFragment StoreEntitySet="ProductCollectionItems">
+                <ScalarProperty Name="DisplayOrder" ColumnName="DisplayOrder" />
+                <ScalarProperty Name="ProductId" ColumnName="ProductId" />
+                <ScalarProperty Name="CollectionId" ColumnName="CollectionId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ProductCollections">
+            <EntityTypeMapping TypeName="PhoneStoreDBModel.ProductCollection">
+              <MappingFragment StoreEntitySet="ProductCollections">
+                <ScalarProperty Name="IsPublished" ColumnName="IsPublished" />
+                <ScalarProperty Name="Handle" ColumnName="Handle" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="CollectionId" ColumnName="CollectionId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Pages">
+            <EntityTypeMapping TypeName="PhoneStoreDBModel.Page">
+              <MappingFragment StoreEntitySet="Pages">
+                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+                <ScalarProperty Name="IsPublished" ColumnName="IsPublished" />
+                <ScalarProperty Name="Content" ColumnName="Content" />
+                <ScalarProperty Name="Slug" ColumnName="Slug" />
+                <ScalarProperty Name="Title" ColumnName="Title" />
+                <ScalarProperty Name="PageId" ColumnName="PageId" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

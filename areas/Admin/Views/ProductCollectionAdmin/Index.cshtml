@@ -1,0 +1,86 @@
+﻿@model IEnumerable<PhoneStore_New.Areas.Admin.Models.ViewModels.ProductCollectionViewModel>
+
+@{
+    ViewBag.Title = "Quản lý Bộ sưu tập";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .status-published {
+        color: green;
+        font-weight: bold;
+    }
+
+    .status-draft {
+        color: #888;
+        font-weight: bold;
+    }
+</style>
+
+<div class="admin-container">
+    <h2>Quản lý Bộ sưu tập (Trang nội dung)</h2>
+
+    <p style="margin-bottom: 20px;">
+        @Html.ActionLink("Tạo Bộ sưu tập Mới", "Create", null, new { @class = "btn btn-success" })
+    </p>
+
+    @if (!string.IsNullOrEmpty(ViewBag.Message))
+    {
+        <div class="alert alert-info">@ViewBag.Message</div>
+    }
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>
+                        @Html.DisplayNameFor(model => model.Name)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.Handle)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.IsPublished)
+                    </th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            @* Click vào tên sẽ dẫn đến trang Sửa *@
+                            @Html.ActionLink(item.Name, "Edit", new { id = item.CollectionId })
+                        </td>
+                        <td>
+                            /collections/@Html.DisplayFor(modelItem => item.Handle)
+                        </td>
+                        <td>
+                            @if (item.IsPublished)
+                            {
+                                <span class="status-published">Đang hiển thị</span>
+                            }
+                            else
+                            {
+                                <span class="status-draft">Đã ẩn</span>
+                            }
+                        </td>
+                        <td class="action-links" style="min-width: 100px;">
+                            @* Sửa (Edit) là hành động quan trọng nhất, nơi bạn thêm/xóa sản phẩm *@
+                            @Html.ActionLink("Sửa & Thêm SP", "Edit", new { id = item.CollectionId }, new { @class = "btn btn-warning btn-xs" })
+
+                            @using (Html.BeginForm("Delete", "ProductCollectionAdmin", new { id = item.CollectionId }, FormMethod.Post, new { @style = "display:inline;" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                <button type.submit" class="btn btn-danger btn-xs" onclick="return confirm('Bạn có chắc chắn muốn xóa bộ sưu tập này? Mọi sản phẩm trong đó sẽ bị gỡ khỏi bộ sưu tập.');">
+                                    Xóa
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
