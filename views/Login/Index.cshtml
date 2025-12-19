@@ -1,86 +1,108 @@
-﻿@using PhoneStore_New.Models.ViewModels
-@model LoginViewModel
+﻿@model PhoneStore_New.Models.ViewModels.LoginViewModel
 @{
     ViewBag.Title = "Đăng nhập";
-    Layout = null; // Trang độc lập, không dùng Layout chung
+    Layout = null;
 }
 
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        /* BackgroundUrl được truyền từ LoginController qua ViewBag */
-        background-image: url('@Url.Content(ViewBag.BackgroundUrl)');
-        background-size: cover;
-        background-position: center;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        margin: 0;
-        color: #333;
-    }
-    .login-container {
-        background: rgba(255, 255, 255, 0.9);
-        padding: 30px 40px;
-        border-radius: 10px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        text-align: center;
-    }
-    .error-message {
-        color: red;
-        margin-bottom: 15px;
-    }
-    input[type="text"], input[type="password"] {
-        width: 100%;
-        padding: 10px;
-        margin-bottom: 15px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        box-sizing: border-box;
-    }
-    button {
-        width: 100%;
-        padding: 10px;
-        border: none;
-        border-radius: 5px;
-        background-color: #007BFF;
-        color: white;
-        font-size: 16px;
-        cursor: pointer;
-        transition: background-color 0.3s;
-    }
-</style>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>@ViewBag.Title - Phone Store</title>
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        body {
+            background: url('@Url.Content(ViewBag.BackgroundUrl ?? "~/Content/images/autoimage.jpg")') no-repeat center center fixed;
+            background-size: cover;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 400px;
+        }
+        .login-header { text-align: center; margin-bottom: 30px; }
+        .login-header h2 { color: #333; font-weight: bold; margin-bottom: 10px; }
+        .form-control { height: 45px; font-size: 16px; }
+        .btn-login {
+            background: #d0011b; border: none; font-size: 18px; font-weight: bold;
+            padding: 10px; transition: 0.3s; width: 100%; color: white; border-radius: 5px;
+        }
+        .btn-login:hover { background: #b50015; color: white; }
+        .register-link { text-align: center; margin-top: 20px; }
 
-<div class="login-container">
-    <h2>Đăng nhập</h2>
-
-    @* Hiển thị thông báo (từ TempData sau khi đăng ký hoặc lỗi) *@
-    @if (!string.IsNullOrEmpty(ViewBag.Message as string))
-    {
-        <p class="error-message" style="color: green;">@ViewBag.Message</p>
-    }
-
-    @* Hiển thị lỗi Model State (lỗi nhập liệu/xác thực) *@
-    @Html.ValidationSummary(true, "", new { @class = "error-message" })
-
-    @using (Html.BeginForm("Index", "Login", FormMethod.Post))
-    {
-        @Html.AntiForgeryToken()
-
-        @Html.LabelFor(m => m.Username, "Tên đăng nhập:")
-        @Html.TextBoxFor(m => m.Username, new { @class = "form-control" })
-        @Html.ValidationMessageFor(m => m.Username, "", new { @class = "text-danger" })
-
-        <div style="margin-top: 15px;">
-            @Html.LabelFor(m => m.Password, "Mật khẩu:")
-            @Html.PasswordFor(m => m.Password, new { @class = "form-control" })
-            @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
+        /* CSS MỚI CHO LINK QUÊN MẬT KHẨU */
+        .forgot-password-link {
+            text-align: right;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        .forgot-password-link a {
+            color: #666;
+            text-decoration: none;
+        }
+        .forgot-password-link a:hover {
+            color: #d0011b;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h2>ĐĂNG NHẬP</h2>
+            <p>Chào mừng bạn quay trở lại</p>
         </div>
 
-        <button type="submit" style="margin-top: 20px;">
-            Đăng nhập
-        </button>
-    }
+        @if (ViewBag.Message != null)
+        {
+            <div class="alert alert-success text-center">@ViewBag.Message</div>
+        }
 
-    <p style="margin-top: 20px;">Chưa có tài khoản? @Html.ActionLink("Đăng ký ngay", "Register", "Login")</p>
-</div>
+        @using (Html.BeginForm("Index", "Login", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            @Html.ValidationSummary(true, "", new { @class = "text-danger text-center", @style = "display:block; margin-bottom:15px;" })
+
+            <div class="form-group">
+                <div class="input-group">
+                    <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
+                    @Html.TextBoxFor(m => m.Username, new { @class = "form-control", @placeholder = "Tên đăng nhập", @required = "required" })
+                </div>
+                @Html.ValidationMessageFor(m => m.Username, "", new { @class = "text-danger" })
+            </div>
+
+            <div class="form-group">
+                <div class="input-group">
+                    <span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
+                    @Html.PasswordFor(m => m.Password, new { @class = "form-control", @placeholder = "Mật khẩu", @required = "required" })
+                </div>
+                @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
+            </div>
+
+            @* === THÊM NÚT QUÊN MẬT KHẨU Ở ĐÂY === *@
+            <div class="forgot-password-link">
+                <a href="@Url.Action("ForgotPassword", "Login")">Quên mật khẩu?</a>
+            </div>
+            @* ==================================== *@
+
+            <div class="form-group">
+                <button type="submit" class="btn btn-login">ĐĂNG NHẬP NGAY</button>
+            </div>
+        }
+
+        <div class="register-link">
+            Chưa có tài khoản? <a href="@Url.Action("Register", "Login")" style="color: #d0011b; font-weight: bold;">Đăng ký ngay</a>
+            <br /><br />
+            <a href="@Url.Action("Index", "Home")"><i class="glyphicon glyphicon-arrow-left"></i> Quay lại trang chủ</a>
+        </div>
+    </div>
+</body>
+</html>

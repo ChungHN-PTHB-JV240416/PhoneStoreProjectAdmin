@@ -16,9 +16,11 @@ namespace PhoneStore_New.Areas.Admin.Controllers
     {
         private readonly PhoneStoreDBEntities db = new PhoneStoreDBEntities();
 
+        // === ACTION 1: DANH SÁCH SẢN PHẨM ===
         public ActionResult Products(string search_query, string message)
         {
-            var products = db.Products.AsQueryable();
+            // Include NavbarItem để có thể hiển thị tên danh mục nếu cần sau này
+            var products = db.Products.Include(p => p.NavbarItem).AsQueryable();
 
             if (!string.IsNullOrEmpty(search_query))
             {
@@ -47,26 +49,45 @@ namespace PhoneStore_New.Areas.Admin.Controllers
             return View(viewModel);
         }
 
+        // === HÀM PHỤ: TẠO DROPDOWN DANH MỤC TỪ MENU (NAVBAR) ===
+        private void PopulateNavbarDropDownList(object selectedId = null)
+        {
+            // Lấy danh sách từ NavbarItems thay vì Categories cũ
+            var items = db.NavbarItems
+                          .OrderBy(n => n.ItemOrder)
+                          .Select(n => new
+                          {
+                              ItemId = n.ItemId,
+                              // Hiển thị tên kèm Bố cục để Admin dễ phân biệt
+                              DisplayText = n.ItemText + (
+                                  n.LayoutType == 0 ? " (Lưới SP)" :
+                                  n.LayoutType == 2 ? " (Flash Sale)" :
+                                  n.LayoutType == 4 ? " (Gallery)" :
+                                  " (Khác)")
+                          })
+                          .ToList();
+
+            // Vẫn giữ tên ViewBag.Categories để không phải sửa file View .cshtml
+            ViewBag.Categories = new SelectList(items, "ItemId", "DisplayText", selectedId);
+        }
+
+        // === ACTION 2: TRANG THÊM/SỬA SẢN PHẨM (GET) ===
         // GET: Admin/ProductAdmin/EditProduct/5
         public ActionResult EditProduct(int id)
         {
-            ViewBag.Categories = db.Categories
-                                    .Select(c => new SelectListItem
-                                    {
-                                        Value = c.CategoryId.ToString(),
-                                        Text = c.Name
-                                    })
-                                    .ToList();
-
-            if (id == 0) // Thêm mới
+            // Nếu id = 0 là Thêm mới
+            if (id == 0) 
             {
+                PopulateNavbarDropDownList(); // Load danh sách Menu
                 ViewBag.Title = "Thêm Sản phẩm mới";
                 return View(new ProductAdminEditViewModel());
             }
 
-            // Sửa sản phẩm
+            // Nếu id > 0 là Sửa
             var productEntity = db.Products.Find(id);
             if (productEntity == null) return HttpNotFound();
+
+            PopulateNavbarDropDownList(productEntity.CategoryId); // Load danh sách Menu và chọn mục hiện tại
 
             ViewBag.Title = "Sửa Sản phẩm: " + productEntity.Name;
 
@@ -77,11 +98,9 @@ namespace PhoneStore_New.Areas.Admin.Controllers
                 Description = productEntity.Description,
                 Price = productEntity.Price,
                 StockQuantity = productEntity.StockQuantity,
-                CategoryId = productEntity.CategoryId,
+                CategoryId = productEntity.CategoryId, // Đây chính là ID của NavbarItem
                 DiscountPercentage = productEntity.DiscountPercentage ?? 0,
                 CurrentImageUrl = productEntity.ImageUrl,
-
-                // === SỬA ĐỔI: LẤY DỮ LIỆU MỚI TỪ DATABASE ===
                 PurchasePrice = productEntity.PurchasePrice,
                 vip_price = productEntity.vip_price
             };
@@ -89,6 +108,7 @@ namespace PhoneStore_New.Areas.Admin.Controllers
             return View(viewModel);
         }
 
+        // === ACTION 3: LƯU SẢN PHẨM (POST) ===
         // POST: Admin/ProductAdmin/Save
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -96,7 +116,8 @@ namespace PhoneStore_New.Areas.Admin.Controllers
         {
             if (!ModelState.IsValid)
             {
-                ViewBag.Categories = db.Categories.Select(c => new SelectListItem { Value = c.CategoryId.ToString(), Text = c.Name, Selected = c.CategoryId == model.CategoryId }).ToList();
+                // Nếu lỗi, load lại dropdown
+                PopulateNavbarDropDownList(model.CategoryId);
                 return View("EditProduct", model);
             }
 
@@ -121,12 +142,10 @@ namespace PhoneStore_New.Areas.Admin.Controllers
                     Description = model.Description,
                     Price = model.Price,
                     StockQuantity = model.StockQuantity,
-                    CategoryId = model.CategoryId,
+                    CategoryId = model.CategoryId, // Lưu liên kết với NavbarItem
                     DiscountPercentage = model.DiscountPercentage,
                     ImageUrl = imageUrl,
                     CreatedAt = DateTime.Now,
-
-                    // === SỬA ĐỔI: LƯU DỮ LIỆU MỚI VÀO DATABASE ===
                     PurchasePrice = model.PurchasePrice,
                     vip_price = model.vip_price
                 };
@@ -142,11 +161,9 @@ namespace PhoneStore_New.Areas.Admin.Controllers
                     productToUpdate.Description = model.Description;
                     productToUpdate.Price = model.Price;
                     productToUpdate.StockQuantity = model.StockQuantity;
-                    productToUpdate.CategoryId = model.CategoryId;
+                    productToUpdate.CategoryId = model.CategoryId; // Cập nhật liên kết
                     productToUpdate.DiscountPercentage = model.DiscountPercentage;
                     productToUpdate.ImageUrl = imageUrl;
-
-                    // === SỬA ĐỔI: LƯU DỮ LIỆU MỚI VÀO DATABASE ===
                     productToUpdate.PurchasePrice = model.PurchasePrice;
                     productToUpdate.vip_price = model.vip_price;
 
@@ -159,7 +176,7 @@ namespace PhoneStore_New.Areas.Admin.Controllers
             return RedirectToAction("Products");
         }
 
-        // POST: Admin/ProductAdmin/DeleteProduct/5
+        // === ACTION 4: XÓA SẢN PHẨM ===
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult DeleteProduct(int id)

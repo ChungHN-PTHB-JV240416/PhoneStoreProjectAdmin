@@ -30,6 +30,11 @@
         <AssociationConnector Association="PhoneStoreDBModel.FK_CollectionItems_Product" />
         <EntityTypeShape EntityType="PhoneStoreDBModel.Page" Width="1.5" PointX="12.375" PointY="4.75" />
         <AssociationConnector Association="PhoneStoreDBModel.FK_Categories_Parent" />
+        <EntityTypeShape EntityType="PhoneStoreDBModel.sysdiagram" Width="1.5" PointX="5.375" PointY="12.75" />
+        <AssociationConnector Association="PhoneStoreDBModel.FK_Products_NavbarItems" />
+        <EntityTypeShape EntityType="PhoneStoreDBModel.Cart" Width="1.5" PointX="8.25" PointY="0.75" />
+        <AssociationConnector Association="PhoneStoreDBModel.FK__Carts__ProductId__0A688BB1" />
+        <AssociationConnector Association="PhoneStoreDBModel.FK__Carts__UserId__09746778" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

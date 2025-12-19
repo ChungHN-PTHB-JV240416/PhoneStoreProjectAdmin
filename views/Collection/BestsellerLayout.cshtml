@@ -1,0 +1,139 @@
+﻿@using PhoneStore_New.Models.ViewModels
+@model IEnumerable<ProductCardViewModel>
+@{ Layout = "~/Views/Shared/_Layout.cshtml"; }
+
+<style>
+    .best-header {
+        text-align: center;
+        margin: 40px 0;
+    }
+
+        .best-header h1 {
+            color: #d0011b;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+    /* Huy hiệu Top 1, 2, 3 */
+    .rank-badge {
+        position: absolute;
+        top: 0;
+        left: 0;
+        padding: 5px 15px;
+        font-weight: bold;
+        border-bottom-right-radius: 15px;
+        z-index: 2;
+        box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+        color: #fff;
+    }
+
+    .rank-1 {
+        background: linear-gradient(45deg, #FFD700, #FDB931);
+        font-size: 1.2em;
+        padding: 8px 15px;
+    }
+
+    .rank-2 {
+        background: linear-gradient(45deg, #C0C0C0, #E0E0E0);
+    }
+
+    .rank-3 {
+        background: linear-gradient(45deg, #CD7F32, #B87333);
+    }
+
+    .rank-normal {
+        background: #666;
+        font-size: 0.9em;
+    }
+
+    /* Thanh trạng thái bán hàng */
+    .sold-container {
+        margin: 10px 15px;
+        background: #f3f3f3;
+        border-radius: 10px;
+        height: 20px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .sold-bar {
+        background: linear-gradient(90deg, #ff7e5f, #feb47b);
+        height: 100%;
+        border-radius: 10px;
+        width: 0%; /* Sẽ set bằng code */
+        transition: width 1s ease-in-out;
+    }
+
+    .sold-text {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        text-align: center;
+        font-size: 11px;
+        line-height: 20px;
+        color: #333;
+        font-weight: bold;
+    }
+
+    .fire-icon {
+        color: #d0011b;
+    }
+</style>
+
+<div class="container">
+    <div class="best-header">
+        <h1>@ViewBag.Title</h1>
+        <p>Các sản phẩm được săn đón nhiều nhất tháng này</p>
+    </div>
+
+    <div class="row">
+        @{ int rank = 1; }
+        @foreach (var item in Model)
+        {
+            <div class="col-md-3 col-sm-6" style="margin-bottom: 30px;">
+                <div class="product-card">
+                    @if (rank == 1)
+                    {<div class="rank-badge rank-1">TOP 1</div> }
+                    else if (rank == 2)
+                    { <div class="rank-badge rank-2">TOP 2</div> }
+                    else if (rank == 3)
+                    { <div class="rank-badge rank-3">TOP 3</div> }
+                    else
+                    { <div class="rank-badge rank-normal">#@rank</div>}
+
+                    <div class="image-wrapper">
+                        <a href="@Url.Action("Detail", "Product", new { id = item.ProductId })">
+                            <img src="@Url.Content(item.ImageUrl ?? "~/Content/images/no-image.png")" />
+                        </a>
+                    </div>
+
+                    <div class="content">
+                        <h3><a href="@Url.Action("Detail", "Product", new { id = item.ProductId })">@item.Name</a></h3>
+
+                        <div class="price-container">
+                            <span class="sale-price">@item.OriginalPrice.ToString("N0")₫</span>
+                        </div>
+
+                        <div class="sold-container">
+                            @* Giả lập thanh % dựa trên số lượng (max 1000 cho đẹp) *@
+                            @{
+                                int percent = item.SoldQuantity > 100 ? 100 : (item.SoldQuantity < 10 ? 10 : item.SoldQuantity);
+                                if (rank == 1) { percent = 95; } // Hack cho Top 1 nhìn cho đẹp
+                            }
+                            <div class="sold-bar" style="width: @percent%"></div>
+                            <div class="sold-text">
+                                <i class="glyphicon glyphicon-fire fire-icon"></i> Đã bán @item.SoldQuantity
+                            </div>
+                        </div>
+
+                        <a href="@Url.Action("Detail", "Product", new { id = item.ProductId })" class="btn btn-primary btn-block">MUA NGAY</a>
+                    </div>
+                </div>
+            </div>
+            { rank++; }
+        }
+    </div>
+</div>

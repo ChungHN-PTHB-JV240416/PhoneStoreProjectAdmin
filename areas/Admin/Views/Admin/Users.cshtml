@@ -4,91 +4,147 @@
     Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="admin-container">
-    <h2>Quản lý Người dùng</h2>
+<style>
+    .table-input {
+        width: 100%;
+        min-width: 80px;
+        padding: 4px;
+        font-size: 13px;
+    }
 
+    .table-select {
+        width: 100%;
+        min-width: 90px;
+        padding: 4px;
+        font-size: 13px;
+        height: 30px;
+    }
+
+    .action-col {
+        white-space: nowrap;
+        width: 100px;
+        text-align: center;
+    }
+
+    .form-inline-cell {
+        margin-bottom: 5px;
+    }
+</style>
+
+<div class="admin-container" style="padding: 20px;">
+    <h2 class="page-header">Quản lý Người dùng</h2>
+
+    @* Thông báo *@
     @if (!string.IsNullOrEmpty(Model.Message))
     {
-        <div class="message-box @(Model.Message.Contains("thành công") ? "success" : "error")">
+        <div class="alert @(Model.Message.Contains("Lỗi") ? "alert-danger" : "alert-success") alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
             @Model.Message
         </div>
     }
 
-    <div class="search-form">
+    @* Form tìm kiếm *@
+    <div class="well well-sm">
         @using (Html.BeginForm("Users", "Admin", FormMethod.Get, new { @area = "Admin" }))
         {
             <div class="input-group">
-                <input type="text" name="search_query" placeholder="Tìm kiếm người dùng..." value="@Model.SearchQuery" class="form-control" />
+                <input type="text" name="search_query" class="form-control" placeholder="Tìm theo Tên, Email, Username..." value="@Model.SearchQuery" />
                 <span class="input-group-btn">
-                    <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+                    <button type="submit" class="btn btn-primary"><i class="glyphicon glyphicon-search"></i> Tìm kiếm</button>
                 </span>
             </div>
         }
     </div>
 
-    <h3>Danh sách Người dùng</h3>
-    <div class="table-responsive">
-        <table class="table table-bordered table-striped">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Họ tên</th>
-                    <th>Email</th>
-                    <th>Vai trò</th>
-                    <th>Loại TK</th>
-                    <th>VIP Hết hạn</th>
-                    <th style="width: 15%;">Hành động</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (Model.Users != null && Model.Users.Any())
-                {
-                    for (int i = 0; i < Model.Users.Count; i++)
-                    {
-                        var user = Model.Users[i];
+    @* Bảng danh sách *@
+    <div class="panel panel-default">
+        <div class="panel-heading">Danh sách tài khoản (@(Model.Users?.Count ?? 0))</div>
+        <div class="panel-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover table-striped">
+                    <thead>
                         <tr>
-                            @using (Html.BeginForm("UpdateUser", "Admin", new { area = "Admin", index = i }, FormMethod.Post, new { @class = "form-inline" }))
-                            {
-                                @Html.AntiForgeryToken()
-                                @Html.HiddenFor(m => m.Users[i].UserId)
-                                @Html.HiddenFor(m => m.SearchQuery)
-
-                                <td>@user.UserId</td>
-                                <td>
-                                    @Html.TextBoxFor(m => m.Users[i].FirstName, new { @class = "form-control input-sm", placeholder = "Tên", required = "required" })
-                                    @Html.TextBoxFor(m => m.Users[i].LastName, new { @class = "form-control input-sm", placeholder = "Họ", style = "margin-top: 5px;", required = "required" })
-                                </td>
-                                <td>
-                                    @Html.TextBoxFor(m => m.Users[i].Email, new { @class = "form-control input-sm", type = "email", required = "required" })
-                                </td>
-
-                                <td>
-                                    @user.Role
-                                </td>
-                                <td>
-                                    @user.UserType
-                                </td>
-                                <td>
-                                    @(user.VipExpiryDate?.ToString("dd/MM/yyyy") ?? "Không có")
-                                </td>
-
-                                <td class="action-links">
-                                    <button type="submit" class="btn btn-success btn-xs">Lưu</button>
-                                    @if (User.Identity.GetUserId() != user.UserId.ToString())
-                                    {
-                                        @Html.ActionLink("Xóa", "DeleteUser", new { area = "Admin", id = user.UserId },
-                                            new { @class = "btn btn-danger btn-xs", onclick = "return confirm('Bạn có chắc chắn muốn xóa người dùng này?');" })
-                                    }
-                                </td>
-                            }
+                            <th style="width: 50px;">ID</th>
+                            <th>Thông tin (Họ tên / Username)</th>
+                            <th>Email</th>
+                            <th>Vai trò</th>
+                            <th>Loại TK</th>
+                            <th>Hạn VIP</th>
+                            <th class="action-col">Hành động</th>
                         </tr>
-                    }
-                }
-                else
-                {
-                    <tr><td colspan="7" class="text-center">Không tìm thấy người dùng nào.</td></tr>
-                }
-            </tbody>
-        </table>
+                    </thead>
+                    <tbody>
+                        @if (Model.Users != null && Model.Users.Any())
+                        {
+                            for (int i = 0; i < Model.Users.Count; i++)
+                            {
+                                var user = Model.Users[i];
+                                <tr>
+                                    @* Form cập nhật từng dòng *@
+                                    @using (Html.BeginForm("UpdateUser", "Admin", new { area = "Admin", index = i }, FormMethod.Post))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        @Html.HiddenFor(m => m.Users[i].UserId)
+                                        @Html.HiddenFor(m => m.SearchQuery)
+
+                                        <td style="vertical-align: middle;">@user.UserId</td>
+
+                                        <td>
+                                            <div class="form-inline-cell">
+                                                <small class="text-muted">User: @user.Username</small>
+                                            </div>
+                                            <div class="form-inline-cell">
+                                                @Html.TextBoxFor(m => m.Users[i].FirstName, new { @class = "form-control table-input", placeholder = "Tên", required = "required" })
+                                            </div>
+                                            <div class="form-inline-cell">
+                                                @Html.TextBoxFor(m => m.Users[i].LastName, new { @class = "form-control table-input", placeholder = "Họ", required = "required" })
+                                            </div>
+                                        </td>
+
+                                        <td style="vertical-align: middle;">
+                                            @Html.TextBoxFor(m => m.Users[i].Email, new { @class = "form-control table-input", type = "email", required = "required" })
+                                        </td>
+
+                                        <td style="vertical-align: middle;">
+                                            @* Dropdown chọn Quyền (User/Admin) *@
+                                            @Html.DropDownListFor(m => m.Users[i].Role, Model.Users[i].Roles, new { @class = "form-control table-select" })
+                                        </td>
+
+                                        <td style="vertical-align: middle;">
+                                            @* Dropdown chọn Loại TK (Thường/VIP) *@
+                                            @Html.DropDownListFor(m => m.Users[i].UserType, Model.Users[i].UserTypes, new { @class = "form-control table-select" })
+                                        </td>
+
+                                        <td style="vertical-align: middle;">
+                                            @Html.EditorFor(m => m.Users[i].VipExpiryDate, new { htmlAttributes = new { @class = "form-control table-input", type = "date" } })
+                                        </td>
+
+                                        <td style="vertical-align: middle;" class="action-col">
+                                            <button type="submit" class="btn btn-success btn-xs" title="Lưu thay đổi" style="margin-bottom: 5px; width: 60px;">
+                                                <i class="glyphicon glyphicon-floppy-disk"></i> Lưu
+                                            </button>
+                                            <br />
+                                            <a href="@Url.Action("DeleteUser", "Admin", new { area = "Admin", id = user.UserId })"
+                                               class="btn btn-danger btn-xs"
+                                               style="width: 60px;"
+                                               title="Xóa tài khoản"
+                                               onclick="return confirm('CẢNH BÁO: Bạn có chắc chắn muốn xóa người dùng @user.Username không? Dữ liệu này không thể phục hồi.');">
+                                                <i class="glyphicon glyphicon-trash"></i> Xóa
+                                            </a>
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center text-muted">Không tìm thấy người dùng nào phù hợp.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>

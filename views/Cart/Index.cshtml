@@ -1,80 +1,153 @@
 ﻿@model List<PhoneStore_New.Models.ViewModels.CartItem>
 @{
     ViewBag.Title = "Giỏ hàng của tôi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<style>
+    /* CSS Giỏ hàng đẹp hơn chút */
+    .cart-container {
+        background: #fff;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        margin-top: 20px;
+        margin-bottom: 50px;
+    }
+
+    .cart-header {
+        border-bottom: 2px solid #eee;
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #333;
+    }
+
+    .table-cart th {
+        background: #f9f9f9;
+        border-bottom: 2px solid #ddd;
+    }
+
+    .table-cart td {
+        vertical-align: middle !important;
+    }
+
+    .cart-img {
+        width: 70px;
+        height: 70px;
+        object-fit: contain;
+        border: 1px solid #eee;
+        border-radius: 4px;
+    }
+
+    .qty-input {
+        width: 50px;
+        text-align: center;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px;
+    }
+
+    .price-text {
+        color: #d0011b;
+        font-weight: bold;
+    }
+
+    .btn-trash {
+        color: #999;
+        background: none;
+        border: none;
+        font-size: 16px;
+        transition: 0.2s;
+    }
+
+        .btn-trash:hover {
+            color: #d0011b;
+        }
+
+    .total-row {
+        font-size: 18px;
+        font-weight: bold;
+        background: #fdfdfd;
+    }
+</style>
+
 <div class="container">
-    <h1>Giỏ hàng của tôi</h1>
+    <div class="cart-container">
+        <h2 class="cart-header"><i class="glyphicon glyphicon-shopping-cart"></i> Giỏ hàng của bạn</h2>
 
-    @if (Model != null && Model.Any())
-    {
-        <table>
-            <thead>
-                <tr>
-                    <th>Hình ảnh</th>
-                    <th>Sản phẩm</th>
-                    <th>Giá</th>
-                    <th>Số lượng</th>
-                    <th>Thành tiền</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model)
-                {
-                    <tr>
-                        <td>
-                            <img src="@Url.Content(item.ImageUrl)" alt="@item.Name" class="cart-item-image" style="width: 80px;">
-                        </td>
-                        <td>@item.Name</td>
-                        <td>@item.Price.ToString("N0") VNĐ</td>
-                        <td>
-                            @* Form cập nhật số lượng *@
-                            @using (Html.BeginForm("UpdateQuantity", "Cart", FormMethod.Post, new { style = "display:inline-block;" }))
-                            {
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="productId" value="@item.ProductId" />
-                                <input type="number"
-                                       name="quantity"
-                                       value="@item.Quantity"
-                                       min="1"
-                                       style="width: 50px;"
-                                       onchange="this.form.submit()" />
-                                @* Thêm input ẩn nếu bạn cần cho logic Controller, nhưng UpdateQuantity đã đơn giản *@
-                            }
-                        </td>
-                        <td>@item.Subtotal.ToString("N0") VNĐ</td>
-                        <td>
-                            @* Form xóa sản phẩm *@
-                            @using (Html.BeginForm("RemoveItem", "Cart", FormMethod.Post, new { style = "display:inline-block;" }))
-                            {
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="productId" value="@item.ProductId" />
-                                <button type="submit"
-                                        onclick="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này?');"
-                                        style="background: none; border: none; color: red; cursor: pointer;">
-                                    Xóa
-                                </button>
-                            }
-                        </td>
-                    </tr>
-                }
+        @if (Model != null && Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover table-cart">
+                    <thead>
+                        <tr>
+                            <th>Sản phẩm</th>
+                            <th class="text-center">Đơn giá</th>
+                            <th class="text-center">Số lượng</th>
+                            <th class="text-center">Thành tiền</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div style="display:flex; align-items:center;">
+                                        <img src="@Url.Content(item.ImageUrl ?? "~/Content/images/no-image.png")" class="cart-img" />
+                                        <div style="margin-left:15px;">
+                                            <strong>@item.Name</strong>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center">@item.Price.ToString("N0")₫</td>
+                                <td class="text-center">
+                                    @using (Html.BeginForm("UpdateQuantity", "Cart", FormMethod.Post))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="productId" value="@item.ProductId" />
+                                        <input type="number" name="quantity" value="@item.Quantity" min="1" class="qty-input" onchange="this.form.submit()" />
+                                    }
+                                </td>
+                                <td class="text-center price-text">@item.Subtotal.ToString("N0")₫</td>
+                                <td class="text-center">
+                                    @using (Html.BeginForm("RemoveItem", "Cart", FormMethod.Post))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="productId" value="@item.ProductId" />
+                                        <button type="submit" class="btn-trash" onclick="return confirm('Xóa khỏi giỏ?');">
+                                            <i class="glyphicon glyphicon-trash"></i>
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                        <tr class="total-row">
+                            <td colspan="3" class="text-right">Tổng thanh toán:</td>
+                            <td colspan="2" class="price-text">@Model.Sum(i => i.Subtotal).ToString("N0")₫</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
-                <tr class="total-row">
-                    <td colspan="4">Tổng cộng</td>
-                    <td colspan="2">@Model.Sum(i => i.Subtotal).ToString("N0") VNĐ</td>
-                </tr>
-            </tbody>
-        </table>
-
-        <div class="cart-actions text-center" style="margin-top: 20px;">
-            <a href="@Url.Action("Index", "Home")" class="btn btn-info">Tiếp tục mua sắm</a>
-            <a href="@Url.Action("Index", "Checkout")" class="btn btn-success">Tiến hành thanh toán</a>
-        </div>
-    }
-    else
-    {
-        <p class="no-items text-center alert alert-warning">Giỏ hàng của bạn đang trống.</p>
-        <p class="text-center"><a href="@Url.Action("Index", "Home")">Quay lại trang chủ</a></p>
-    }
+            <div class="row" style="margin-top: 30px;">
+                <div class="col-md-6 col-xs-6">
+                    <a href="@Url.Action("Index", "Home")" class="btn btn-default"><i class="glyphicon glyphicon-arrow-left"></i> Mua thêm</a>
+                </div>
+                <div class="col-md-6 col-xs-6 text-right">
+                    <a href="@Url.Action("Index", "Checkout")" class="btn btn-danger btn-lg">Thanh toán ngay <i class="glyphicon glyphicon-arrow-right"></i></a>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="text-center" style="padding: 50px;">
+                <i class="glyphicon glyphicon-shopping-cart" style="font-size: 60px; color: #ddd; margin-bottom: 20px;"></i>
+                <p class="alert alert-warning">Giỏ hàng của bạn đang trống!</p>
+                <a href="@Url.Action("Index", "Home")" class="btn btn-primary">Quay lại mua sắm</a>
+            </div>
+        }
+    </div>
 </div>

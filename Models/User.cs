@@ -19,6 +19,7 @@ namespace PhoneStore_New.Models
         {
             this.Orders = new HashSet<Order>();
             this.Reviews = new HashSet<Review>();
+            this.Carts = new HashSet<Cart>();
         }
     
         public int UserId { get; set; }
@@ -41,5 +42,7 @@ namespace PhoneStore_New.Models
         public virtual ICollection<Order> Orders { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Review> Reviews { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Cart> Carts { get; set; }
     }
 }

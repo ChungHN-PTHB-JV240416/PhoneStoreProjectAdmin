@@ -1,0 +1,75 @@
+﻿@model IEnumerable<PhoneStore_New.Models.Order>
+@{ Layout = "~/Views/Shared/_Layout.cshtml"; }
+
+<style>
+    .history-box {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 30px;
+    }
+
+    .status-tag {
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+
+    .s-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .s-completed {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .s-cancelled {
+        background: #f8d7da;
+        color: #721c24;
+    }
+</style>
+
+<div class="container">
+    <div class="history-box">
+        <h2 class="page-header">@ViewBag.Title</h2>
+
+        @if (!Model.Any())
+        {
+            <div class="alert alert-warning text-center">Bạn chưa có đơn hàng nào.</div>
+        }
+        else
+        {
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Mã đơn (#)</th>
+                        <th>Ngày đặt</th>
+                        <th>Trạng thái</th>
+                        <th>Tổng tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in Model)
+                    {
+                        <tr>
+                            <td><b>#@order.OrderId</b></td>
+                            <td>@order.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>
+                                @{
+                                    string sClass = "s-pending"; string sText = "Chờ xử lý";
+                                    if (order.Status == "completed") { sClass = "s-completed"; sText = "Thành công"; }
+                                    else if (order.Status == "cancelled") { sClass = "s-cancelled"; sText = "Đã hủy"; }
+                                }
+                                <span class="status-tag @sClass">@sText</span>
+                            </td>
+                            <td style="color: #d0011b; font-weight: bold;">@order.TotalAmount.ToString("N0")₫</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

@@ -134,7 +134,6 @@
     <Compile Include="areas\Admin\AdminAreaRegistration.cs" />
     <Compile Include="areas\Admin\Controllers\AdminController.cs" />
     <Compile Include="areas\Admin\Controllers\BannerAdminController.cs" />
-    <Compile Include="areas\Admin\Controllers\CategoryController.cs" />
     <Compile Include="areas\Admin\Controllers\OrderAdminController.cs" />
     <Compile Include="areas\Admin\Controllers\PageAdminController.cs" />
     <Compile Include="areas\Admin\Controllers\ProductAdminController .cs" />
@@ -169,16 +168,21 @@
     <Compile Include="areas\Admin\Models\ViewModels\UserViewModel.cs" />
     <Compile Include="controllers\CartController.cs" />
     <Compile Include="controllers\CheckoutController.cs" />
+    <Compile Include="controllers\CollectionController.cs" />
     <Compile Include="controllers\HomeController.cs" />
     <Compile Include="controllers\LoginController.cs" />
     <Compile Include="controllers\OrderController.cs" />
     <Compile Include="controllers\PageController.cs" />
     <Compile Include="controllers\ProductController.cs" />
     <Compile Include="controllers\ProfileController.cs" />
+    <Compile Include="controllers\UserController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\Banner.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Cart.cs">
       <DependentUpon>Model1.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\Category.cs">
@@ -232,10 +236,14 @@
     <Compile Include="Models\Supplier.cs">
       <DependentUpon>Model1.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\sysdiagram.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\User.cs">
       <DependentUpon>Model1.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\viewmodels\CartItem.cs" />
+    <Compile Include="Models\viewmodels\ChangePasswordViewModel.cs" />
     <Compile Include="Models\viewmodels\CheckoutViewModel.cs" />
     <Compile Include="Models\viewmodels\FooterViewModel.cs" />
     <Compile Include="Models\viewmodels\HeaderViewModel.cs" />
@@ -246,6 +254,7 @@
     <Compile Include="Models\viewmodels\OrderHistoryItemViewModel.cs" />
     <Compile Include="Models\viewmodels\OrderHistoryViewModel.cs" />
     <Compile Include="Models\viewmodels\OrderItemViewModel.cs" />
+    <Compile Include="Models\viewmodels\OrderViewModel.cs" />
     <Compile Include="Models\viewmodels\ProductCardViewModel.cs" />
     <Compile Include="Models\viewmodels\ProductDetailViewModel.cs" />
     <Compile Include="Models\viewmodels\ProductSearchViewModel.cs" />
@@ -294,7 +303,6 @@
     <Content Include="scripts\bootstrap.min.js" />
     <Content Include="areas\Admin\Views\Admin\Index.cshtml" />
     <Content Include="areas\Admin\Views\Admin\Users.cshtml" />
-    <Content Include="areas\Admin\Views\Category\Index.cshtml" />
     <Content Include="areas\Admin\Views\OrderAdmin\Detail.cshtml" />
     <Content Include="areas\Admin\Views\OrderAdmin\Index.cshtml" />
     <Content Include="areas\Admin\Views\ProductAdmin\EditProduct.cshtml" />
@@ -341,7 +349,7 @@
     <Content Include="views\Login\Register.cshtml" />
     <Content Include="views\Order\Detail.cshtml" />
     <Content Include="views\Order\History.cshtml" />
-    <Content Include="views\Product\Bestsellers.cshtml" />
+    <Content Include="views\Collection\BestsellerLayout.cshtml" />
     <Content Include="views\Product\ByCategory.cshtml" />
     <Content Include="views\Product\Detail.cshtml" />
     <Content Include="views\Product\SaleProducts.cshtml" />
@@ -354,10 +362,20 @@
     <Content Include="views\web.config" />
     <Content Include="views\_ViewStart.cshtml" />
     <Content Include="views\Page\View.cshtml" />
+    <Content Include="views\Collection\GridLayout.cshtml" />
+    <Content Include="views\Collection\InfoLayout.cshtml" />
+    <Content Include="views\Collection\SaleLayout.cshtml" />
+    <Content Include="views\Collection\ListLayout.cshtml" />
+    <Content Include="views\Collection\GalleryLayout.cshtml" />
+    <Content Include="views\User\Profile.cshtml" />
+    <Content Include="views\Collection\OrderHistoryLayout.cshtml" />
+    <Content Include="views\Collection\ProfileLayout.cshtml" />
+    <Content Include="views\Collection\CartLayout.cshtml" />
+    <Content Include="views\Profile\ChangePassword.cshtml" />
+    <Content Include="views\Login\ForgotPassword.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="NewFolder1\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

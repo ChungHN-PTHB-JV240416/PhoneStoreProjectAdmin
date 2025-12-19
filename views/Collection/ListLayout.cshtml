@@ -1,0 +1,85 @@
+﻿@model IEnumerable<PhoneStore_New.Models.Product>
+@{ Layout = "~/Views/Shared/_Layout.cshtml"; }
+
+<style>
+    .list-item {
+        display: flex;
+        border: 1px solid #eee;
+        margin-bottom: 20px;
+        padding: 20px;
+        border-radius: 8px;
+        transition: all 0.3s;
+    }
+
+        .list-item:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateX(5px);
+        }
+
+    .list-img {
+        width: 250px;
+        flex-shrink: 0;
+        margin-right: 30px;
+        text-align: center;
+    }
+
+        .list-img img {
+            max-width: 100%;
+            max-height: 200px;
+            object-fit: contain;
+        }
+
+    .list-info {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .list-desc {
+        color: #666;
+        margin: 15px 0;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .list-action {
+        text-align: right;
+        min-width: 150px;
+        border-left: 1px solid #eee;
+        padding-left: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+</style>
+
+<div class="container">
+    <h2 class="page-header">@ViewBag.Title (Chi tiết)</h2>
+
+    @foreach (var item in Model)
+    {
+        <div class="list-item">
+            <div class="list-img">
+                <img src="@Url.Content(item.ImageUrl ?? "~/Content/images/no-image.png")" />
+            </div>
+            <div class="list-info">
+                <h3 style="margin-top:0"><a href="@Url.Action("Detail", "Product", new { id = item.ProductId })">@item.Name</a></h3>
+                <div class="list-desc">
+                    @Html.Raw(item.Description ?? "Chưa có mô tả chi tiết cho sản phẩm này. Hãy bấm xem chi tiết để tìm hiểu thêm.")
+                </div>
+            </div>
+            <div class="list-action">
+                <div class="price-container" style="text-align: right; margin-bottom: 15px;">
+                    @{ decimal final = item.Price * (1 - (decimal)(item.DiscountPercentage ?? 0) / 100); }
+                    <span class="sale-price" style="display:block; font-size: 20px;">@final.ToString("N0")₫</span>
+                    @if (item.DiscountPercentage > 0)
+                    {<span class="original-price" style="font-size: 14px;">@item.Price.ToString("N0")₫</span>}
+                </div>
+                <a href="@Url.Action("Detail", "Product", new { id = item.ProductId })" class="btn btn-default">Xem chi tiết <i class="fa fa-angle-right"></i></a>
+            </div>
+        </div>
+    }
+</div>

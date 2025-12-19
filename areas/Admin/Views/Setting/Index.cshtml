@@ -5,7 +5,6 @@
 }
 
 <style>
-    /* ... (Toàn bộ CSS cũ của bạn không thay đổi) ... */
     .message {
         padding: 15px;
         margin-bottom: 20px;
@@ -79,8 +78,6 @@
     <p class="message @(Model.Message.Contains("thành công") ? "success" : "error")">@Model.Message</p>
 }
 
-@* === CÁC MỤC 1, 2, 3 (LOGO, QR, CÀI ĐẶT CHUNG) GIỮ NGUYÊN === *@
-@* ... (Tôi sẽ ẩn đi cho gọn, bạn chỉ cần giữ nguyên code cũ của 3 phần này) ... *@
 <div class="form-section">
     <h3>Quản lý Logo</h3>
     @using (Html.BeginForm("SaveFile", "Setting", FormMethod.Post, new { enctype = "multipart/form-data", @area = "Admin" }))
@@ -98,6 +95,7 @@
         <img src="@Url.Content(Model.CurrentLogoUrl)" alt="Logo hiện tại" class="logo-preview">
     }
 </div>
+
 <div class="form-section">
     <h3>Quản lý Mã QR</h3>
     @using (Html.BeginForm("SaveFile", "Setting", FormMethod.Post, new { enctype = "multipart/form-data", @area = "Admin" }))
@@ -114,6 +112,7 @@
         <img src="@Url.Content(Model.CurrentQrCodeUrl)" alt="Mã QR" class="qr-preview">
     }
 </div>
+
 <div class="form-section">
     <h3>Cài đặt Văn bản và Bố cục</h3>
     @using (Html.BeginForm("SaveTextSettings", "Setting", FormMethod.Post, new { @area = "Admin" }))
@@ -151,11 +150,42 @@
         <button type="submit" class="btn btn-success" style="margin-top: 15px;">Lưu Cài đặt Chung</button>
     }
 </div>
+<div class="form-section" style="border-left: 5px solid #d0011b;">
+    <h3 style="color: #d0011b;">⚡ Quản lý Flash Sale (Săn Sale)</h3>
+    <p class="text-muted">Cài đặt thời gian tự động bật/tắt chương trình khuyến mãi.</p>
 
+    @using (Html.BeginForm("SaveFlashSaleSettings", "Setting", FormMethod.Post, new { @area = "Admin" }))
+    {
+        @Html.AntiForgeryToken()
 
-@* === 4. QUẢN LÝ THANH ĐIỀU HƯỚNG (NAVBAR ITEMS) - ĐÃ SỬA ĐỔI === *@
+        <div class="row">
+            <div class="col-md-12">
+                <div class="checkbox">
+                    <label style="font-size: 16px; font-weight: bold;">
+                        @Html.CheckBoxFor(m => m.FlashSaleIsActive)
+                        Bật tính năng Flash Sale
+                    </label>
+                    <p class="help-block">Nếu bỏ chọn, trang Sale sẽ hiện thông báo "Chưa có chương trình".</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row" style="margin-top: 15px;">
+            <div class="col-md-6">
+                <label>Thời gian Bắt đầu (Tự động hiện SP)</label>
+                @Html.TextBoxFor(m => m.FlashSaleStartTime, "{0:yyyy-MM-ddTHH:mm}", new { @class = "form-control", type = "datetime-local" })
+            </div>
+            <div class="col-md-6">
+                <label>Thời gian Kết thúc (Đếm ngược đến giờ này)</label>
+                @Html.TextBoxFor(m => m.FlashSaleEndTime, "{0:yyyy-MM-ddTHH:mm}", new { @class = "form-control", type = "datetime-local" })
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-danger" style="margin-top: 20px;">Lưu Cấu Hình Sale</button>
+    }
+</div>
 <div class="form-section">
-    <h3>Quản lý Thanh điều hướng (Menu Đa cấp)</h3>
+    <h3>Quản lý Thanh điều hướng (Menu & Danh mục)</h3>
     <h4 id="navbar-form-title">Thêm/Sửa mục</h4>
 
     @using (Html.BeginForm("ManageNavbar", "Setting", FormMethod.Post, new { @area = "Admin", @id = "navbarForm" }))
@@ -168,24 +198,30 @@
         <div class="row">
             <div class="col-md-3">
                 @Html.Label("Tên mục")
-                @Html.TextBox("ItemText", "", new { @class = "form-control", placeholder = "Tên liên kết", required = "required", @id = "navbarItemText" })
+                @Html.TextBox("ItemText", "", new { @class = "form-control", placeholder = "VD: Đồng hồ Nam", required = "required", @id = "navbarItemText" })
             </div>
+
             <div class="col-md-3">
-                @Html.Label("Hoặc chọn Trang (Nội dung)")
-                @* Dropdown mới cho Pages *@
-                @Html.DropDownList("pageLink", Model.PageLinks, new { @class = "form-control", @id = "pageSelector" })
+                @Html.Label("Chọn Bố cục hiển thị")
+                @Html.DropDownList("LayoutType", (IEnumerable<SelectListItem>)ViewBag.LayoutOptions, new { @class = "form-control", @id = "navbarLayoutType" })
             </div>
-            <div class="col-md-3">
-                @Html.Label("Đường dẫn (URL)")
-                @Html.TextBox("ItemUrl", "", new { @class = "form-control", placeholder = "VD: /Product/SaleProducts", @id = "navbarItemUrl" })
-            </div>
+
             <div class="col-md-3">
                 @Html.Label("Mục cha (Nếu có)")
-                @* Dropdown mới cho ParentId *@
                 @Html.DropDownList("ParentId", Model.ParentNavbarItems, new { @class = "form-control", @id = "navbarParentId" })
             </div>
+
+            <div class="col-md-3">
+                @Html.Label("Hoặc chọn Trang (Nội dung có sẵn)")
+                @Html.DropDownList("pageLink", Model.PageLinks, new { @class = "form-control", @id = "pageSelector" })
+            </div>
         </div>
-        <div class="row" style="margin-top: 15px;">
+
+        <div class="row" style="margin-top: 10px;">
+            <div class="col-md-6">
+                @Html.Label("Đường dẫn tùy chỉnh (URL) - Để trống nếu muốn tự động")
+                @Html.TextBox("ItemUrl", "", new { @class = "form-control", placeholder = "Hệ thống sẽ tự tạo link nếu để trống", @id = "navbarItemUrl" })
+            </div>
             <div class="col-md-2">
                 @Html.Label("Thứ tự")
                 @Html.TextBox("ItemOrder", "0", new { @class = "form-control", type = "number", @id = "navbarItemOrder" })
@@ -200,14 +236,23 @@
     <h4 style="margin-top: 20px;">Các mục hiện có:</h4>
     <table class="table table-bordered navbar-table">
         <thead>
-            <tr><th>Tên</th><th>Đường dẫn</th><th>Thứ tự</th><th>Hành động</th></tr>
+            <tr><th>Tên</th><th>Bố cục</th><th>URL</th><th>Thứ tự</th><th>Hành động</th></tr>
         </thead>
         <tbody>
-            @* Lặp qua các mục cha trước *@
             @foreach (var item in Model.NavbarItems.Where(n => n.ParentId == null).OrderBy(n => n.ItemOrder))
             {
-                <tr data-id="@item.ItemId" data-text="@item.ItemText" data-url="@item.ItemUrl" data-order="@item.ItemOrder" data-parentid="">
+                <tr data-id="@item.ItemId" data-text="@item.ItemText" data-url="@item.ItemUrl" data-order="@item.ItemOrder" data-parentid="" data-layout="@item.LayoutType">
                     <td><strong>@item.ItemText</strong></td>
+                    <td>
+                        @if (item.LayoutType == 0)
+                        {<span class="label label-primary">Lưới Sản phẩm</span> }
+                        else if (item.LayoutType == 1)
+                        { <span class="label label-info">Thông tin</span> }
+                        else if (item.LayoutType == 2)
+                        { <span class="label label-danger">Khuyến mãi</span> }
+                        else
+                        { <span class="label label-default">Khác</span>}
+                    </td>
                     <td>@item.ItemUrl</td>
                     <td>@item.ItemOrder</td>
                     <td>
@@ -218,11 +263,16 @@
                     </td>
                 </tr>
 
-                @* Lặp qua các mục con của mục cha này *@
                 foreach (var childItem in Model.NavbarItems.Where(n => n.ParentId == item.ItemId).OrderBy(n => n.ItemOrder))
                 {
-                    <tr class="navbar-child-item" data-id="@childItem.ItemId" data-text="@childItem.ItemText" data-url="@childItem.ItemUrl" data-order="@childItem.ItemOrder" data-parentid="@childItem.ParentId">
+                    <tr class="navbar-child-item" data-id="@childItem.ItemId" data-text="@childItem.ItemText" data-url="@childItem.ItemUrl" data-order="@childItem.ItemOrder" data-parentid="@childItem.ParentId" data-layout="@childItem.LayoutType">
                         <td>@childItem.ItemText</td>
+                        <td>
+                            @if (childItem.LayoutType == 0)
+                            {<span class="label label-primary">Lưới SP</span> }
+                            else if (childItem.LayoutType == 1)
+                            { <span class="label label-info">Info</span>}
+                        </td>
                         <td>@childItem.ItemUrl</td>
                         <td>@childItem.ItemOrder</td>
                         <td>
@@ -238,9 +288,7 @@
     </table>
 </div>
 
-@* === 5. QUẢN LÝ KHOẢNG GIÁ (PRICE RANGES) === *@
 <div class="form-section">
-    @* ... (Toàn bộ code HTML của phần PriceRange giữ nguyên) ... *@
     <h3>Quản lý Khoảng giá (Bộ lọc)</h3>
     @using (Html.BeginForm("ManagePriceRange", "Setting", FormMethod.Post, new { @area = "Admin" }))
     {
@@ -295,6 +343,10 @@
                 var selectedUrl = $(this).val();
                 if (selectedUrl) {
                     $('#navbarItemUrl').val(selectedUrl);
+
+                    // Nếu người dùng chọn Trang nội dung, tự động chuyển Bố cục sang "Thông tin" (Value = 1)
+                    $('#navbarLayoutType').val('1');
+
                     // Tự động điền tên nếu ô Tên mục đang trống
                     if ($('#navbarItemText').val() == '') {
                         $('#navbarItemText').val($(this).find('option:selected').text());
@@ -302,14 +354,17 @@
                 }
             });
 
-            // Logic chỉnh sửa Navbar Items (đã cập nhật để lấy ParentId)
+            // Logic chỉnh sửa Navbar Items (đã cập nhật để lấy ParentId và LayoutType)
             $('.edit-navbar-btn').on('click', function () {
                 var row = $(this).closest('tr');
                 $('#navbarItemId').val(row.data('id'));
                 $('#navbarItemText').val(row.data('text'));
                 $('#navbarItemUrl').val(row.data('url'));
                 $('#navbarItemOrder').val(row.data('order'));
-                $('#navbarParentId').val(row.data('parentid')); // Gán giá trị ParentId
+                $('#navbarParentId').val(row.data('parentid'));
+
+                // Gán giá trị Bố cục từ data-layout vào dropdown
+                $('#navbarLayoutType').val(row.data('layout'));
 
                 $('#navbar-form-title').text('Sửa mục Navbar ID: ' + row.data('id'));
                 $('#navbarFormButton').text('Lưu Thay Đổi').removeClass('btn-primary').addClass('btn-success');
@@ -329,4 +384,4 @@
             });
         });
     </script>
-}
+}   

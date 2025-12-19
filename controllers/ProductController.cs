@@ -1,11 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Web.Mvc;
 using PhoneStore_New.Models;
 using PhoneStore_New.Models.ViewModels;
-using System;
-using PagedList; // Đảm bảo đã có using này
+using PagedList;
 
 namespace PhoneStore_New.Controllers
 {
@@ -13,27 +13,29 @@ namespace PhoneStore_New.Controllers
     {
         private readonly PhoneStoreDBEntities db = new PhoneStoreDBEntities();
 
+        // Helper: Kiểm tra user có phải VIP không
         private bool IsUserVip()
         {
+            if (Session["UserType"] == null) return false;
             return "vip".Equals(Session["UserType"] as string, StringComparison.OrdinalIgnoreCase);
         }
 
-        // GET: /Product/Detail/5
+        // ==========================================================
+        // 1. TRANG CHI TIẾT SẢN PHẨM
+        // ==========================================================
         public ActionResult Detail(int id)
         {
             var productEntity = db.Products.Find(id);
-
-            if (productEntity == null)
-            {
-                return View("ProductNotFound");
-            }
+            if (productEntity == null) return HttpNotFound();
 
             bool isVip = IsUserVip();
 
+            // Tính toán giá
             decimal regularSalePrice = productEntity.Price * (1m - (productEntity.DiscountPercentage ?? 0) / 100m);
             decimal finalPrice = regularSalePrice;
             bool isVipPrice = false;
 
+            // Logic giá VIP
             if (isVip && productEntity.vip_price.HasValue)
             {
                 if (productEntity.vip_price.Value < regularSalePrice)
@@ -43,6 +45,7 @@ namespace PhoneStore_New.Controllers
                 }
             }
 
+            // Lấy đánh giá
             var reviews = db.Reviews
                             .Include(r => r.User)
                             .Where(r => r.ProductId == id)
@@ -61,9 +64,10 @@ namespace PhoneStore_New.Controllers
                     Description = productEntity.Description,
                     StockQuantity = productEntity.StockQuantity,
                     OriginalPrice = productEntity.Price,
-                    DiscountPercentage = productEntity.DiscountPercentage ?? 0
+                    DiscountPercentage = productEntity.DiscountPercentage ?? 0,
+                    FinalPrice = finalPrice,
+                    IsVipPrice = isVipPrice
                 },
-
                 AverageRating = avgRating,
                 Reviews = reviews.Select(r => new ReviewViewModel
                 {
@@ -73,15 +77,21 @@ namespace PhoneStore_New.Controllers
                     CreatedAt = r.CreatedAt
                 }).ToList(),
                 Message = (TempData["Message"] as string),
-
                 FinalPrice = finalPrice,
                 OriginalPrice = productEntity.Price,
                 IsVipPrice = isVipPrice
             };
 
+            // Lấy sản phẩm liên quan (cùng danh mục)
+            ViewBag.RelatedProducts = db.Products
+                                        .Where(p => p.CategoryId == productEntity.CategoryId && p.ProductId != id)
+                                        .Take(4)
+                                        .ToList();
+
             return View(viewModel);
         }
 
+        // Action thêm đánh giá
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
@@ -89,128 +99,72 @@ namespace PhoneStore_New.Controllers
         {
             if (ModelState.IsValid)
             {
-                var newReview = new Review
+                string currentUsername = User.Identity.Name;
+                var currentUser = db.Users.FirstOrDefault(u => u.Username == currentUsername || u.Email == currentUsername);
+
+                if (currentUser != null)
                 {
-                    ProductId = model.ProductId,
-                    UserId = int.Parse(IdentityExtensions.GetUserId(User.Identity)),
-                    CommentText = model.CommentText,
-                    Rating = model.Rating,
-                    CreatedAt = System.DateTime.Now
-                };
-                db.Reviews.Add(newReview);
-                db.SaveChanges();
-                TempData["Message"] = "Bình luận của bạn đã được gửi thành công!";
+                    var newReview = new Review
+                    {
+                        ProductId = model.ProductId,
+                        UserId = currentUser.UserId,
+                        CommentText = model.CommentText,
+                        Rating = model.Rating,
+                        CreatedAt = DateTime.Now
+                    };
+                    db.Reviews.Add(newReview);
+                    db.SaveChanges();
+                    TempData["Message"] = "Đánh giá của bạn đã được gửi thành công!";
+                }
             }
             return RedirectToAction("Detail", new { id = model.ProductId });
         }
 
-        // === BẮT ĐẦU SỬA ĐỔI PHÂN TRANG CHO 'ByCategory' ===
-        public ActionResult ByCategory(int id, int? page)
-        {
-            var category = db.Categories.Find(id);
-            if (category == null)
-            {
-                return HttpNotFound();
-            }
-
-            ViewBag.CategoryName = category.Name;
-            bool isVip = IsUserVip();
-
-            // 1. Lấy truy vấn (Query) các sản phẩm, CHƯA CHẠY
-            var productsQuery = db.Products
-                                 .Where(p => p.CategoryId == id)
-                                 .OrderByDescending(p => p.CreatedAt) // Sắp xếp theo sản phẩm mới nhất
-                                 .Select(p => new
-                                 {
-                                     Product = p,
-                                     RegularSalePrice = p.Price * (1m - (p.DiscountPercentage ?? 0) / 100m)
-                                 });
-
-            // 2. Lấy về bộ nhớ để tính giá VIP
-            var productCards = productsQuery
-                                .ToList()
-                                .Select(x => new ProductCardViewModel
-                                {
-                                    ProductId = x.Product.ProductId,
-                                    Name = x.Product.Name,
-                                    ImageUrl = x.Product.ImageUrl,
-                                    OriginalPrice = x.Product.Price,
-                                    DiscountPercentage = x.Product.DiscountPercentage ?? 0,
-                                    FinalPrice = (isVip && x.Product.vip_price.HasValue && x.Product.vip_price.Value < x.RegularSalePrice)
-                                                  ? x.Product.vip_price.Value
-                                                  : x.RegularSalePrice,
-                                    IsVipPrice = (isVip && x.Product.vip_price.HasValue && x.Product.vip_price.Value < x.RegularSalePrice)
-                                });
-
-            // 3. Thực hiện phân trang
-            int pageSize = 9; // 9 sản phẩm một trang
-            int pageNumber = (page ?? 1); // Nếu 'page' là null, mặc định là trang 1
-            var pagedProducts = productCards.ToPagedList(pageNumber, pageSize);
-
-            // 4. Trả về View với danh sách đã được phân trang
-            return View(pagedProducts);
-        }
-        // === KẾT THÚC SỬA ĐỔI ===
-
-        public ActionResult SaleProducts()
-        {
-            bool isVip = IsUserVip();
-
-            var products = db.Products
-                             .Where(p => p.DiscountPercentage > 0 || p.vip_price.HasValue)
-                             .Include(p => p.Category)
-                             .ToList();
-
-            var productsByCategory = products
-                .Select(p => new
-                {
-                    CategoryName = p.Category.Name,
-                    Card = new ProductCardViewModel
-                    {
-                        ProductId = p.ProductId,
-                        Name = p.Name,
-                        ImageUrl = p.ImageUrl,
-                        OriginalPrice = p.Price,
-                        DiscountPercentage = p.DiscountPercentage ?? 0,
-                        FinalPrice = (isVip && p.vip_price.HasValue && p.vip_price.Value < (p.Price * (1m - (p.DiscountPercentage ?? 0) / 100m)))
-                                     ? p.vip_price.Value
-                                     : (p.Price * (1m - (p.DiscountPercentage ?? 0) / 100m)),
-                        IsVipPrice = (isVip && p.vip_price.HasValue && p.vip_price.Value < (p.Price * (1m - (p.DiscountPercentage ?? 0) / 100m)))
-                    }
-                })
-                .GroupBy(p => p.CategoryName)
-                .ToDictionary(g => g.Key, g => g.Select(p => p.Card).ToList());
-
-            var productsPerRowSetting = db.Settings.FirstOrDefault(s => s.SettingKey == "products_per_row")?.SettingValue;
-            int productsPerRow = int.TryParse(productsPerRowSetting, out int rows) ? rows : 4;
-
-            var viewModel = new SaleProductsViewModel
-            {
-                ProductsPerRow = productsPerRow,
-                ProductsByCategory = productsByCategory
-            };
-
-            return View(viewModel);
-        }
-
+        // ==========================================================
+        // 2. TRANG TÌM KIẾM (SEARCH) - ĐÃ CẬP NHẬT LOGIC NAVBAR
+        // ==========================================================
         [ValidateInput(false)]
         public ActionResult Search(string keyword, int? selectedCategoryId, int? selectedPriceRangeId, int? page)
         {
             var viewModel = new ProductSearchViewModel();
 
-            viewModel.Categories = db.Categories.Select(c => new SelectListItem { Value = c.CategoryId.ToString(), Text = c.Name }).ToList();
-            viewModel.PriceRanges = db.PriceRanges.OrderBy(r => r.RangeOrder).Select(r => new SelectListItem { Value = r.RangeId.ToString(), Text = r.RangeLabel }).ToList();
+            // 1. Load danh sách Thương hiệu từ NavbarItems (thay vì Categories cũ)
+            // Chỉ lấy các mục là Layout sản phẩm (0: Grid, 2: Sale, 4: Gallery)
+            viewModel.Categories = db.NavbarItems
+                                     .Where(n => n.ItemVisible == true && (n.LayoutType == 0 || n.LayoutType == 2 || n.LayoutType == 4))
+                                     .OrderBy(n => n.ItemOrder)
+                                     .Select(n => new SelectListItem
+                                     {
+                                         Value = n.ItemId.ToString(),
+                                         Text = n.ItemText,
+                                         Selected = n.ItemId == selectedCategoryId
+                                     })
+                                     .ToList();
 
+            // 2. Load khoảng giá
+            viewModel.PriceRanges = db.PriceRanges
+                                      .OrderBy(r => r.RangeOrder)
+                                      .Select(r => new SelectListItem
+                                      {
+                                          Value = r.RangeId.ToString(),
+                                          Text = r.RangeLabel,
+                                          Selected = r.RangeId == selectedPriceRangeId
+                                      })
+                                      .ToList();
+
+            // 3. Xây dựng truy vấn tìm kiếm
             var query = db.Products.AsQueryable();
 
             if (!string.IsNullOrEmpty(keyword))
             {
                 query = query.Where(p => p.Name.Contains(keyword) || p.Description.Contains(keyword));
             }
+
             if (selectedCategoryId.HasValue)
             {
                 query = query.Where(p => p.CategoryId == selectedCategoryId.Value);
             }
+
             if (selectedPriceRangeId.HasValue)
             {
                 var range = db.PriceRanges.Find(selectedPriceRangeId.Value);
@@ -220,9 +174,11 @@ namespace PhoneStore_New.Controllers
                 }
             }
 
+            // 4. Kiểm tra VIP để tính giá
             bool isVip = IsUserVip();
 
-            var resultsQuery = query.Select(p => new
+            // 5. Chuyển đổi sang ViewModel
+            var resultsQuery = query.ToList().Select(p => new
             {
                 Product = p,
                 RegularSalePrice = p.Price * (1m - (p.DiscountPercentage ?? 0) / 100m)
@@ -234,18 +190,24 @@ namespace PhoneStore_New.Controllers
                 ImageUrl = x.Product.ImageUrl,
                 OriginalPrice = x.Product.Price,
                 DiscountPercentage = x.Product.DiscountPercentage ?? 0,
+
+                // Logic chọn giá cuối cùng
                 FinalPrice = (isVip && x.Product.vip_price.HasValue && x.Product.vip_price.Value < x.RegularSalePrice)
                              ? x.Product.vip_price.Value
                              : x.RegularSalePrice,
+
                 IsVipPrice = (isVip && x.Product.vip_price.HasValue && x.Product.vip_price.Value < x.RegularSalePrice)
             });
 
-            var sortedQuery = resultsQuery.OrderBy(p => p.Name);
+            // Sắp xếp mặc định: Mới nhất lên đầu
+            var sortedQuery = resultsQuery.OrderByDescending(p => p.ProductId);
 
+            // 6. Phân trang
             int pageSize = 9;
             int pageNumber = (page ?? 1);
             viewModel.Results = sortedQuery.ToPagedList(pageNumber, pageSize);
 
+            // Gán lại giá trị bộ lọc để View hiển thị
             viewModel.Keyword = keyword;
             viewModel.SelectedCategoryId = selectedCategoryId;
             viewModel.SelectedPriceRangeId = selectedPriceRangeId;
@@ -253,65 +215,38 @@ namespace PhoneStore_New.Controllers
             return View(viewModel);
         }
 
+        // ==========================================================
+        // 3. CÁC TRANG KHÁC (GIỮ NGUYÊN ĐỂ KHÔNG BỊ LỖI)
+        // ==========================================================
         public ActionResult Bestsellers()
         {
-            bool isVip = IsUserVip();
-            var productsPerRowSetting = db.Settings.FirstOrDefault(s => s.SettingKey == "products_per_row")?.SettingValue;
-            int productsPerRow = int.TryParse(productsPerRowSetting, out int rows) ? rows : 4;
+            // Logic lấy Top bán chạy
+            var topProducts = db.OrderItems
+                                .GroupBy(oi => oi.ProductId)
+                                .OrderByDescending(g => g.Sum(oi => oi.Quantity))
+                                .Select(g => g.Key)
+                                .Take(12)
+                                .ToList();
 
-            var allSoldItems = db.OrderItems
-                .Include(oi => oi.Product.Category)
-                .GroupBy(oi => new { oi.ProductId, oi.Product.Category.Name })
-                .Select(g => new
-                {
-                    CategoryName = g.Key.Name ?? "Chưa phân loại",
-                    ProductId = g.Key.ProductId,
-                    TotalSold = g.Sum(oi => oi.Quantity),
-                    Product = g.FirstOrDefault().Product
-                })
-                .Where(p => p.Product != null)
-                .ToList();
+            var products = db.Products.Where(p => topProducts.Contains(p.ProductId)).ToList();
+            if (!products.Any()) products = db.Products.OrderByDescending(p => p.CreatedAt).Take(8).ToList();
 
-            var productsByBrand = allSoldItems
-                .GroupBy(item => item.CategoryName)
-                .ToDictionary(
-                    brandGroup => brandGroup.Key,
-                    brandGroup => brandGroup
-                        .OrderByDescending(item => item.TotalSold)
-                        .Take(productsPerRow)
-                        .Select(item => new ProductCardViewModel
-                        {
-                            ProductId = item.ProductId,
-                            Name = item.Product.Name,
-                            ImageUrl = item.Product.ImageUrl,
-                            OriginalPrice = item.Product.Price,
-                            DiscountPercentage = item.Product.DiscountPercentage ?? 0,
+            return View(products);
+        }
 
-                            FinalPrice = (isVip && item.Product.vip_price.HasValue && item.Product.vip_price.Value < (item.Product.Price * (1m - (item.Product.DiscountPercentage ?? 0) / 100m)))
-                                         ? item.Product.vip_price.Value
-                                         : (item.Product.Price * (1m - (item.Product.DiscountPercentage ?? 0) / 100m)),
-
-                            IsVipPrice = (isVip && item.Product.vip_price.HasValue && item.Product.vip_price.Value < (item.Product.Price * (1m - (item.Product.DiscountPercentage ?? 0) / 100m)))
-                        })
-                        .ToList()
-                );
-
-            var viewModel = new HomeViewModel
-            {
-                ProductsByBrand = productsByBrand,
-                ProductsPerRow = productsPerRow,
-                Banners = new List<Models.Banner>()
-            };
-
-            return View(viewModel);
+        public ActionResult SaleProducts()
+        {
+            // Logic lấy sản phẩm giảm giá
+            var saleProducts = db.Products
+                                 .Where(p => p.DiscountPercentage > 0)
+                                 .OrderByDescending(p => p.DiscountPercentage)
+                                 .ToList();
+            return View("~/Views/Collection/SaleLayout.cshtml", saleProducts);
         }
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
-            {
-                db.Dispose();
-            }
+            if (disposing) db.Dispose();
             base.Dispose(disposing);
         }
     }

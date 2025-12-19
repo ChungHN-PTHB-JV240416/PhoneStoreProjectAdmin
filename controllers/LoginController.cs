@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Web;
 using System.Web.Mvc;
 using System.Web.Security;
 using PhoneStore_New.Models;
@@ -7,24 +9,24 @@ using PhoneStore_New.Models.ViewModels;
 
 namespace PhoneStore_New.Controllers
 {
-    // BỎ [Authorize] Ở ĐÂY
     public class LoginController : Controller
     {
         private readonly PhoneStoreDBEntities db = new PhoneStoreDBEntities();
         private const string DEFAULT_BACKGROUND_URL = "~/Content/images/autoimage.jpg";
 
         // GET: /Login/Index
-        [AllowAnonymous] // THÊM [AllowAnonymous] ĐỂ CHO PHÉP TRUY CẬP CÔNG KHAI
-        public ActionResult Index(string message)
+        [AllowAnonymous]
+        public ActionResult Index(string message, string returnUrl) // <--- Thêm tham số returnUrl
         {
+            // Nếu đã đăng nhập thì đá đi chỗ khác
             if (User.Identity.IsAuthenticated)
             {
-                if (User.IsInRole("admin"))
-                {
-                    return RedirectToAction("Index", "Admin", new { Area = "Admin" });
-                }
+                if (User.IsInRole("admin")) return RedirectToAction("Index", "Admin", new { Area = "Admin" });
                 return RedirectToAction("Index", "Home");
             }
+
+            // Truyền returnUrl ra View để form POST biết đường quay lại
+            ViewBag.ReturnUrl = returnUrl;
 
             ViewBag.BackgroundUrl = db.Settings.FirstOrDefault(s => s.SettingKey == "background_image_url")?.SettingValue ?? DEFAULT_BACKGROUND_URL;
             ViewBag.Message = TempData["Message"] ?? message;
@@ -33,56 +35,121 @@ namespace PhoneStore_New.Controllers
 
         // POST: /Login/Index
         [HttpPost]
-        [AllowAnonymous] // THÊM [AllowAnonymous]
+        [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public ActionResult Index(LoginViewModel model)
+        public ActionResult Index(LoginViewModel model, string returnUrl) // <--- Nhận lại returnUrl từ Form
         {
             if (ModelState.IsValid)
             {
                 var user = db.Users.FirstOrDefault(u => u.Username == model.Username);
 
+                // Kiểm tra User và Pass
                 if (user != null && System.Web.Helpers.Crypto.VerifyHashedPassword(user.PasswordHash, model.Password))
                 {
+                    // 1. THIẾT LẬP AUTHENTICATION (COOKIE & SESSION)
                     FormsAuthentication.SetAuthCookie(user.UserId.ToString(), false);
-
                     Session["UserId"] = user.UserId;
                     Session["Username"] = user.Username;
                     Session["FirstName"] = user.FirstName;
 
-                    bool isVip = false;
-                    if (user.user_type == "vip" && (user.vip_expiry_date == null || user.vip_expiry_date >= DateTime.Today))
-                    {
-                        isVip = true;
-                    }
+                    bool isVip = user.user_type == "vip" && (user.vip_expiry_date == null || user.vip_expiry_date >= DateTime.Today);
                     Session["UserType"] = isVip ? "vip" : "regular";
 
-                    if (user.Role == "admin")
+                    // =========================================================================
+                    // 2. GỘP GIỎ HÀNG: SESSION -> DB (QUAN TRỌNG ĐỂ KHÔNG MẤT HÀNG VỪA CHỌN)
+                    // =========================================================================
+                    try
                     {
-                        return RedirectToAction("Index", "Admin", new { Area = "Admin" });
+                        var sessionCart = Session["Cart"] as List<CartItem>;
+                        if (sessionCart != null && sessionCart.Any())
+                        {
+                            foreach (var item in sessionCart)
+                            {
+                                // Check xem trong DB có chưa
+                                var dbItem = db.Carts.FirstOrDefault(c => c.UserId == user.UserId && c.ProductId == item.ProductId);
+                                if (dbItem == null)
+                                {
+                                    db.Carts.Add(new Cart { UserId = user.UserId, ProductId = item.ProductId, Quantity = item.Quantity, CreatedAt = DateTime.Now });
+                                }
+                                else
+                                {
+                                    // Có rồi thì cộng thêm số lượng khách vừa chọn
+                                    dbItem.Quantity += item.Quantity;
+                                }
+                            }
+                            db.SaveChanges(); // Lưu chốt
+                        }
                     }
-                    else
+                    catch (Exception) { /* Bỏ qua lỗi merge nếu có */ }
+
+                    // =========================================================================
+                    // 3. TẢI GIỎ HÀNG: DB -> SESSION (ĐỂ HIỂN THỊ ĐẦY ĐỦ CẢ CŨ LẪN MỚI)
+                    // =========================================================================
+                    try
                     {
-                        return RedirectToAction("Index", "Home");
+                        var dbCartList = db.Carts.Where(c => c.UserId == user.UserId).ToList();
+                        if (dbCartList.Any())
+                        {
+                            var newSessionCart = new List<CartItem>();
+                            foreach (var dbItem in dbCartList)
+                            {
+                                var product = db.Products.Find(dbItem.ProductId);
+                                if (product != null)
+                                {
+                                    decimal finalPrice = product.Price * (1m - (product.DiscountPercentage ?? 0) / 100m);
+                                    if (isVip && product.vip_price.HasValue && product.vip_price < product.Price)
+                                    {
+                                        finalPrice = product.vip_price.Value;
+                                    }
+
+                                    newSessionCart.Add(new CartItem
+                                    {
+                                        ProductId = product.ProductId,
+                                        Name = product.Name,
+                                        ImageUrl = product.ImageUrl,
+                                        Price = finalPrice,
+                                        Quantity = dbItem.Quantity
+                                    });
+                                }
+                            }
+                            Session["Cart"] = newSessionCart;
+                        }
                     }
+                    catch (Exception) { /* Bỏ qua lỗi load */ }
+
+                    // =========================================================================
+                    // 4. CHUYỂN HƯỚNG (QUAN TRỌNG: XỬ LÝ RETURN URL)
+                    // =========================================================================
+
+                    // Nếu có ReturnUrl (ví dụ: đang thanh toán dở), quay lại đó
+                    if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                    {
+                        return Redirect(returnUrl);
+                    }
+
+                    // Nếu không, đi theo quyền hạn
+                    if (user.Role == "admin") return RedirectToAction("Index", "Admin", new { Area = "Admin" });
+                    return RedirectToAction("Index", "Home");
                 }
 
                 ModelState.AddModelError("", "Tên đăng nhập hoặc mật khẩu không chính xác.");
             }
 
+            // Nếu đăng nhập thất bại, phải giữ lại ReturnUrl để người dùng nhập lại
+            ViewBag.ReturnUrl = returnUrl;
             ViewBag.BackgroundUrl = db.Settings.FirstOrDefault(s => s.SettingKey == "background_image_url")?.SettingValue ?? DEFAULT_BACKGROUND_URL;
             return View(model);
         }
 
-        // GET: /Login/Register
-        [AllowAnonymous] // THÊM [AllowAnonymous]
+        // --- CÁC HÀM KHÁC GIỮ NGUYÊN ---
+        [AllowAnonymous]
         public ActionResult Register()
         {
             return View();
         }
 
-        // POST: /Login/Register
         [HttpPost]
-        [AllowAnonymous] // THÊM [AllowAnonymous]
+        [AllowAnonymous]
         [ValidateAntiForgeryToken]
         public ActionResult Register(RegisterViewModel model)
         {
@@ -101,7 +168,8 @@ namespace PhoneStore_New.Controllers
                     PasswordHash = System.Web.Helpers.Crypto.HashPassword(model.Password),
                     Role = "user",
                     user_type = "regular",
-                    CreatedAt = DateTime.Now
+                    CreatedAt = DateTime.Now,
+                    AvatarUrl = "/Content/images/default-user.png"
                 };
 
                 db.Users.Add(newUser);
@@ -112,15 +180,100 @@ namespace PhoneStore_New.Controllers
             }
             return View(model);
         }
+        // GET: /Login/ChangePassword
+        [Authorize]
+        public ActionResult ChangePassword()
+        {
+            return View();
+        }
+
+        // POST: /Login/ChangePassword
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public ActionResult ChangePassword(ChangePasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            // Lấy ID user hiện tại (Dùng session hoặc User.Identity)
+            int userId = 0;
+            if (Session["UserId"] != null) userId = Convert.ToInt32(Session["UserId"]);
+            else if (User.Identity.IsAuthenticated && int.TryParse(User.Identity.Name, out int uid)) userId = uid;
+
+            if (userId == 0) return RedirectToAction("Index", "Login");
+
+            var user = db.Users.Find(userId);
+            if (user == null) return RedirectToAction("Index", "Login");
+
+            // Kiểm tra mật khẩu cũ
+            if (!System.Web.Helpers.Crypto.VerifyHashedPassword(user.PasswordHash, model.OldPassword))
+            {
+                ModelState.AddModelError("OldPassword", "Mật khẩu hiện tại không chính xác.");
+                return View(model);
+            }
+
+            // Đổi mật khẩu mới
+            user.PasswordHash = System.Web.Helpers.Crypto.HashPassword(model.NewPassword);
+            db.Entry(user).State = System.Data.Entity.EntityState.Modified;
+            db.SaveChanges();
+
+            TempData["Message"] = "Đổi mật khẩu thành công!";
+            return RedirectToAction("Index", "Profile"); // Hoặc về trang Profile
+        }
+        // GET: /Login/ForgotPassword
+        [AllowAnonymous]
+        public ActionResult ForgotPassword()
+        {
+            ViewBag.BackgroundUrl = db.Settings.FirstOrDefault(s => s.SettingKey == "background_image_url")?.SettingValue ?? DEFAULT_BACKGROUND_URL;
+            return View();
+        }
+
+        // POST: /Login/ForgotPassword
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public ActionResult ForgotPassword(string email)
+        {
+            ViewBag.BackgroundUrl = db.Settings.FirstOrDefault(s => s.SettingKey == "background_image_url")?.SettingValue ?? DEFAULT_BACKGROUND_URL;
+
+            var user = db.Users.FirstOrDefault(u => u.Email == email);
+            if (user == null)
+            {
+                ViewBag.Error = "Email này chưa được đăng ký trong hệ thống.";
+                return View();
+            }
+
+            // Ở ĐÂY SẼ LÀ CODE GỬI EMAIL THỰC TẾ (Cần cấu hình SMTP Server)
+            // Tạm thời mình sẽ giả lập là gửi thành công để bạn test giao diện trước.
+
+            /* * Ví dụ logic thực tế:
+             * 1. Tạo token random
+             * 2. Lưu token vào DB
+             * 3. Gửi link reset password chứa token qua email
+             */
+
+            ViewBag.Success = "Yêu cầu đã được tiếp nhận! Nếu email hợp lệ, chúng tôi sẽ gửi hướng dẫn đặt lại mật khẩu cho bạn.";
+            return View();
+        }
 
         [HttpPost]
-        [Authorize] // Giữ lại Authorize cho Logout để đảm bảo chỉ người đã đăng nhập mới có thể đăng xuất
+        [Authorize]
         [ValidateAntiForgeryToken]
         public ActionResult Logout()
         {
             FormsAuthentication.SignOut();
             Session.Clear();
+            Session.Abandon();
             return RedirectToAction("Index", "Login");
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing) db.Dispose();
+            base.Dispose(disposing);
         }
     }
 }

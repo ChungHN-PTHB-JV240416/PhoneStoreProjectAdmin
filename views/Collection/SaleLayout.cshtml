@@ -1,0 +1,198 @@
+﻿@model IEnumerable<PhoneStore_New.Models.Product>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // Lấy trạng thái từ Controller
+    bool isRunning = ViewBag.IsSaleRunning ?? false;
+    DateTime endTime = ViewBag.EndTime ?? DateTime.Now;
+    DateTime startTime = ViewBag.StartTime ?? DateTime.Now;
+
+    // Tính số giây còn lại
+    double secondsLeft = (endTime - DateTime.Now).TotalSeconds;
+    if (secondsLeft < 0) { secondsLeft = 0; }
+}
+
+<style>
+    /* CSS cho Banner Flash Sale */
+    .flash-sale-header {
+        background: linear-gradient(135deg, #d0011b 0%, #ff4d4d 100%);
+        color: white;
+        padding: 50px 20px;
+        text-align: center;
+        margin-bottom: 40px;
+        border-radius: 0 0 50px 50px;
+        box-shadow: 0 10px 25px rgba(208, 1, 27, 0.3);
+    }
+
+    .flash-title {
+        font-weight: 900;
+        font-size: 3em;
+        text-transform: uppercase;
+        margin: 0;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .flash-subtitle {
+        font-size: 1.2em;
+        margin-top: 10px;
+        opacity: 0.9;
+    }
+
+    .countdown-box {
+        font-size: 36px;
+        font-weight: 800;
+        margin-top: 25px;
+        background: rgba(0,0,0,0.25);
+        display: inline-block;
+        padding: 15px 50px;
+        border-radius: 50px;
+        letter-spacing: 3px;
+        border: 2px solid rgba(255,255,255,0.3);
+    }
+
+    /* CSS cho Thẻ Sản phẩm Sale */
+    .sale-card {
+        border: 2px solid #fff0f0;
+        transition: all 0.3s;
+        position: relative;
+        overflow: hidden;
+        border-radius: 10px;
+    }
+
+        .sale-card:hover {
+            border-color: #d0011b;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateY(-5px);
+        }
+
+    .sale-badge-big {
+        position: absolute;
+        top: 10px;
+        right: -30px;
+        background: #ffe100;
+        color: #d0011b;
+        font-weight: bold;
+        padding: 5px 40px;
+        transform: rotate(45deg);
+        z-index: 10;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    /* CSS cho trạng thái Tắt/Chờ */
+    .empty-state {
+        text-align: center;
+        padding: 80px 0;
+        color: #555;
+    }
+
+    .empty-icon {
+        width: 120px;
+        opacity: 0.5;
+        margin-bottom: 30px;
+    }
+
+    .wait-title {
+        font-weight: 800;
+        color: #333;
+        font-size: 2em;
+        margin-bottom: 15px;
+    }
+</style>
+
+@if (isRunning)
+{
+    // === TRƯỜNG HỢP 1: ĐANG DIỄN RA ===
+    <div class="flash-sale-header">
+        <h1 class="flash-title">⚡ FLASH SALE ⚡</h1>
+        <p class="flash-subtitle">Săn deal giá sốc - Số lượng có hạn</p>
+        <div class="countdown-box" id="countdown">Loading...</div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            @if (Model != null && Model.Any())
+            {
+                foreach (var item in Model)
+                {
+                    <div class="col-md-3 col-sm-6" style="margin-bottom: 30px;">
+                        <div class="product-card sale-card">
+                            <div class="sale-badge-big">-@item.DiscountPercentage%</div>
+                            <div class="image-wrapper">
+                                <a href="@Url.Action("Detail", "Product", new { id = item.ProductId })">
+                                    <img src="@Url.Content(item.ImageUrl ?? "~/Content/images/no-image.png")" />
+                                </a>
+                            </div>
+                            <div class="content">
+                                <h3><a href="@Url.Action("Detail", "Product", new { id = item.ProductId })">@item.Name</a></h3>
+                                <div class="price-container">
+                                    @{ decimal final = item.Price * (1 - (decimal)item.DiscountPercentage / 100); }
+                                    <span class="original-price" style="text-decoration: line-through; color: #999;">@item.Price.ToString("N0")₫</span>
+                                    <span class="sale-price" style="color: #d0011b; font-size: 20px; font-weight: bold; margin-left: 10px;">@final.ToString("N0")₫</span>
+                                </div>
+                                <a href="@Url.Action("Detail", "Product", new { id = item.ProductId })" class="btn btn-danger btn-block" style="margin-top: 10px;">MUA NGAY</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="empty-state">
+                    <h3>Chương trình đang chạy nhưng chưa có sản phẩm nào được thêm vào!</h3>
+                    <p>Vui lòng quay lại sau ít phút.</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    // Script đếm ngược
+    <script>
+        var timeLeft = @((int)secondsLeft);
+
+        function updateTimer() {
+            var hours = Math.floor(timeLeft / 3600);
+            var minutes = Math.floor((timeLeft % 3600) / 60);
+            var seconds = Math.floor(timeLeft % 60);
+
+            var hStr = hours < 10 ? "0" + hours : hours;
+            var mStr = minutes < 10 ? "0" + minutes : minutes;
+            var sStr = seconds < 10 ? "0" + seconds : seconds;
+
+            document.getElementById("countdown").innerHTML = hStr + " : " + mStr + " : " + sStr;
+
+            if (timeLeft > 0) {
+                timeLeft--;
+            } else {
+                document.getElementById("countdown").innerHTML = "ĐÃ KẾT THÚC";
+                setTimeout(function() { location.reload(); }, 3000);
+            }
+        }
+        setInterval(updateTimer, 1000);
+        updateTimer();
+    </script>
+}
+else
+{
+    // === TRƯỜNG HỢP 2: ĐÃ TẮT HOẶC CHƯA ĐẾN GIỜ ===
+    <div class="container">
+        <div class="empty-state">
+            <img src="https://cdn-icons-png.flaticon.com/512/2972/2972531.png" class="empty-icon" />
+
+            @if (DateTime.Now < startTime)
+            {
+                <h2 class="wait-title">SỰ KIỆN SẮP DIỄN RA</h2>
+                <p style="font-size: 18px;">Hãy quay lại vào lúc: <strong style="color: #d0011b">@startTime.ToString("HH:mm - dd/MM/yyyy")</strong></p>
+            }
+            else
+            {
+                <h2 class="wait-title">CHƯƠNG TRÌNH ĐÃ KẾT THÚC</h2>
+                <p style="font-size: 18px;">Rất tiếc, đợt Flash Sale này đã kết thúc hoặc đang tạm đóng.</p>
+                <p>Hãy đón chờ các đợt khuyến mãi tiếp theo nhé!</p>
+            }
+
+            <a href="@Url.Action("Index", "Home")" class="btn btn-primary btn-lg" style="margin-top: 30px; padding: 10px 40px; border-radius: 30px;">
+                <i class="glyphicon glyphicon-shopping-cart"></i> Tiếp tục mua sắm
+            </a>
+        </div>
+    </div>
+}

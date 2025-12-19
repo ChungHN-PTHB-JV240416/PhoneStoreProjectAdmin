@@ -1,95 +1,223 @@
 ﻿@model PhoneStore_New.Models.ViewModels.OrderHistoryViewModel
 @{
-    ViewBag.Title = "Lịch sử Đơn hàng của tôi";
+    ViewBag.Title = "Lịch sử Đơn hàng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <style>
-    .message-box {
-        padding: 10px;
-        border-radius: 5px;
-        font-weight: bold;
-        text-align: center;
-        margin-bottom: 20px;
+    /* CSS Layout Dashboard (Đồng bộ Profile) */
+    .profile-wrapper {
+        margin-top: 30px;
+        margin-bottom: 60px;
     }
 
-    .success {
+    /* Menu bên trái */
+    .list-group-item {
+        border-radius: 0;
+        border-left: 3px solid transparent;
+        transition: 0.2s;
+        color: #555;
+    }
+
+        .list-group-item:hover {
+            background-color: #f9f9f9;
+            color: #333;
+        }
+
+        .list-group-item.active {
+            background-color: #fff;
+            color: #d0011b;
+            border-color: #ddd;
+            border-left: 3px solid #d0011b;
+            font-weight: bold;
+            z-index: 2;
+        }
+
+    .list-group-item-danger {
+        color: #d9534f;
+    }
+
+        .list-group-item-danger:hover {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+
+    /* Nội dung bên phải */
+    .profile-content {
+        background: #fff;
+        border: 1px solid #e1e1e1;
+        border-radius: 4px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    }
+
+    .profile-header {
+        padding: 15px 20px;
+        border-bottom: 1px solid #eee;
+        background: #fcfcfc;
+    }
+
+        .profile-header h3 {
+            margin: 0;
+            font-size: 18px;
+            text-transform: uppercase;
+            color: #333;
+            font-weight: 700;
+        }
+
+    .profile-body {
+        padding: 20px;
+    }
+
+    /* Table Styles */
+    .table-orders thead th {
+        background-color: #f8f8f8;
+        border-bottom: 2px solid #ddd;
+        color: #555;
+    }
+
+    .table-orders tbody td {
+        vertical-align: middle;
+    }
+
+    /* Status Labels */
+    .label-status {
+        font-size: 85%;
+        padding: 5px 10px;
+        border-radius: 12px;
+    }
+
+    .label-pending {
+        background-color: #ffecb3;
+        color: #8a6d3b;
+    }
+
+    .label-shipping {
+        background-color: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .label-completed {
         background-color: #d4edda;
         color: #155724;
     }
 
-    .error {
+    .label-cancelled {
         background-color: #f8d7da;
         color: #721c24;
     }
 
-    .order-detail-link {
-        text-decoration: none;
-        color: #3498db;
-    }
-
-    .cancel-btn {
+    .btn-action {
         padding: 5px 10px;
-        background-color: #e74c3c;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        text-decoration: none;
+        font-size: 12px;
+        border-radius: 3px;
+        margin-right: 5px;
     }
 </style>
 
-<div class="container">
-    <h1 class="text-center">Lịch sử Đơn hàng của tôi</h1>
+<div class="container profile-wrapper">
+    <div class="row">
+        @* === CỘT TRÁI: MENU === *@
+        <div class="col-md-3">
+            <div class="list-group shadow-sm">
+                <a href="@Url.Action("Index", "Profile")" class="list-group-item">
+                    <i class="glyphicon glyphicon-user"></i> Thông tin tài khoản
+                </a>
 
-    @* Hiển thị thông báo *@
-    @if (!string.IsNullOrEmpty(Model.Message))
-    {
-        <div class="message-box @(Model.Message.Contains("thành công") ? "success" : "error")">
-            @Model.Message
+                @* ĐANG ACTIVE *@
+                <a href="@Url.Action("History", "Order")" class="list-group-item active">
+                    <i class="glyphicon glyphicon-list-alt"></i> Lịch sử đơn hàng
+                </a>
+
+                <a href="@Url.Action("ChangePassword", "Profile")" class="list-group-item">
+                    <i class="glyphicon glyphicon-lock"></i> Đổi mật khẩu
+                </a>
+
+                <a href="javascript:document.getElementById('logoutForm').submit()" class="list-group-item list-group-item-danger">
+                    <i class="glyphicon glyphicon-log-out"></i> Đăng xuất
+                </a>
+            </div>
         </div>
-    }
 
-    @if (Model.Orders != null && Model.Orders.Any())
-    {
-        <table class="table table-bordered table-striped">
-            <thead>
-                <tr>
-                    <th>Mã Đơn hàng</th>
-                    <th>Ngày đặt</th>
-                    <th>Tổng tiền</th>
-                    <th>Trạng thái</th>
-                    <th>Hành động</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var order in Model.Orders)
-                {
-                    <tr>
-                        <td>@order.OrderId</td>
-                        <td>@order.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
-                        <td>@order.FormattedTotalAmount</td>
-                        <td>@order.Status</td>
-                        <td>
-                            @* Link Xem chi tiết (Chưa tạo Detail View trong User) *@
-                            @Html.ActionLink("Xem chi tiết", "Detail", "Order", new { id = order.OrderId }, new { @class = "order-detail-link" })
+        @* === CỘT PHẢI: DANH SÁCH ĐƠN HÀNG === *@
+        <div class="col-md-9">
+            <div class="profile-content">
+                <div class="profile-header">
+                    <h3><i class="glyphicon glyphicon-list"></i> Danh sách đơn hàng</h3>
+                </div>
+                <div class="profile-body">
 
-                            @if (order.CanCancel)
-                            {
-                                @* Link Hủy đơn hàng (GET request) *@
-                                <a href="@Url.Action("Cancel", "Order", new { id = order.OrderId })"
-                                   class="cancel-btn"
-                                   onclick="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này?');">
-                                    Hủy
-                                </a>
-                            }
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
-    else
-    {
-        <p style="text-align: center;" class="alert alert-info">Bạn chưa có đơn hàng nào.</p>
-    }
+                    @if (!string.IsNullOrEmpty(Model.Message))
+                    {
+                        <div class="alert @(Model.Message.Contains("thành công") ? "alert-success" : "alert-warning") alert-dismissible">
+                            <button type="button" class="close" data-dismiss="alert">&times;</button>
+                            @Model.Message
+                        </div>
+                    }
+
+                    @if (Model.Orders != null && Model.Orders.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover table-orders">
+                                <thead>
+                                    <tr>
+                                        <th>Mã ĐH</th>
+                                        <th>Ngày đặt</th>
+                                        <th>Tổng tiền</th>
+                                        <th class="text-center">Trạng thái</th>
+                                        <th class="text-right">Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var order in Model.Orders)
+                                    {
+                                        <tr>
+                                            <td><strong>#@order.OrderId</strong></td>
+                                            <td>@order.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                            <td style="color: #d0011b; font-weight: bold;">@order.FormattedTotalAmount</td>
+                                            <td class="text-center">
+                                                @{
+                                                    string statusClass = "label-default";
+                                                    string statusText = order.Status;
+                                                    if (order.Status == "pending") { statusClass = "label-pending"; statusText = "Chờ xử lý"; }
+                                                    else if (order.Status == "shipping") { statusClass = "label-shipping"; statusText = "Đang giao"; }
+                                                    else if (order.Status == "completed") { statusClass = "label-completed"; statusText = "Hoàn thành"; }
+                                                    else if (order.Status == "cancelled") { statusClass = "label-cancelled"; statusText = "Đã hủy"; }
+                                                }
+                                                <span class="label @statusClass">@statusText</span>
+                                            </td>
+                                            <td class="text-right">
+                                                <a href="@Url.Action("Detail", "Order", new { id = order.OrderId })" class="btn btn-info btn-action">
+                                                    <i class="glyphicon glyphicon-eye-open"></i> Xem
+                                                </a>
+
+                                                @if (order.CanCancel)
+                                                {
+                                                    <a href="@Url.Action("Cancel", "Order", new { id = order.OrderId })"
+                                                       class="btn btn-danger btn-action"
+                                                       onclick="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này?');">
+                                                        <i class="glyphicon glyphicon-remove"></i> Hủy
+                                                    </a>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center" style="padding: 40px;">
+                            <i class="glyphicon glyphicon-file" style="font-size: 50px; color: #eee;"></i>
+                            <p class="text-muted" style="margin-top: 15px;">Bạn chưa có đơn hàng nào.</p>
+                            <a href="@Url.Action("Index", "Home")" class="btn btn-primary">Mua sắm ngay</a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+@using (Html.BeginForm("Logout", "Login", FormMethod.Post, new { id = "logoutForm" }))
+{@Html.AntiForgeryToken()}

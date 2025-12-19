@@ -1,0 +1,70 @@
+﻿@model PhoneStore_New.Models.NavbarItem
+@{ Layout = "~/Views/Shared/_Layout.cshtml"; }
+
+<style>
+    .info-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 80px 0;
+        text-align: center;
+        margin-bottom: 40px;
+        border-radius: 0 0 50% 50% / 4%;
+    }
+
+        .info-hero h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+    .info-content {
+        max-width: 800px;
+        margin: 0 auto;
+        font-size: 1.2rem;
+        line-height: 1.8;
+        color: #555;
+        text-align: justify;
+    }
+
+    .info-features {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 50px;
+        text-align: center;
+    }
+
+    .feature-box i {
+        font-size: 40px;
+        color: #764ba2;
+        margin-bottom: 15px;
+    }
+</style>
+
+<div class="info-hero">
+    <div class="container">
+        <h1>@Model.ItemText</h1>
+        <p>Khám phá câu chuyện và giá trị cốt lõi của chúng tôi</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="info-content">
+        <p>Chào mừng bạn đến với <strong>@Model.ItemText</strong>. Đây là nơi chúng tôi chia sẻ niềm đam mê bất tận với những chiếc đồng hồ đẳng cấp. Không chỉ là một món phụ kiện, mỗi sản phẩm tại WatchStore đều là một kiệt tác nghệ thuật, lưu giữ thời gian và khẳng định phong cách của bạn.</p>
+        <p>Chúng tôi cam kết mang đến những sản phẩm chính hãng 100%, chế độ bảo hành vượt trội và trải nghiệm mua sắm tuyệt vời nhất.</p>
+
+        <div class="info-features">
+            <div class="feature-box">
+                <i class="glyphicon glyphicon-star"></i>
+                <h4>Chính hãng 100%</h4>
+            </div>
+            <div class="feature-box">
+                <i class="glyphicon glyphicon-wrench"></i>
+                <h4>Bảo hành 5 năm</h4>
+            </div>
+            <div class="feature-box">
+                <i class="glyphicon glyphicon-heart"></i>
+                <h4>Hậu mãi tận tâm</h4>
+            </div>
+        </div>
+    </div>
+</div>

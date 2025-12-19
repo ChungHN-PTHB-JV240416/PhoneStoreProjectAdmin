@@ -1,154 +1,125 @@
-﻿using System.Collections.Generic;
-using System.Data.Entity;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
-using PhoneStore_New.Models; // Đảm bảo đúng namespace
-using PhoneStore_New.Models.ViewModels; // Đảm bảo đúng namespace
-using System; // Cần thêm để dùng StringComparison
+using PhoneStore_New.Models;
+using PhoneStore_New.Models.ViewModels;
 
-namespace PhoneStore_New.Controllers // Đảm bảo đúng namespace
+namespace PhoneStore_New.Controllers
 {
-    [Authorize]
     public class CartController : Controller
     {
-        // === SỬA ĐỔI: Sử dụng DbContext được "tiêm" vào (nếu bạn đã làm) ===
-        // Hoặc tạo mới nếu bạn chưa áp dụng Dependency Injection
-        private readonly PhoneStoreDBEntities db;
+        private readonly PhoneStoreDBEntities db = new PhoneStoreDBEntities();
 
-        public CartController()
+        // Helper lấy User ID
+        private int? GetCurrentUserId()
         {
-            db = new PhoneStoreDBEntities(); // Tạo instance mới
-        }
-        // Nếu bạn đã làm theo bước DI của tôi, hãy xóa constructor trên và dùng code này:
-        // private readonly PhoneStoreDBEntities _db;
-        // public CartController(PhoneStoreDBEntities dbContext)
-        // {
-        //     _db = dbContext;
-        // }
-        // (Trong file này, tôi sẽ giả định bạn chưa dùng DI để đảm bảo nó chạy được)
-
-
-        // Hàm tiện ích để lấy và lưu giỏ hàng
-        private List<CartItem> GetCart()
-        {
-            return Session.GetObject<List<CartItem>>("Cart") ?? new List<CartItem>();
+            if (Session["UserId"] != null && int.TryParse(Session["UserId"].ToString(), out int uid)) return uid;
+            return null;
         }
 
-        private void SaveCart(List<CartItem> cart)
+        // Helper lấy Giỏ hàng từ Session
+        private List<CartItem> GetSessionCart()
         {
-            Session.SetObject("Cart", cart);
+            var cart = Session["Cart"] as List<CartItem>;
+            if (cart == null) { cart = new List<CartItem>(); Session["Cart"] = cart; }
+            return cart;
         }
 
-        // GET: /Cart/Index (Hiển thị giỏ hàng)
+        // Helper đồng bộ DB
+        private void SyncToDb(int productId, int quantity)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null) return;
+
+            var dbItem = db.Carts.FirstOrDefault(c => c.UserId == userId && c.ProductId == productId);
+            if (quantity <= 0)
+            {
+                if (dbItem != null) db.Carts.Remove(dbItem);
+            }
+            else
+            {
+                if (dbItem != null) dbItem.Quantity = quantity;
+                else db.Carts.Add(new Cart { UserId = userId.Value, ProductId = productId, Quantity = quantity, CreatedAt = DateTime.Now });
+            }
+            db.SaveChanges();
+        }
+
+        // === ĐÂY LÀ HÀM BẠN ĐANG THIẾU ===
+        // GET: /Cart/Index
         public ActionResult Index()
         {
-            return View(GetCart());
+            var cart = GetSessionCart();
+            return View(cart); // Nó sẽ tìm file ở /Views/Cart/Index.cshtml
         }
+        // =================================
 
-        // POST: /Cart/AddToCart
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult AddToCart(int productId, int quantity)
+        public ActionResult AddToCart(int productId, int quantity = 1)
         {
-            var cart = GetCart();
             var product = db.Products.Find(productId);
+            if (product == null) return Redirect(Request.UrlReferrer?.ToString() ?? "/");
 
-            if (product == null || quantity <= 0)
-            {
-                TempData["Message"] = "Sản phẩm không hợp lệ.";
-                return RedirectToAction("Index", "Home");
-            }
+            // Tính giá
+            bool isVip = Session["UserType"] != null && "vip".Equals(Session["UserType"].ToString(), StringComparison.OrdinalIgnoreCase);
+            decimal finalPrice = product.Price * (1m - (product.DiscountPercentage ?? 0) / 100m);
+            if (isVip && product.vip_price.HasValue && product.vip_price < product.Price) finalPrice = product.vip_price.Value;
 
-            // === SỬA ĐỔI QUAN TRỌNG: LOGIC TÍNH GIÁ VIP KHI THÊM VÀO GIỎ ===
-            bool isVip = "vip".Equals(Session["UserType"] as string, StringComparison.OrdinalIgnoreCase);
-            decimal finalPrice;
+            var cart = GetSessionCart();
+            var item = cart.FirstOrDefault(i => i.ProductId == productId);
+            int newQty = quantity;
 
-            if (isVip && product.vip_price.HasValue)
+            if (item != null)
             {
-                finalPrice = product.vip_price.Value; // Lấy giá VIP
-            }
-            else
-            {
-                // Tính giá sale thường
-                finalPrice = product.Price * (1m - (product.DiscountPercentage ?? 0) / 100m);
-            }
-            // === KẾT THÚC SỬA ĐỔI ===
-
-            var existingItem = cart.FirstOrDefault(i => i.ProductId == productId);
-            if (existingItem != null)
-            {
-                // Nếu sản phẩm đã có, chỉ cập nhật số lượng
-                existingItem.Quantity += quantity;
-                // Cập nhật lại giá (phòng trường hợp giá thay đổi từ lần thêm trước)
-                existingItem.Price = finalPrice;
+                item.Quantity += quantity;
+                item.Price = finalPrice; // Cập nhật giá mới nhất
+                newQty = item.Quantity;
             }
             else
             {
-                // Nếu sản phẩm chưa có, tạo mới và dùng finalPrice
-                var newItem = new CartItem
-                {
-                    ProductId = product.ProductId,
-                    Name = product.Name,
-                    Price = finalPrice, // Sử dụng giá đã tính toán
-                    ImageUrl = product.ImageUrl,
-                    Quantity = quantity
-                };
-                cart.Add(newItem);
+                cart.Add(new CartItem { ProductId = productId, Name = product.Name, Price = finalPrice, ImageUrl = product.ImageUrl, Quantity = quantity });
             }
+            Session["Cart"] = cart;
+            SyncToDb(productId, newQty);
 
-            SaveCart(cart);
-            return RedirectToAction("Index"); // Chuyển hướng đến trang Giỏ hàng
+            TempData["Message"] = "Đã thêm vào giỏ hàng!";
+            // Nếu thêm từ trang chủ thì ở lại trang chủ, nếu không thì về giỏ hàng
+            if (Request.UrlReferrer != null && !Request.UrlReferrer.ToString().Contains("Cart"))
+                return Redirect(Request.UrlReferrer.ToString());
+
+            return RedirectToAction("Index");
         }
 
-        // POST: /Cart/UpdateQuantity
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult UpdateQuantity(int productId, int quantity)
         {
-            var cart = GetCart();
+            var cart = GetSessionCart();
             var item = cart.FirstOrDefault(i => i.ProductId == productId);
-
             if (item != null)
             {
-                if (quantity > 0)
-                {
-                    item.Quantity = quantity;
-                }
-                else
-                {
-                    // Xóa nếu số lượng là 0 hoặc âm
-                    cart.Remove(item);
-                }
+                if (quantity > 0) item.Quantity = quantity; else cart.Remove(item);
+                Session["Cart"] = cart;
+                SyncToDb(productId, quantity);
             }
-            // Lưu ý: Chúng ta không tính lại giá ở đây, vì giá đã được "chốt" lúc thêm vào giỏ.
-            SaveCart(cart);
             return RedirectToAction("Index");
         }
 
-        // POST: /Cart/RemoveItem
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult RemoveItem(int productId)
         {
-            var cart = GetCart();
+            var cart = GetSessionCart();
             var item = cart.FirstOrDefault(i => i.ProductId == productId);
-
             if (item != null)
             {
                 cart.Remove(item);
+                Session["Cart"] = cart;
+                SyncToDb(productId, 0);
             }
-
-            SaveCart(cart);
             return RedirectToAction("Index");
         }
 
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-            base.Dispose(disposing);
-        }
+        protected override void Dispose(bool disposing) { if (disposing) db.Dispose(); base.Dispose(disposing); }
     }
 }

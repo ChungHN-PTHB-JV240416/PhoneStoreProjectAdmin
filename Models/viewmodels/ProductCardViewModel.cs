@@ -6,6 +6,7 @@ namespace PhoneStore_New.Models.ViewModels // Nhớ đảm bảo đúng namespac
     public class ProductCardViewModel
     {
         public int ProductId { get; set; }
+        public int SoldQuantity { get; set; }
         public string Name { get; set; }
         public string ImageUrl { get; set; }
         public string Description { get; set; }

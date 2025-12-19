@@ -1,150 +1,263 @@
 ﻿@model PhoneStore_New.Models.ViewModels.ProfileViewModel
 @{
-    ViewBag.Title = "Quản lý Hồ sơ Cá nhân";
+    ViewBag.Title = "Hồ sơ cá nhân";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <style>
-    .profile-container {
-        max-width: 800px;
-        margin: 30px auto;
-        padding: 30px;
-        background-color: #fff;
-        border-radius: 8px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    /* CSS Layout Dashboard (Dùng chung cho cả Profile và ChangePassword) */
+    .profile-wrapper {
+        margin-top: 30px;
+        margin-bottom: 60px;
     }
 
-    .profile-form .form-group {
-        margin-bottom: 20px;
+    /* Menu bên trái */
+    .list-group-item {
+        border-radius: 0;
+        border-left: 3px solid transparent;
+        transition: 0.2s;
+        color: #555;
     }
 
-    .profile-form label {
-        font-weight: 600;
-    }
-
-    .profile-form .btn-submit {
-        width: 100%;
-        padding: 12px;
-        font-size: 1.1em;
-        background-color: #007bff;
-        border-color: #007bff;
-    }
-
-        .profile-form .btn-submit:hover {
-            background-color: #0056b3;
-            border-color: #0056b3;
+        .list-group-item:hover {
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        /* Trạng thái đang chọn (Active) */
+        .list-group-item.active {
+            background-color: #fff;
+            color: #d0011b; /* Màu đỏ chủ đạo */
+            border-color: #ddd;
+            border-left: 3px solid #d0011b;
+            font-weight: bold;
+            z-index: 2;
         }
 
-    /* CSS cho thông báo */
-    .message-box {
-        padding: 15px;
-        margin-bottom: 20px;
-        border-radius: 5px;
-        font-weight: bold;
+    .list-group-item-danger {
+        color: #d9534f;
+    }
+
+        .list-group-item-danger:hover {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+
+    /* Khung nội dung bên phải */
+    .profile-content {
+        background: #fff;
+        border: 1px solid #e1e1e1;
+        border-radius: 4px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    }
+
+    .profile-header {
+        padding: 15px 20px;
+        border-bottom: 1px solid #eee;
+        background: #fcfcfc;
+    }
+
+        .profile-header h3 {
+            margin: 0;
+            font-size: 18px;
+            text-transform: uppercase;
+            color: #333;
+            font-weight: 700;
+        }
+
+    .profile-body {
+        padding: 30px;
+    }
+
+    /* CSS Avatar */
+    .avatar-wrapper {
         text-align: center;
-    }
-
-    .success {
-        background-color: #d4edda;
-        color: #155724;
-    }
-
-    .error {
-        background-color: #f8d7da;
-        color: #721c24;
-    }
-
-    /* === CSS MỚI CHO AVATAR === */
-    .avatar-upload-container {
-        text-align: center;
-        margin-bottom: 25px;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 1px dashed #eee;
     }
 
     .avatar-preview {
-        width: 150px;
-        height: 150px;
-        border-radius: 50%; /* Bo tròn ảnh đại diện */
-        border: 4px solid #f0f0f0;
-        object-fit: cover; /* Đảm bảo ảnh lấp đầy khung tròn */
-        background-color: #e9ecef;
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #eee;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         margin-bottom: 15px;
     }
+
+    .btn-upload-fake {
+        border: 1px solid #ddd;
+        background: #fff;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 13px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+        .btn-upload-fake:hover {
+            background: #f1f1f1;
+            border-color: #ccc;
+        }
+
+    /* Button Save */
+    .btn-save {
+        background-color: #007bff;
+        color: white;
+        padding: 10px 30px;
+        font-weight: bold;
+        border: none;
+        transition: 0.3s;
+    }
+
+        .btn-save:hover {
+            background-color: #0056b3;
+            color: white;
+        }
 </style>
 
-<div class="profile-container">
-    <h2 class="text-center">Quản lý Hồ sơ Cá nhân</h2>
-    <hr />
+<div class="container profile-wrapper">
+    <div class="row">
+        @* === CỘT TRÁI: MENU ĐIỀU HƯỚNG === *@
+        <div class="col-md-3">
+            <div class="list-group shadow-sm">
+                @* Link này đang Active *@
+                <a href="@Url.Action("Index", "Profile")" class="list-group-item active">
+                    <i class="glyphicon glyphicon-user"></i> Thông tin tài khoản
+                </a>
 
-    @if (!string.IsNullOrEmpty(Model.Message))
-    {
-        <div class="message-box @(Model.Message.Contains("thành công") ? "success" : "error")">
-            @Model.Message
-        </div>
-    }
+                <a href="@Url.Action("History", "Order")" class="list-group-item">
+                    <i class="glyphicon glyphicon-list-alt"></i> Lịch sử đơn hàng
+                </a>
 
-    @* SỬA ĐỔI: Thêm enctype="multipart/form-data" để cho phép tải file *@
-    @using (Html.BeginForm("Index", "Profile", FormMethod.Post, new { @class = "profile-form", enctype = "multipart/form-data" }))
-    {
-        @Html.AntiForgeryToken()
-        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-        @Html.HiddenFor(m => m.UserId)
-        @Html.HiddenFor(m => m.AvatarUrl) @* Thêm dòng này để giữ lại ảnh cũ nếu không tải ảnh mới *@
+                @* Link sang trang Đổi mật khẩu *@
+                <a href="@Url.Action("ChangePassword", "Profile")" class="list-group-item">
+                    <i class="glyphicon glyphicon-lock"></i> Đổi mật khẩu
+                </a>
 
-
-        @* === THÊM MỚI: KHUNG TẢI AVATAR === *@
-        <div class="avatar-upload-container">
-            @Html.LabelFor(m => m.AvatarUrl)
-            <div>
-                <img src="@Url.Content(string.IsNullOrEmpty(Model.AvatarUrl) ? "~/Content/images/autoimage.jpg" : Model.AvatarUrl)"
-                     alt="Ảnh đại diện" class="avatar-preview" />
+                <a href="javascript:document.getElementById('logoutForm').submit()" class="list-group-item list-group-item-danger">
+                    <i class="glyphicon glyphicon-log-out"></i> Đăng xuất
+                </a>
             </div>
-            @Html.LabelFor(m => m.ImageFile)
-            @* Dùng input thủ công cho HttpPostedFileBase *@
-            <input type="file" name="ImageFile" id="ImageFile" class="form-control" accept="image/*" />
-            @Html.ValidationMessageFor(m => m.ImageFile, "", new { @class = "text-danger" })
-        </div>
-        @* === KẾT THÚC THÊM MỚI === *@
-
-        <div class="form-group">
-            @Html.LabelFor(m => m.Username)
-            @Html.TextBoxFor(m => m.Username, new { @class = "form-control", @readonly = "readonly", @disabled = "disabled" })
         </div>
 
-        <div class="row">
-            <div class="col-md-6">
-                <div class="form-group">
-                    @Html.LabelFor(m => m.FirstName)
-                    @Html.TextBoxFor(m => m.FirstName, new { @class = "form-control", @required = "required" })
-                    @Html.ValidationMessageFor(m => m.FirstName, "", new { @class = "text-danger" })
+        @* === CỘT PHẢI: FORM CẬP NHẬT THÔNG TIN === *@
+        <div class="col-md-9">
+            <div class="profile-content">
+                <div class="profile-header">
+                    <h3><i class="glyphicon glyphicon-pencil"></i> Cập nhật thông tin</h3>
+                </div>
+                <div class="profile-body">
+
+                    @* Thông báo *@
+                    @if (!string.IsNullOrEmpty(Model.Message))
+                    {
+                        <div class="alert @(Model.Message.Contains("thành công") ? "alert-success" : "alert-danger") alert-dismissible" role="alert">
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            @Model.Message
+                        </div>
+                    }
+
+                    @using (Html.BeginForm("Index", "Profile", FormMethod.Post, new { @class = "form-horizontal", enctype = "multipart/form-data" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.HiddenFor(m => m.UserId)
+                        @Html.HiddenFor(m => m.AvatarUrl)
+
+                        @* PHẦN 1: ẢNH ĐẠI DIỆN *@
+                        <div class="avatar-wrapper">
+                            <img src="@Url.Content(string.IsNullOrEmpty(Model.AvatarUrl) ? "~/Content/images/autoimage.jpg" : Model.AvatarUrl)"
+                                 alt="Avatar" class="avatar-preview" id="img-preview" />
+
+                            <div>
+                                <label for="ImageFile" class="btn-upload-fake">
+                                    <i class="glyphicon glyphicon-camera"></i> Chọn ảnh mới
+                                </label>
+                                <input type="file" name="ImageFile" id="ImageFile" style="display:none;" accept="image/*" onchange="previewImage(this);" />
+                            </div>
+                            @Html.ValidationMessageFor(m => m.ImageFile, "", new { @class = "text-danger" })
+                        </div>
+
+                        @* PHẦN 2: THÔNG TIN CÁ NHÂN *@
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Tên đăng nhập</label>
+                            <div class="col-sm-9">
+                                @Html.TextBoxFor(m => m.Username, new { @class = "form-control", @readonly = "readonly", @style = "background-color: #f9f9f9;" })
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Họ & Tên đệm <span class="text-danger">*</span></label>
+                            <div class="col-sm-9">
+                                @Html.TextBoxFor(m => m.FirstName, new { @class = "form-control" })
+                                @Html.ValidationMessageFor(m => m.FirstName, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Tên <span class="text-danger">*</span></label>
+                            <div class="col-sm-9">
+                                @Html.TextBoxFor(m => m.LastName, new { @class = "form-control" })
+                                @Html.ValidationMessageFor(m => m.LastName, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Email <span class="text-danger">*</span></label>
+                            <div class="col-sm-9">
+                                @Html.TextBoxFor(m => m.Email, new { @class = "form-control", @type = "email" })
+                                @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Số điện thoại</label>
+                            <div class="col-sm-9">
+                                @Html.TextBoxFor(m => m.PhoneNumber, new { @class = "form-control" })
+                                @Html.ValidationMessageFor(m => m.PhoneNumber, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Địa chỉ</label>
+                            <div class="col-sm-9">
+                                @Html.TextAreaFor(m => m.Address, new { @class = "form-control", @rows = 3 })
+                                @Html.ValidationMessageFor(m => m.Address, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 30px;">
+                            <div class="col-sm-offset-3 col-sm-9">
+                                <button type="submit" class="btn btn-save">
+                                    <i class="glyphicon glyphicon-floppy-disk"></i> Lưu thay đổi
+                                </button>
+                            </div>
+                        </div>
+                    }
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="form-group">
-                    @Html.LabelFor(m => m.LastName)
-                    @Html.TextBoxFor(m => m.LastName, new { @class = "form-control", @required = "required" })
-                    @Html.ValidationMessageFor(m => m.LastName, "", new { @class = "text-danger" })
-                </div>
-            </div>
         </div>
-
-        <div class="form-group">
-            @Html.LabelFor(m => m.Email)
-            @Html.TextBoxFor(m => m.Email, new { @class = "form-control", @type = "email", @required = "required" })
-            @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(m => m.PhoneNumber)
-            @Html.TextBoxFor(m => m.PhoneNumber, new { @class = "form-control" })
-            @Html.ValidationMessageFor(m => m.PhoneNumber, "", new { @class = "text-danger" })
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(m => m.Address)
-            @Html.TextAreaFor(m => m.Address, new { @class = "form-control", @rows = 3 })
-            @Html.ValidationMessageFor(m => m.Address, "", new { @class = "text-danger" })
-        </div>
-
-        <button type="submit" class="btn btn-primary btn-submit">Cập nhật hồ sơ</button>
-    }
+    </div>
 </div>
+
+@* Form ẩn để xử lý đăng xuất *@
+@using (Html.BeginForm("Logout", "Login", FormMethod.Post, new { id = "logoutForm" }))
+{
+    @Html.AntiForgeryToken()
+}
+
+@section scripts {
+    <script>
+        // Script xem trước ảnh khi chọn
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    $('#img-preview').attr('src', e.target.result);
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+}

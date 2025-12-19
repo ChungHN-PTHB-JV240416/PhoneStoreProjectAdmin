@@ -1,199 +1,167 @@
-﻿@* File này nằm trong Areas/Admin/Views/Shared/ *@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewBag.Title - Admin Panel</title>
+    <title>@ViewBag.Title - Quản Trị Hệ Thống</title>
 
-    @* Liên kết Bootstrap và CSS tùy chỉnh cho Admin *@
     <link href="@Url.Content("~/Content/bootstrap.min.css")" rel="stylesheet" type="text/css" />
-    <link href="@Url.Content("~/Content/Site.css")" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
-    @* Bổ sung Modernizr *@
     <script src="@Url.Content("~/Scripts/modernizr-2.8.3.js")"></script>
 
     <style>
-        /* === TỔNG THỂ === */
-        body {
-            display: flex;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: #f4f7f6;
-            margin: 0;
-            padding-top: 0;
-            font-size: 14px;
-            color: #333;
-            min-height: 100vh; /* Đảm bảo body đủ cao */
-        }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f6f9; overflow-x: hidden; }
 
-        /* === THANH SIDEBAR === */
+        /* Sidebar Styling */
         .sidebar {
             width: 250px;
-            background-color: #1a2229;
-            color: #caced3;
-            padding: 20px;
-            height: 100vh; /* Chiều cao cố định */
+            background: #343a40;
+            color: #fff;
             position: fixed;
-            box-shadow: 2px 0 15px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto; /* Thêm thanh cuộn khi nội dung dài */
+            top: 0; left: 0; bottom: 0;
+            overflow-y: auto;
+            z-index: 1000;
+            transition: all 0.3s;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
         }
+        .sidebar-header { padding: 20px; text-align: center; background: #212529; border-bottom: 1px solid #4b545c; }
+        .sidebar-header h3 { margin: 0; font-size: 20px; font-weight: bold; color: #fff; display: block; text-decoration: none; }
+        .sidebar-header a { color: white; text-decoration: none; }
 
-            .sidebar h2 {
-                color: #fff;
-                text-align: center;
-                margin-bottom: 30px;
-                font-weight: 600;
-                border-bottom: 1px solid #444;
-                padding-bottom: 20px;
-                flex-shrink: 0; /* Không co lại */
-            }
-
-        .sidebar-nav {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            flex-grow: 1; /* Cho phép mở rộng để đẩy logout xuống */
+        .sidebar-menu { padding: 0; list-style: none; margin-top: 10px; }
+        .sidebar-menu li a {
+            display: block;
+            padding: 12px 20px;
+            color: #c2c7d0;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            transition: 0.2s;
+            font-size: 15px;
         }
-
-            .sidebar-nav a {
-                display: block;
-                color: #caced3;
-                text-decoration: none;
-                padding: 12px 15px;
-                border-radius: 6px;
-                margin-bottom: 5px;
-                transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
-                font-weight: 500;
-            }
-
-                .sidebar-nav a:hover, .sidebar-nav a.active {
-                    background-color: #007bff; /* Màu xanh dương chủ đạo */
-                    color: #fff;
-                }
-
-        /* Form logout ở cuối sidebar */
-        #logoutFormAdmin {
-            margin-top: auto; /* Tự động đẩy xuống dưới cùng */
-            padding-top: 20px; /* Khoảng cách với các mục trên */
-            border-top: 1px solid #444; /* Đường viền phân cách */
-            flex-shrink: 0; /* Không co lại */
+        .sidebar-menu li a:hover, .sidebar-menu li a.active {
+            background-color: #007bff;
+            color: #fff;
+            padding-left: 25px;
         }
+        .sidebar-menu i { margin-right: 10px; width: 25px; text-align: center; }
 
-            #logoutFormAdmin a {
-                background-color: #dc3545;
-                color: white;
-                text-align: center;
-            }
-
-                #logoutFormAdmin a:hover {
-                    background-color: #c82333;
-                }
-
-
-        /* === KHUNG NỘI DUNG CHÍNH === */
-        .main-content {
-            flex-grow: 1;
-            padding: 30px;
-            margin-left: 250px; /* Bằng chiều rộng sidebar */
-            width: calc(100% - 250px); /* Đảm bảo nội dung chính chiếm hết phần còn lại */
-        }
-
-        .admin-container {
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-        }
-
-            .admin-container h2 {
-                font-weight: 600;
-                color: #333;
-                margin-top: 0;
-                margin-bottom: 20px;
-                padding-bottom: 15px;
-                border-bottom: 1px solid #eee;
-            }
-
-        /* === CSS CHUNG CHO BẢNG BIỂU === */
-        .table {
-            border-collapse: collapse;
+        /* Footer Logout */
+        .sidebar-footer {
+            padding: 15px;
+            border-top: 1px solid #4b545c;
+            background: #212529;
+            position: absolute;
+            bottom: 0;
             width: 100%;
         }
 
-            .table thead th {
-                background-color: #f8f9fa;
-                font-weight: 600;
-                text-align: left;
-                border-bottom: 2px solid #dee2e6;
-            }
-
-            .table td, .table th {
-                padding: 12px;
-                vertical-align: middle;
-            }
-
-            .table tbody tr:nth-of-type(odd) {
-                background-color: #fcfcfc;
-            }
-
-            .table tbody tr:hover {
-                background-color: #f1f1f1;
-            }
-
-        /* === CSS CHUNG CHO FORM === */
-        .form-control {
-            border-radius: 6px;
-            box-shadow: none;
-            border-color: #ced4da;
+        /* Main Content */
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            min-height: 100vh;
+            transition: all 0.3s;
         }
 
-            .form-control:focus {
-                border-color: #80bdff;
-                box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-            }
+        /* Mobile Toggle Button */
+        .btn-toggle-sidebar {
+            display: none;
+            background: #343a40;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
 
-        .btn {
-            border-radius: 6px;
-            font-weight: 500;
-            padding: 8px 16px;
+        /* Responsive */
+        @@media (max-width: 768px) {
+            .sidebar { margin-left: -250px; }
+            .sidebar.active { margin-left: 0; }
+            .main-content { margin-left: 0; }
+            .sidebar-overlay {
+                display: none;
+                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0,0,0,0.5); z-index: 999;
+            }
+            .sidebar-overlay.active { display: block; }
+            .btn-toggle-sidebar { display: inline-block; }
         }
     </style>
 </head>
 <body>
-    <div class="sidebar">
-        <h2>Admin Panel</h2>
-        <nav class="sidebar-nav">
-            <a href="@Url.Action("Products", "ProductAdmin", new { area = "Admin" })">Quản lý Sản phẩm</a>
-            <a href="@Url.Action("EditProduct", "ProductAdmin", new { area = "Admin", id = 0 })">Thêm Sản phẩm</a>
-            <a href="@Url.Action("Index", "Category", new { area = "Admin" })">Quản lý Danh mục</a>
-            <a href="@Url.Action("Index", "OrderAdmin", new { area = "Admin" })">Quản lý Đơn hàng</a>
-            <a href="@Url.Action("Index", "VoucherAdmin", new { area = "Admin" })">Quản lý Voucher</a>
-            <a href="@Url.Action("Index", "BannerAdmin", new { area = "Admin" })">Quản lý Banner</a>
-            <a href="@Url.Action("Users", "Admin", new { area = "Admin" })">Quản lý Người dùng</a>
-            <a href="@Url.Action("Index", "Supplier", new { area = "Admin" })">Quản lý Nhà cung cấp</a>
-            <a href="@Url.Action("Index", "Setting", new { area = "Admin" })">Quản lý Giao diện</a>
-            <a href="@Url.Action("Sales", "Report", new { area = "Admin" })">Báo cáo Doanh thu</a>
-            <a href="@Url.Action("Bestsellers", "Report", new { area = "Admin" })">Báo cáo Bán chạy</a>
-            <a href="@Url.Action("Index", "PageAdmin", new { area = "Admin" })">Quản Lý Trang</a>
-        </nav>
-        @using (Html.BeginForm("Logout", "Login", new { area = "" }, FormMethod.Post, new { id = "logoutFormAdmin", style = "margin-top: 30px;" }))
-        {
-            @Html.AntiForgeryToken()
-            <a href="javascript:document.getElementById('logoutFormAdmin').submit()" class="btn btn-danger btn-block">Đăng xuất</a>
-        }
+
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a href="@Url.Action("Index", "Admin", new { area = "Admin" })">
+                <h3>CHUNG PHONE</h3>
+                <small>Admin Panel</small>
+            </a>
+        </div>
+
+        <ul class="sidebar-menu">
+            <li>
+                <a href="@Url.Action("Index", "Admin", new { area = "Admin" })">
+                    <i class="fa fa-dashboard"></i> Dashboard
+                </a>
+            </li>
+
+            <li>
+                <a href="@Url.Action("Index", "Home", new { area = "" })" target="_blank">
+                    <i class="fa fa-globe"></i> Xem Website
+                </a>
+            </li>
+
+            <li>
+                <a href="@Url.Action("Users", "Admin", new { area = "Admin" })">
+                    <i class="fa fa-users"></i> Người dùng
+                </a>
+            </li>
+
+            <li><a href="@Url.Action("Products", "ProductAdmin", new { area = "Admin" })"><i class="fa fa-mobile" style="font-size: 20px;"></i> Sản phẩm</a></li>
+            <li><a href="@Url.Action("Index", "OrderAdmin", new { area = "Admin" })"><i class="fa fa-shopping-cart"></i> Đơn hàng</a></li>
+            <li><a href="@Url.Action("Index", "Supplier", new { area = "Admin" })"><i class="fa fa-truck"></i> Nhà cung cấp</a></li>
+            <li><a href="@Url.Action("Index", "VoucherAdmin", new { area = "Admin" })"><i class="fa fa-ticket"></i> Voucher</a></li>
+            <li><a href="@Url.Action("Index", "BannerAdmin", new { area = "Admin" })"><i class="fa fa-image"></i> Banner</a></li>
+            <li><a href="@Url.Action("Index", "Setting", new { area = "Admin" })"><i class="fa fa-cogs"></i> Cấu hình</a></li>
+        </ul>
+
+        <div class="sidebar-footer">
+            @using (Html.BeginForm("Logout", "Login", new { area = "" }, FormMethod.Post, new { id = "logoutFormAdmin" }))
+            {
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-danger btn-block"><i class="fa fa-sign-out"></i> Đăng xuất</button>
+            }
+        </div>
     </div>
 
     <div class="main-content">
-        <div class="admin-container">
+        <button class="btn-toggle-sidebar" id="sidebarToggle">
+            <i class="fa fa-bars"></i> Menu
+        </button>
+
+        @* Bỏ class admin-card để tránh bị double khung trắng với các View con *@
+        <div>
             @RenderBody()
         </div>
     </div>
 
-    @* LIÊN KẾT CÁC FILE JAVASCRIPT *@
     <script src="@Url.Content("~/Scripts/jquery-1.10.2.min.js")"></script>
     <script src="@Url.Content("~/Scripts/bootstrap.min.js")"></script>
+
+    <script>
+        // Script xử lý Toggle Menu trên Mobile
+        $(document).ready(function () {
+            $('#sidebarToggle, #sidebarOverlay').click(function () {
+                $('#sidebar').toggleClass('active');
+                $('#sidebarOverlay').toggleClass('active');
+            });
+        });
+    </script>
+
     @RenderSection("scripts", required: false)
 </body>
 </html>

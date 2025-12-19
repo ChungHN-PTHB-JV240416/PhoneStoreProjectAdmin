@@ -1,0 +1,66 @@
+﻿@model IEnumerable<PhoneStore_New.Models.Product>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    // ViewBag.Title đã được set từ Controller
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <h2 class="page-header">@ViewBag.Title</h2>
+
+            @* Breadcrumb (Đường dẫn) *@
+            <ol class="breadcrumb">
+                <li><a href="@Url.Action("Index", "Home")">Trang chủ</a></li>
+                <li class="active">@ViewBag.Title</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="row product-list">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var item in Model)
+            {
+                <div class="col-md-3 col-sm-6 col-xs-12" style="margin-bottom: 30px;">
+                    <div class="product-card">
+                        <div class="image-wrapper">
+                            <a href="@Url.Action("Detail", "Product", new { id = item.ProductId })">
+                                <img src="@Url.Content(item.ImageUrl ?? "~/Content/images/no-image.png")" alt="@item.Name" />
+                            </a>
+                            @if (item.DiscountPercentage > 0)
+                            {
+                                <span class="product-badge">-@item.DiscountPercentage%</span>
+                            }
+                        </div>
+                        <div class="content">
+                            <h3><a href="@Url.Action("Detail", "Product", new { id = item.ProductId })">@item.Name</a></h3>
+
+                            <div class="price-container">
+                                @{
+                                    decimal finalPrice = item.Price;
+                                    if (item.DiscountPercentage > 0)
+                                    {
+                                        finalPrice = item.Price * (1 - (decimal)item.DiscountPercentage / 100);
+                                        <span class="original-price">@item.Price.ToString("N0")₫</span>
+                                    }
+                                }
+                                <span class="sale-price">@finalPrice.ToString("N0")₫</span>
+                            </div>
+
+                            <a href="@Url.Action("Detail", "Product", new { id = item.ProductId })" class="btn btn-primary btn-block">Xem chi tiết</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-md-12 text-center">
+                <p class="alert alert-warning">Chưa có sản phẩm nào trong danh mục này.</p>
+                <a href="@Url.Action("Index", "Home")" class="btn btn-default">Quay lại trang chủ</a>
+            </div>
+        }
+    </div>
+</div>

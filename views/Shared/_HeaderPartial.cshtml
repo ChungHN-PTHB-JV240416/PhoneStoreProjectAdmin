@@ -1,38 +1,34 @@
 ﻿@using PhoneStore_New.Models.ViewModels
-@using PhoneStore_New.Models; @* <-- THÊM DÒNG NÀY ĐỂ HIỂU LỚP 'NavbarItem' *@
+@using PhoneStore_New.Models
 @model HeaderViewModel
 
-@* === BẮT ĐẦU SỬA ĐỔI: THÊM HÀM ĐỆ QUY ĐỂ VẼ MENU === *@
+@* === HELPER VẼ MENU (GIỮ NGUYÊN KHÔNG ĐỔI) === *@
 @helper RenderMenu(List<NavbarItem> allItems, int? parentId)
 {
-    // Tìm các mục con của cấp hiện tại
+    if (allItems == null) { return; }
     var children = allItems.Where(i => i.ParentId == parentId).OrderBy(i => i.ItemOrder).ToList();
-
     if (children.Any())
     {
-        // Nếu là menu con (cấp 2, 3...), dùng class 'dropdown-menu'
         if (parentId.HasValue)
         {
             <ul class="dropdown-menu" role="menu">
                 @foreach (var item in children)
                 {
-                    // Kiểm tra xem mục con này có con nữa không
                     bool hasChildren = allItems.Any(i => i.ParentId == item.ItemId);
                     if (hasChildren)
                     {
                         <li class="dropdown-submenu">
                             <a href="@Url.Content(item.ItemUrl ?? "#")" class="dropdown-toggle" data-toggle="dropdown">@item.ItemText</a>
-                            @RenderMenu(allItems, item.ItemId) @* Đệ quy: Vẽ menu cháu *@
+                            @RenderMenu(allItems, item.ItemId)
                         </li>
                     }
                     else
                     {
                         <li><a href="@Url.Content(item.ItemUrl ?? "#")">@item.ItemText</a></li>
-                    }
+}
                 }
             </ul>
         }
-        // Nếu là menu cha (cấp 1), dùng class 'nav navbar-nav'
         else
         {
             <ul class="nav navbar-nav">
@@ -42,26 +38,22 @@
                     if (hasChildren)
                     {
                         <li class="dropdown">
-                            <a href="@Url.Content(item.ItemUrl ?? "#")" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-                                @item.ItemText <span class="caret"></span>
-                            </a>
-                            @RenderMenu(allItems, item.ItemId) @* Đệ quy: Vẽ menu con *@
+                            <a href="@Url.Content(item.ItemUrl ?? "#")" class="dropdown-toggle" data-toggle="dropdown">@item.ItemText <span class="caret"></span></a>
+                            @RenderMenu(allItems, item.ItemId)
                         </li>
                     }
                     else
                     {
                         <li><a href="@Url.Content(item.ItemUrl ?? "#")">@item.ItemText</a></li>
-                    }
+}
                 }
             </ul>
         }
     }
 }
-@* === KẾT THÚC HÀM ĐỆ QUY === *@
-
 
 <style>
-    /* ... (CSS cũ của bạn cho avatar, brand... giữ nguyên) ... */
+    /* CSS CŨ */
     .navbar-avatar {
         width: 30px;
         height: 30px;
@@ -78,7 +70,6 @@
         padding-top: 15px;
     }
 
-    /* CSS MỚI CHO MENU ĐA CẤP */
     .dropdown-submenu {
         position: relative;
     }
@@ -111,17 +102,53 @@
         .dropdown-submenu:hover > a:after {
             border-left-color: #fff;
         }
+
+    /* === CSS MỚI CHO ICON GIỎ HÀNG SVG === */
+    .cart-wrapper {
+        position: relative;
+        padding: 10px 15px !important; /* Ghi đè padding mặc định của bootstrap */
+        display: flex;
+        align-items: center;
+        height: 50px; /* Bằng chiều cao navbar */
+    }
+
+    /* Icon SVG */
+    .icon-cart-svg {
+        width: 24px;
+        height: 24px;
+        fill: #555; /* Màu xám đậm mặc định của bootstrap text */
+        transition: fill 0.2s;
+    }
+
+    /* Hiệu ứng hover */
+    .cart-wrapper:hover .icon-cart-svg {
+        fill: #333; /* Đen hơn khi hover */
+    }
+
+    /* Badge số lượng màu đỏ */
+    .cart-badge {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background-color: #d0011b;
+        color: white;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 1px 5px;
+        border-radius: 10px;
+        border: 1px solid #fff;
+        min-width: 18px;
+        text-align: center;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
 </style>
 
 <div class="navbar navbar-default navbar-static-top">
     <div class="container">
         <div class="navbar-header">
-
             @if (string.IsNullOrEmpty(Model.LogoUrl))
             {
-                <a class="navbar-brand navbar-brand-text" href="@Url.Action("Index", "Home")">
-                    Phone Store
-                </a>
+                <a class="navbar-brand navbar-brand-text" href="@Url.Action("Index", "Home")">Phone Store</a>
             }
             else
             {
@@ -132,37 +159,19 @@
 
             <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse-main">
                 <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
+                <span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span>
             </button>
         </div>
 
         <div class="collapse navbar-collapse" id="navbar-collapse-main">
 
-            @* === BẮT ĐẦU SỬA ĐỔI: GỌI HÀM VẼ MENU === *@
-            @* Xóa bỏ vòng lặp cũ *@
-            @RenderMenu(Model.NavbarItems, null)
-            @* === KẾT THÚC SỬA ĐỔI === *@
+            @* 1. MENU CHÍNH (BÊN TRÁI) *@
+            @RenderMenu(Model.NavbarItems ?? new List<NavbarItem>(), null)
 
-            @* Menu "Thương hiệu" (Category) - Chúng ta sẽ gộp nó vào NavbarItems sau nếu bạn muốn *@
-            <ul class="nav navbar-nav">
-                <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Thương hiệu <span class="caret"></span></a>
-                    <ul class="dropdown-menu" role="menu">
-                        @if (Model.Categories != null)
-                        {
-                            foreach (var category in Model.Categories)
-                            {
-                                <li>@Html.ActionLink(category.Name, "ByCategory", "Product", new { id = category.CategoryId }, null)</li>
-                            }
-                        }
-                    </ul>
-                </li>
-            </ul>
-
+            @* 2. KHU VỰC BÊN PHẢI *@
             <ul class="nav navbar-nav navbar-right">
 
+                @* Ô TÌM KIẾM *@
                 @if (Model.ShowSearchBar)
                 {
                     <li>
@@ -176,37 +185,46 @@
                     </li>
                 }
 
-                <li>@Html.ActionLink("Giỏ hàng", "Index", "Cart")</li>
+                @* === ICON GIỎ HÀNG SVG (ĐÃ FIX LINK /Cart/Index) === *@
+                <li>
+                    @* Dùng href cứng để đảm bảo ra đúng link bạn muốn *@
+                    <a href="/Cart/Index" class="cart-wrapper" title="Xem giỏ hàng">
 
+                        @* Đây là SVG vẽ hình giỏ hàng, nét căng không bao giờ vỡ *@
+                        <svg class="icon-cart-svg" viewBox="0 0 24 24">
+                            <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z" />
+                        </svg>
+
+                        @{
+                            var cart = Session["Cart"] as List<PhoneStore_New.Models.ViewModels.CartItem>;
+                            int count = cart != null ? cart.Sum(c => c.Quantity) : 0;
+                        }
+                        @if (count > 0)
+                        {
+                            <span class="cart-badge">@count</span>
+                        }
+                    </a>
+                </li>
+                @* =============================================== *@
+
+                @* TÀI KHOẢN *@
                 @if (Model.IsLoggedIn)
                 {
                     <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                             @if (!string.IsNullOrEmpty(Model.UserAvatarUrl))
                             {
-                                <img src="@Url.Content(Model.UserAvatarUrl)" alt="Avatar" class="navbar-avatar" />
+                                <img src="@Url.Content(Model.UserAvatarUrl)" class="navbar-avatar" />
                             }
                             else
                             {
                                 <span class="glyphicon glyphicon-user" style="margin-right: 5px;"></span>
                             }
-                            @Model.WelcomeText
-                            <strong>
-                                @{
-                                    string userType = Session["UserType"] as string;
-                                    if ("vip".Equals(userType, StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        <span>👑 </span>
-                                    }
-                                }
-                                @Model.UserFirstName
-                            </strong>
-                            <span class="caret"></span>
+                            @Model.UserFirstName <span class="caret"></span>
                         </a>
-                        <ul class="dropdown-menu" role="menu">
-                            <li>@Html.ActionLink("Hồ sơ cá nhân", "Index", "Profile")</li>
-                            <li>@Html.ActionLink("Lịch sử Đơn hàng", "History", "Order")</li>
+                        <ul class="dropdown-menu">
+                            <li>@Html.ActionLink("Hồ sơ cá nhân", "Index", "Profile", new { id = 12 }, null)</li>
+                            <li>@Html.ActionLink("Lịch sử Đơn hàng", "History", "Order", new { id = 11 }, null)</li>
                             @if (User.IsInRole("admin"))
                             {
                                 <li class="divider"></li>

@@ -1,8 +1,6 @@
-﻿@* THÊM 2 DÒNG USING NÀY *@
-@using PagedList.Mvc;
+﻿@using PagedList.Mvc;
 @using PagedList;
 
-@* SỬA LẠI MODEL *@
 @model PhoneStore_New.Models.ViewModels.ProductSearchViewModel
 
 @{
@@ -10,48 +8,107 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@* THÊM CSS CHO NÚT PHÂN TRANG *@
+@* CSS TÙY CHỈNH CHO TRANG SEARCH *@
 <style>
+    /* CSS Phân trang */
     .pagination-container {
         text-align: center;
         margin-top: 30px;
     }
 
-        .pagination-container .pagination > li > a,
-        .pagination-container .pagination > li > span {
-            color: #007bff;
-            border: 1px solid #ddd;
-            margin: 0 2px;
-            border-radius: 4px;
-        }
+    .pagination-container .pagination > li > a,
+    .pagination-container .pagination > li > span {
+        color: #007bff;
+        border: 1px solid #ddd;
+        margin: 0 2px;
+        border-radius: 4px;
+        padding: 6px 12px;
+    }
 
-        .pagination-container .pagination > .active > a,
-        .pagination-container .pagination > .active > span,
-        .pagination-container .pagination > .active > a:hover,
-        .pagination-container .pagination > .active > span:hover,
-        .pagination-container .pagination > .active > a:focus,
-        .pagination-container .pagination > .active > span:focus {
-            background-color: #007bff;
-            border-color: #007bff;
-            color: #fff;
-        }
+    .pagination-container .pagination > .active > a,
+    .pagination-container .pagination > .active > span,
+    .pagination-container .pagination > .active > a:hover,
+    .pagination-container .pagination > .active > span:hover {
+        background-color: #007bff;
+        border-color: #007bff;
+        color: #fff;
+    }
 
-        .pagination-container .pagination > li > a:hover,
-        .pagination-container .pagination > li > span:hover {
-            background-color: #f4f4f4;
-        }
-
-    /* Đảm bảo grid sản phẩm hoạt động */
+    /* CSS Grid Sản phẩm */
     .product-container {
         display: grid;
-        grid-template-columns: repeat(3, 1fr); /* Mặc định 3 cột */
+        grid-template-columns: repeat(3, 1fr); /* 3 Cột */
         gap: 20px;
         padding: 20px 0;
-        max-width: 1200px;
         margin: auto;
     }
 
-    /* Responsive cho di động */
+    /* Card Sản phẩm */
+    .product-card {
+        border: 1px solid #eee;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: 0.3s;
+        background: #fff;
+        position: relative;
+        padding-bottom: 10px;
+    }
+
+    .product-card:hover {
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        transform: translateY(-5px);
+    }
+
+    .product-card img {
+        width: 100%;
+        height: 250px;
+        object-fit: contain;
+        padding: 10px;
+    }
+
+    .product-card .content {
+        padding: 15px;
+        text-align: center;
+    }
+
+    .product-card h3 {
+        font-size: 16px;
+        margin: 10px 0;
+        height: 40px;
+        overflow: hidden;
+        color: #333;
+    }
+
+    .product-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: #d0011b;
+        color: white;
+        padding: 3px 8px;
+        border-radius: 3px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+
+    .price-container {
+        margin-bottom: 15px;
+    }
+
+    .original-price {
+        text-decoration: line-through;
+        color: #999;
+        font-size: 14px;
+        margin-right: 5px;
+    }
+
+    .sale-price {
+        color: #d0011b;
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    /* Responsive */
     @@media (max-width: 768px) {
         .product-container {
             grid-template-columns: repeat(2, 1fr);
@@ -65,96 +122,114 @@
     }
 </style>
 
-<div class="container" style="margin-top: 20px;">
+<div class="container" style="margin-top: 20px; margin-bottom: 50px;">
     <h1>Kết quả tìm kiếm</h1>
 
-    @* === FORM LỌC (GIỮ NGUYÊN) === *@
+    @* === FORM LỌC === *@
     @using (Html.BeginForm("Search", "Product", FormMethod.Get, new { @class = "form-inline", style = "padding: 20px; background-color: #f8f9fa; border-radius: 8px; margin-bottom: 30px;" }))
     {
-        @* Giữ lại từ khóa tìm kiếm *@
+        @* Giữ lại từ khóa tìm kiếm khi lọc *@
         @Html.HiddenFor(m => m.Keyword)
 
         <div class="form-group" style="margin-right: 15px;">
-            @Html.Label("Thương hiệu:", new { @class = "control-label" })
+            <label class="control-label" style="margin-right: 5px;">Danh Mục:</label>
             @Html.DropDownListFor(m => m.SelectedCategoryId, Model.Categories, "--- Tất cả thương hiệu ---", new { @class = "form-control" })
         </div>
 
         <div class="form-group" style="margin-right: 15px;">
-            @Html.Label("Khoảng giá:", new { @class = "control-label" })
+            <label class="control-label" style="margin-right: 5px;">Khoảng giá:</label>
             @Html.DropDownListFor(m => m.SelectedPriceRangeId, Model.PriceRanges, "--- Tất cả các mức giá ---", new { @class = "form-control" })
         </div>
 
-        <button type="submit" class="btn btn-primary">Lọc kết quả</button>
+        <button type="submit" class="btn btn-primary">
+            <i class="glyphicon glyphicon-filter"></i> Lọc kết quả
+        </button>
+
+        if (!string.IsNullOrEmpty(Model.Keyword) || Model.SelectedCategoryId.HasValue || Model.SelectedPriceRangeId.HasValue)
+        {
+            <a href="@Url.Action("Search", "Product")" class="btn btn-default" style="margin-left: 5px;">Xóa bộ lọc</a>
+        }
     }
 
     <hr />
 
-    @* === HIỂN THỊ KẾT QUẢ (ĐÃ SỬA LẠI) === *@
+    @* === THÔNG BÁO KẾT QUẢ === *@
     @if (!string.IsNullOrEmpty(Model.Keyword))
     {
-        <h3>Kết quả tìm kiếm cho: "@Model.Keyword" (@Model.Results.TotalItemCount kết quả)</h3>
+        <h3>Kết quả tìm kiếm cho: "<span style="color: #d0011b;">@Model.Keyword</span>" (@Model.Results.TotalItemCount sản phẩm)</h3>
     }
     else
     {
-        <h3>Kết quả lọc (@Model.Results.TotalItemCount kết quả)</h3>
+        <h3>Tất cả sản phẩm (@Model.Results.TotalItemCount kết quả)</h3>
     }
 
+    @* === LƯỚI SẢN PHẨM === *@
     @if (Model.Results.Any())
     {
         <div class="product-container">
-            @* Lặp qua danh sách đã phân trang *@
             @foreach (var product in Model.Results)
             {
                 <div class="product-card">
+                    @* Badge: VIP hoặc Giảm giá *@
                     @if (product.IsVipPrice)
                     {
-                        <span class="product-badge" style="background-color: #007bff;">👑 GIÁ VIP</span>
+                        <span class="product-badge" style="background-color: #ffc107; color: #000;">👑 VIP</span>
                     }
                     else if (product.DiscountPercentage > 0)
                     {
                         <span class="product-badge">-@product.DiscountPercentage%</span>
                     }
 
-                    <div class="content">
-                        <img src="@Url.Content(product.ImageUrl)" alt="@product.Name">
-                        <h3>@product.Name</h3>
-                        <div class="price-container">
-                            @if (product.FinalPrice < product.OriginalPrice)
-                            {
-                                <p class="original-price">@product.FormattedOriginalPrice</p>
-                            }
-                            <p class="sale-price">@product.FormattedFinalPrice</p>
-                        </div>
+                    <div class="image-wrapper">
+                        <a href="@Url.Action("Detail", "Product", new { id = product.ProductId })">
+                            <img src="@Url.Content(product.ImageUrl ?? "~/Content/images/no-image.png")" alt="@product.Name" />
+                        </a>
                     </div>
-                    @Html.ActionLink("Xem chi tiết", "Detail", "Product", new { id = product.ProductId }, new { @class = "btn btn-primary btn-block" })
+
+                    <div class="content">
+                        <h3><a href="@Url.Action("Detail", "Product", new { id = product.ProductId })" style="text-decoration:none; color: inherit;">@product.Name</a></h3>
+
+                        <div class="price-container">
+                            @if (product.DiscountPercentage > 0)
+                            {
+                                <span class="original-price">@product.OriginalPrice.ToString("N0")₫</span>
+                            }
+                            <span class="sale-price">@product.FinalPrice.ToString("N0")₫</span>
+                        </div>
+
+                        <a href="@Url.Action("Detail", "Product", new { id = product.ProductId })" class="btn btn-primary btn-block">Xem chi tiết</a>
+                    </div>
                 </div>
             }
         </div>
 
-        @* === THÊM NÚT PHÂN TRANG TẠI ĐÂY === *@
+        @* === PHÂN TRANG === *@
         <div class="pagination-container">
-            @Html.PagedListPager(Model.Results, page => Url.Action("Search", "Product",
-                new
-                     {
-                    page,
-                    keyword = Model.Keyword,
-                    selectedCategoryId = Model.SelectedCategoryId,
-                    selectedPriceRangeId = Model.SelectedPriceRangeId
-                }),
-                new PagedListRenderOptions
-                {
-                    LiElementClasses = new[] { "page-item" },
-                    UlElementClasses = new[] { "pagination" },
-                    DisplayLinkToIndividualPages = true,
-                    DisplayPageCountAndCurrentLocation = false,
-                    LinkToNextPageFormat = "Tiếp »",
-                    LinkToPreviousPageFormat = "« Trước",
-                })
+            @Html.PagedListPager(Model.Results, page => Url.Action("Search", new
+            {
+                page,
+                keyword = Model.Keyword,
+                selectedCategoryId = Model.SelectedCategoryId,
+                selectedPriceRangeId = Model.SelectedPriceRangeId
+            }),
+            new PagedListRenderOptions
+            {
+                LiElementClasses = new[] { "page-item" },
+                UlElementClasses = new[] { "pagination" },
+                DisplayLinkToIndividualPages = true,
+                DisplayPageCountAndCurrentLocation = false,
+                MaximumPageNumbersToDisplay = 5,
+                LinkToPreviousPageFormat = "« Trước",
+                LinkToNextPageFormat = "Tiếp »"
+            })
         </div>
-        @* === KẾT THÚC THÊM NÚT PHÂN TRANG === *@
     }
     else
     {
-        <p class="alert alert-warning">Không tìm thấy sản phẩm nào phù hợp với tiêu chí của bạn.</p>
+        <div class="alert alert-warning text-center" style="padding: 30px;">
+            <i class="glyphicon glyphicon-search" style="font-size: 40px; margin-bottom: 15px;"></i>
+            <p>Rất tiếc, không tìm thấy sản phẩm nào phù hợp với tiêu chí của bạn.</p>
+            <a href="@Url.Action("Index", "Home")" class="btn btn-default">Về trang chủ</a>
+        </div>
     }
 </div>

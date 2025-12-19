@@ -18,6 +18,7 @@ namespace PhoneStore_New.Models
         public NavbarItem()
         {
             this.NavbarItems1 = new HashSet<NavbarItem>();
+            this.Products = new HashSet<Product>();
         }
     
         public int ItemId { get; set; }
@@ -26,9 +27,12 @@ namespace PhoneStore_New.Models
         public Nullable<int> ItemOrder { get; set; }
         public Nullable<bool> ItemVisible { get; set; }
         public Nullable<int> ParentId { get; set; }
+        public int LayoutType { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<NavbarItem> NavbarItems1 { get; set; }
         public virtual NavbarItem NavbarItem1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Product> Products { get; set; }
     }
 }

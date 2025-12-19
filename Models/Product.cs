@@ -20,6 +20,7 @@ namespace PhoneStore_New.Models
             this.OrderItems = new HashSet<OrderItem>();
             this.Reviews = new HashSet<Review>();
             this.ProductCollectionItems = new HashSet<ProductCollectionItem>();
+            this.Carts = new HashSet<Cart>();
         }
     
         public int ProductId { get; set; }
@@ -41,5 +42,8 @@ namespace PhoneStore_New.Models
         public virtual ICollection<Review> Reviews { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ProductCollectionItem> ProductCollectionItems { get; set; }
+        public virtual NavbarItem NavbarItem { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Cart> Carts { get; set; }
     }
 }

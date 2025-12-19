@@ -17,6 +17,10 @@ namespace PhoneStore_New.Areas.Admin.Models.ViewModels
         public int ItemOrder { get; set; }
 
         [Display(Name = "Mục cha")]
-        public int? ParentId { get; set; } // <-- THÊM THUỘC TÍNH NÀY
+        public int? ParentId { get; set; }
+
+        // === MỚI THÊM: CHỌN BỐ CỤC ===
+        [Display(Name = "Bố cục trang")]
+        public int LayoutType { get; set; }
     }
 }
