@@ -1,0 +1,116 @@
+﻿@model PhoneStore_New.Models.Product
+
+@{
+    ViewBag.Title = "Sửa sản phẩm: " + Model.Name;
+    // Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .current-image {
+        max-width: 150px;
+        margin-top: 10px;
+        border: 1px solid #ddd;
+        padding: 5px;
+        border-radius: 4px;
+    }
+</style>
+
+<div class="admin-container">
+    <h2 style="border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 20px;">@ViewBag.Title</h2>
+
+    @using (Html.BeginForm("Edit", "ProductAdmin", FormMethod.Post, new { enctype = "multipart/form-data" }))
+    {
+        @Html.AntiForgeryToken()
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+        @Html.HiddenFor(m => m.ProductId)
+        @Html.HiddenFor(m => m.ImageUrl)
+        @Html.HiddenFor(m => m.CreatedAt)
+
+        <div class="row">
+            <div class="col-md-7">
+                <div class="panel panel-default">
+                    <div class="panel-heading">Thông tin chính</div>
+                    <div class="panel-body">
+                        <div class="form-group">
+                            @Html.LabelFor(m => m.Name, "Tên sản phẩm")
+                            @Html.TextBoxFor(m => m.Name, new { @class = "form-control", required = "required" })
+                            @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    @Html.LabelFor(m => m.Price, "Giá bán (VNĐ)")
+                                    @Html.TextBoxFor(m => m.Price, new { @class = "form-control", type = "number", required = "required" })
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    @Html.LabelFor(m => m.PurchasePrice, "Giá nhập (VNĐ)")
+                                    @Html.TextBoxFor(m => m.PurchasePrice, new { @class = "form-control", type = "number" })
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Giá VIP (VNĐ)</label>
+                                    @Html.TextBoxFor(m => m.vip_price, new { @class = "form-control", type = "number" })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    @Html.LabelFor(m => m.StockQuantity, "Tồn kho")
+                                    @Html.TextBoxFor(m => m.StockQuantity, new { @class = "form-control", type = "number", required = "required" })
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    @Html.LabelFor(m => m.DiscountPercentage, "% Giảm giá")
+                                    @Html.TextBoxFor(m => m.DiscountPercentage, new { @class = "form-control", type = "number", min = "0", max = "100" })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            @Html.LabelFor(m => m.Description, "Mô tả chi tiết")
+                            @Html.TextAreaFor(m => m.Description, new { @class = "form-control", rows = "6" })
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-5">
+                <div class="panel panel-info">
+                    <div class="panel-heading">Phân loại & Hình ảnh</div>
+                    <div class="panel-body">
+                        <div class="form-group">
+                            <label for="SelectedNavbarItemIds">Danh mục (Chọn nhiều)</label>
+                            @Html.ListBox("SelectedNavbarItemIds", (MultiSelectList)ViewBag.NavbarItemIds, new { @class = "form-control", @style = "height: 250px;" })
+                            <p class="help-block"><small>Giữ phím <b>Ctrl</b> để chọn nhiều mục.</small></p>
+                        </div>
+                        <hr />
+                        <div class="form-group">
+                            <label>Ảnh đại diện sản phẩm</label>
+                            <input type="file" name="ImageUpload" class="form-control" accept="image/*" />
+                        </div>
+                        @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                        {
+                            <div class="form-group text-center">
+                                <label style="display:block; text-align:left;">Ảnh hiện tại:</label>
+                                <img src="@Url.Content(Model.ImageUrl)" class="current-image" />
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group text-center" style="margin-top: 20px;">
+            <button type="submit" class="btn btn-success btn-lg"><i class="glyphicon glyphicon-floppy-disk"></i> Lưu thay đổi</button>
+            <a href="@Url.Action("Products")" class="btn btn-default btn-lg">Quay lại</a>
+        </div>
+    }
+</div>

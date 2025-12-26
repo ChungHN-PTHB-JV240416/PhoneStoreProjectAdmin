@@ -1,0 +1,139 @@
+﻿@model PhoneStore_New.Models.Page
+
+@{
+    ViewBag.Title = Model.Title;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section styles {
+    <style>
+        body {
+            background-color: #f5f5fa;
+        }
+
+        .container {
+            width: 98%;
+            max-width: 1400px;
+        }
+
+        /* Khung bao quanh nội dung bài viết */
+        .page-wrapper {
+            background: #fff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            margin-top: 20px;
+            margin-bottom: 50px;
+        }
+
+        /* Breadcrumb (Đường dẫn) */
+        .page-breadcrumb {
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #777;
+        }
+
+            .page-breadcrumb a {
+                color: #555;
+                text-decoration: none;
+            }
+
+                .page-breadcrumb a:hover {
+                    color: #d0011b;
+                }
+
+            .page-breadcrumb span {
+                margin: 0 5px;
+                color: #ccc;
+            }
+
+        /* Tiêu đề bài viết */
+        .page-header-title {
+            margin: 0 0 20px 0;
+            font-weight: 800;
+            color: #333;
+            text-transform: uppercase;
+            font-size: 28px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            position: relative;
+        }
+            /* Gạch chân đỏ trang trí */
+            .page-header-title:after {
+                content: '';
+                position: absolute;
+                bottom: -1px;
+                left: 0;
+                width: 60px;
+                height: 3px;
+                background: #d0011b;
+            }
+
+        /* Nội dung bài viết (Rich Text) */
+        .page-content {
+            font-size: 15px;
+            line-height: 1.8;
+            color: #444;
+        }
+
+            /* Style cho các thẻ con bên trong nội dung (do CKEditor sinh ra) */
+            .page-content img {
+                max-width: 100%;
+                height: auto !important;
+                border-radius: 6px;
+                margin: 15px 0;
+                display: block;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            }
+
+            .page-content h2, .page-content h3 {
+                margin-top: 30px;
+                margin-bottom: 15px;
+                font-weight: 700;
+                color: #222;
+            }
+
+            .page-content ul, .page-content ol {
+                margin-bottom: 20px;
+                padding-left: 25px;
+            }
+
+            .page-content p {
+                margin-bottom: 15px;
+                text-align: justify; /* Căn đều 2 bên cho đẹp */
+            }
+
+        .page-date {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+    </style>
+}
+
+<div class="container">
+    @* Thanh điều hướng nhỏ *@
+    <div style="margin-top: 20px;">
+        <div class="page-breadcrumb">
+            <a href="@Url.Action("Index", "Home")"><i class="glyphicon glyphicon-home"></i> Trang chủ</a>
+            <span>/</span>
+            <span style="color: #333; font-weight: 600;">@Model.Title</span>
+        </div>
+    </div>
+
+    <div class="page-wrapper">
+        <h1 class="page-header-title">@Model.Title</h1>
+
+        @if (Model.CreatedAt != null && Model.CreatedAt != DateTime.MinValue)
+        {
+            <div class="page-date">
+                <i class="glyphicon glyphicon-time"></i> Cập nhật lần cuối: @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+            </div>
+        }
+
+        <div class="page-content">
+            @Html.Raw(Model.Content)
+        </div>
+    </div>
+</div>

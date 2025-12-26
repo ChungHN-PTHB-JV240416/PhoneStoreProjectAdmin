@@ -1,110 +1,127 @@
-﻿@model PhoneStore_New.Areas.Admin.Models.ViewModels.ProductAdminListViewModel
+﻿@model IEnumerable<PhoneStore_New.Models.Product>
+
 @{
-    ViewBag.Title = "Quản lý Sản phẩm";
-    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    ViewBag.Title = "Quản lý sản phẩm";
+
+    // --- KHẮC PHỤC LỖI LAYOUT NOT FOUND ---
+    // Tôi để dòng này thành comment (//) để web tự nhận diện Layout mặc định.
+    // Nếu giao diện bị trắng trơn, bạn hãy bỏ dấu // và sửa đường dẫn thành "~/Views/Shared/_Layout.cshtml"
+    // Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+
+    // --- KHẮC PHỤC LỖI COMPILATION ERROR ---
+    // Lấy thông báo từ TempData thay vì Model
+    string message = TempData["Message"] as string;
 }
 
-<style>
-    .message {
-        padding: 10px;
-        margin-bottom: 20px;
-        border-radius: 5px;
-        font-weight: bold;
-        text-align: center;
-    }
+<div class="row">
+    <div class="col-md-12">
+        <h2 style="margin-top: 20px; margin-bottom: 20px; font-weight: bold; color: #333;">
+            Danh sách sản phẩm
+        </h2>
 
-    .success {
-        background-color: #d4edda;
-        color: #155724;
-    }
-
-    .error {
-        background-color: #f8d7da;
-        color: #721c24;
-    }
-
-    .sale-info {
-        color: #e74c3c;
-        font-weight: bold;
-    }
-</style>
-
-<div class="admin-container">
-    <h2>Quản lý Sản phẩm</h2>
-
-    @* Hiển thị thông báo *@
-    @if (!string.IsNullOrEmpty(Model.Message))
-    {
-    <div class="message @(Model.Message.Contains("thành công") ? "success" : "error")">
-        @Model.Message
-    </div>
-    }
-
-    @* === 1. FORM TÌM KIẾM === *@
-    <div class="search-form text-center" style="margin-bottom: 20px;">
-        @using (Html.BeginForm("Products", "ProductAdmin", FormMethod.Get, new { @area = "Admin", @class = "form-inline" }))
+        @* Hiển thị thông báo (An toàn, không lỗi) *@
+        @if (!string.IsNullOrEmpty(message))
         {
-            @Html.AntiForgeryToken()
-            <input type="text" name="search_query" placeholder="Tìm kiếm sản phẩm..." value="@Model.SearchQuery" class="form-control" style="width: 300px;" />
-            <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+            <div class="alert @(message.Contains("thành công") ? "alert-success" : "alert-danger")" role="alert">
+                @message
+            </div>
         }
-    </div>
 
-    @* === 2. NÚT THÊM MỚI (Cần Action EditProduct/AddProduct) === *@
-    <div class="text-center" style="margin-bottom: 20px;">
-        <a href="@Url.Action("EditProduct", "ProductAdmin", new { area = "Admin", id = 0 })" class="btn btn-success">Thêm sản phẩm mới</a>
-    </div>
+        <div style="margin-bottom: 15px;">
+            <a href="@Url.Action("Create")" class="btn btn-primary">
+                <i class="glyphicon glyphicon-plus"></i> Thêm mới sản phẩm
+            </a>
+        </div>
 
-    @* === 3. DANH SÁCH SẢN PHẨM === *@
-    <h3>Danh sách Sản phẩm (@(Model.Products?.Count ?? 0) kết quả)</h3>
-    <table class="table table-bordered table-striped">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Tên sản phẩm</th>
-                <th>Giá</th>
-                <th>Tồn kho</th>
-                <th>Sale</th>
-                <th>Hành động</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (Model.Products != null && Model.Products.Count > 0)
-            {
-                @* SỬA LỖI: Đã nằm trong khối C# của @if, không cần @ trước foreach *@
-                foreach (var product in Model.Products)
-                {
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover">
+                <thead class="thead-dark">
                     <tr>
-                        <td>@product.ProductId</td>
-                        <td>@product.Name</td>
-                        <td>@product.FormattedPrice</td>
-                        <td>@product.StockQuantity</td>
-                        <td>
-                            @if (product.DiscountPercentage > 0)
-                            {
-                                <span class="sale-info">Có (@product.DiscountPercentage%)</span>
-                            }
-                            else
-                            {
-                                <span>Không</span>
-                            }
-                        </td>
-                        <td class="action-links">
-                            @Html.ActionLink("Sửa", "EditProduct", "ProductAdmin", new { area = "Admin", id = product.ProductId }, new { @class = "btn btn-warning btn-xs" })
-
-                            @using (Html.BeginForm("DeleteProduct", "ProductAdmin", new { area = "Admin", id = product.ProductId }, FormMethod.Post, new { @style = "display:inline;" }))
-                            {
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-danger btn-xs" onclick="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này?');">Xóa</button>
-                            }
-                        </td>
+                        <th style="width: 80px; text-align: center;">Ảnh</th>
+                        <th>Tên sản phẩm</th>
+                        <th>Giá bán</th>
+                        <th>Giảm giá</th>
+                        <th>Kho</th>
+                        <th style="width: 200px;">Danh mục (Đa chọn)</th>
+                        <th style="width: 220px; text-align: center;">Thao tác</th>
                     </tr>
-                }
-            }
-            else
-            {
-                <tr><td colspan="6" class="text-center">Không tìm thấy sản phẩm nào.</td></tr>
-            }
-        </tbody>
-    </table>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td style="text-align: center; vertical-align: middle;">
+                                    <img src="@Url.Content(item.ImageUrl ?? "~/Content/images/no-image.png")"
+                                         style="width: 60px; height: 60px; object-fit: contain; border: 1px solid #ddd; padding: 2px;" />
+                                </td>
+                                <td style="vertical-align: middle; font-weight: 600;">
+                                    @Html.DisplayFor(modelItem => item.Name)
+                                </td>
+                                <td style="vertical-align: middle; color: #d0011b;">
+                                    @item.Price.ToString("N0")₫
+                                </td>
+                                <td style="vertical-align: middle;">
+                                    @if (item.DiscountPercentage > 0)
+                                    {
+                                        <span class="label label-danger">-@item.DiscountPercentage%</span>
+                                    }
+                                    else
+                                    {
+                                        <span>-</span>
+                                    }
+                                </td>
+                                <td style="vertical-align: middle;">
+                                    @if (item.StockQuantity > 0)
+                                    {
+                                        <span class="text-success">@item.StockQuantity</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-danger">Hết hàng</span>
+                                    }
+                                </td>
+                                <td style="vertical-align: middle;">
+                                    @* LOGIC HIỂN THỊ ĐA DANH MỤC *@
+                                    @if (item.ProductNavbarLinks != null && item.ProductNavbarLinks.Any())
+                                    {
+                                        foreach (var link in item.ProductNavbarLinks)
+                                        {
+                                            <span class="label label-info" style="display: inline-block; margin: 2px;">
+                                                @link.NavbarItem.ItemText
+                                            </span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span style="color: #999; font-style: italic;">Chưa phân loại</span>
+                                    }
+                                </td>
+                                <td style="text-align: center; vertical-align: middle;">
+                                    <a href="@Url.Action("Edit", new { id = item.ProductId })" class="btn btn-warning btn-sm">
+                                        <i class="glyphicon glyphicon-pencil"></i> Sửa
+                                    </a>
+                                    <a href="@Url.Action("Details", new { id = item.ProductId })" class="btn btn-info btn-sm">
+                                        <i class="glyphicon glyphicon-eye-open"></i> Xem
+                                    </a>
+                                    <a href="@Url.Action("Delete", new { id = item.ProductId })" class="btn btn-danger btn-sm">
+                                        <i class="glyphicon glyphicon-trash"></i> Xóa
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 20px;">
+                                Chưa có sản phẩm nào. Hãy bấm "Thêm mới sản phẩm".
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>

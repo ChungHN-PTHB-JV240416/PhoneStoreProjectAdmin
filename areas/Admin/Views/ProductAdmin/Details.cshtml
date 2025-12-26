@@ -1,0 +1,116 @@
+﻿@model PhoneStore_New.Models.Product
+
+@{
+    ViewBag.Title = "Chi tiết: " + Model.Name;
+    // Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="admin-container">
+    <div class="row">
+        <div class="col-md-12">
+            <h2 style="border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 25px;">
+                @ViewBag.Title
+            </h2>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="panel panel-default">
+                <div class="panel-body text-center">
+                    <img src="@Url.Content(Model.ImageUrl ?? "~/Content/images/no-image.png")"
+                         alt="@Model.Name" class="img-responsive img-thumbnail" style="max-height: 350px; margin: 0 auto;" />
+
+                    <h3 style="margin-top: 20px; font-weight: bold;">@Model.Name</h3>
+                    @if (Model.StockQuantity > 0)
+                    {
+                        <span class="label label-success">Còn hàng (@Model.StockQuantity)</span>
+                    }
+                    else
+                    {
+                        <span class="label label-danger">Hết hàng</span>
+                    }
+                </div>
+            </div>
+
+            <div class="panel panel-info">
+                <div class="panel-heading"><h3 class="panel-title">Danh mục sản phẩm</h3></div>
+                <div class="panel-body">
+                    @if (Model.ProductNavbarLinks != null && Model.ProductNavbarLinks.Any())
+                    {
+                        <ul class="list-group">
+                            @foreach (var link in Model.ProductNavbarLinks)
+                            {
+                                <li class="list-group-item"><i class="glyphicon glyphicon-tag"></i> @link.NavbarItem.ItemText</li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="text-muted">Chưa thuộc danh mục nào.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="panel panel-primary">
+                <div class="panel-heading"><h3 class="panel-title">Thông tin chi tiết</h3></div>
+                <table class="table table-bordered table-striped">
+                    <tbody>
+                        <tr><th style="width: 200px;">ID Sản phẩm</th><td>@Model.ProductId</td></tr>
+                        <tr><th>Tên sản phẩm</th><td>@Model.Name</td></tr>
+                        <tr><th>Giá nhập</th><td>@(Model.PurchasePrice.HasValue ? Model.PurchasePrice.Value.ToString("N0") + "₫" : "Chưa nhập")</td></tr>
+                        <tr><th>Giá bán</th><td style="color: #d0011b; font-weight: bold;">@Model.Price.ToString("N0")₫</td></tr>
+                        <tr><th>Giá VIP</th><td>@(Model.vip_price.HasValue ? Model.vip_price.Value.ToString("N0") + "₫" : "-")</td></tr>
+                        <tr><th>Giảm giá</th><td>@(Model.DiscountPercentage > 0 ? Model.DiscountPercentage + "%" : "-")</td></tr>
+                        <tr><th>Ngày tạo</th><td>@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td></tr>
+                        <tr>
+                            <th>Mô tả</th>
+                            <td>@(string.IsNullOrEmpty(Model.Description) ? "Không có" : Html.Raw(Model.Description.Replace("\n", "<br>")))</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="panel panel-warning" style="margin-top: 30px;">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="glyphicon glyphicon-time"></i> Lịch sử thay đổi (Audit Log)</h3>
+                </div>
+                <div class="panel-body">
+                    <table class="table table-hover table-striped">
+                        <thead>
+                            <tr>
+                                <th style="width: 160px;">Thời gian</th>
+                                <th style="width: 120px;">Người sửa</th>
+                                <th>Chi tiết thay đổi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.ProductLogs != null && Model.ProductLogs.Any())
+                            {
+                                foreach (var log in Model.ProductLogs.OrderByDescending(l => l.CreatedAt))
+                                {
+                                    <tr>
+                                        <td>@log.CreatedAt.Value.ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td><span class="label label-default">@log.UpdatedBy</span></td>
+                                        <td>@log.LogDescription</td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr><td colspan="3" class="text-center text-muted">Chưa có lịch sử thay đổi nào.</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="form-group text-right" style="margin-top: 20px;">
+                <a href="@Url.Action("Edit", new { id = Model.ProductId })" class="btn btn-warning btn-lg"><i class="glyphicon glyphicon-pencil"></i> Sửa</a>
+                <a href="@Url.Action("Products")" class="btn btn-default btn-lg">Quay lại</a>
+            </div>
+        </div>
+    </div>
+</div>

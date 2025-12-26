@@ -18,7 +18,14 @@ namespace PhoneStore_New.Controllers
         private int GetCurrentUserId()
         {
             if (Session["UserId"] != null) return Convert.ToInt32(Session["UserId"]);
-            if (User.Identity.IsAuthenticated && int.TryParse(User.Identity.Name, out int uid)) return uid;
+            if (User.Identity.IsAuthenticated)
+            {
+                // Thử parse ID từ Name, nếu không được thì tìm trong DB
+                if (int.TryParse(User.Identity.Name, out int uid)) return uid;
+
+                var u = db.Users.FirstOrDefault(x => x.Username == User.Identity.Name);
+                if (u != null) return u.UserId;
+            }
             return 0;
         }
 
@@ -108,14 +115,83 @@ namespace PhoneStore_New.Controllers
         }
 
         // ==========================================
-        // PHẦN 2: ĐỔI MẬT KHẨU
+        // PHẦN 2: HỘP THƯ HỖ TRỢ (TICKET SYSTEM)
+        // ==========================================
+
+        public ActionResult MyTickets()
+        {
+            int userId = GetCurrentUserId();
+            if (userId == 0) return RedirectToAction("Index", "Login");
+
+            // Chỉ lấy phiếu của đúng User này
+            var tickets = db.Contacts
+                            .Where(c => c.UserId == userId)
+                            .OrderByDescending(c => c.CreatedAt)
+                            .ToList();
+            return View(tickets);
+        }
+
+        // Chi tiết phiếu & Chat
+        public ActionResult TicketDetail(int id)
+        {
+            int userId = GetCurrentUserId();
+            if (userId == 0) return RedirectToAction("Index", "Login");
+
+            // BẢO MẬT: Kiểm tra phiếu này có phải của User này không
+            var ticket = db.Contacts.FirstOrDefault(c => c.Id == id && c.UserId == userId);
+
+            if (ticket == null) return HttpNotFound();
+
+            ViewBag.Replies = db.ContactReplies
+                                .Where(r => r.ContactId == id)
+                                .OrderBy(r => r.CreatedAt)
+                                .ToList();
+
+            return View(ticket);
+        }
+
+        // User trả lời thêm vào phiếu
+        [HttpPost]
+        public ActionResult UserReply(int contactId, string message)
+        {
+            int userId = GetCurrentUserId();
+            if (userId == 0) return RedirectToAction("Index", "Login");
+
+            // BẢO MẬT: Kiểm tra phiếu này có phải của User này không trước khi cho phép reply
+            // (Tránh trường hợp hacker sửa contactId để spam phiếu người khác)
+            var ticket = db.Contacts.FirstOrDefault(c => c.Id == contactId && c.UserId == userId);
+
+            if (ticket == null) return HttpNotFound();
+
+            if (!string.IsNullOrEmpty(message))
+            {
+                var reply = new ContactReply
+                {
+                    ContactId = contactId,
+                    Message = message,
+                    IsAdmin = false, // User trả lời
+                    CreatedAt = DateTime.Now
+                };
+                db.ContactReplies.Add(reply);
+
+                // Cập nhật trạng thái phiếu về "Chờ xử lý" (0) và "Chưa đọc" để Admin chú ý
+                ticket.IsRead = false;
+                ticket.Status = 0;
+
+                db.SaveChanges();
+            }
+
+            return RedirectToAction("TicketDetail", new { id = contactId });
+        }
+
+        // ==========================================
+        // PHẦN 3: ĐỔI MẬT KHẨU
         // ==========================================
 
         // GET: /Profile/ChangePassword
         public ActionResult ChangePassword()
         {
-            int userId = GetCurrentUserId();
-            if (userId == 0) return RedirectToAction("Logout", "Login");
+            if (GetCurrentUserId() == 0) return RedirectToAction("Logout", "Login");
             return View();
         }
 

@@ -1,185 +1,174 @@
 ﻿@model List<PhoneStore_New.Models.ViewModels.CartItem>
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Giỏ Hàng";
 }
 
-<style>
-    .cart-container {
-        background: #fff;
-        padding: 30px;
-        border-radius: 10px;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
-        margin-top: 30px;
-        margin-bottom: 50px;
-    }
+@section styles {
+    <style>
+        body {
+            background-color: #f5f5fa;
+        }
 
-    .cart-header {
-        border-bottom: 2px solid #f1f1f1;
-        padding-bottom: 15px;
-        margin-bottom: 20px;
-        font-weight: 800;
-        color: #333;
-        text-transform: uppercase;
-    }
+        .container {
+            width: 98%;
+            max-width: 1400px;
+        }
 
-    .cart-table {
-        width: 100%;
-        margin-bottom: 20px;
-    }
+        .cart-container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            margin-top: 20px; /* Cách top giống Home */
+            margin-bottom: 50px;
+        }
 
-        .cart-table th {
-            padding: 15px;
-            background: #f9f9f9;
-            color: #555;
-            font-weight: 600;
-            text-align: center;
+        .cart-header {
             border-bottom: 2px solid #eee;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            font-weight: 800;
+            color: #333;
+            text-transform: uppercase;
+            font-size: 20px;
         }
 
-        .cart-table td {
-            padding: 15px;
-            vertical-align: middle;
-            text-align: center;
-            border-bottom: 1px solid #eee;
-        }
-
-    .cart-img {
-        width: 80px;
-        height: 80px;
-        object-fit: contain;
-        border-radius: 5px;
-        border: 1px solid #eee;
-    }
-
-    .cart-item-name {
-        font-weight: bold;
-        color: #333;
-        text-align: left;
-    }
-
-    .cart-price {
-        color: #d0011b;
-        font-weight: bold;
-    }
-
-    .qty-input {
-        width: 60px;
-        text-align: center;
-        padding: 5px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-    }
-
-    .total-row {
-        background: #fdfdfd;
-        font-weight: bold;
-        font-size: 18px;
-    }
-
-    .btn-remove {
-        color: #999;
-        background: none;
-        border: none;
-        transition: 0.3s;
-    }
-
-        .btn-remove:hover {
-            color: #d0011b;
-        }
-
-    .empty-cart {
-        text-align: center;
-        padding: 50px;
-    }
-
-        .empty-cart i {
-            font-size: 80px;
-            color: #eee;
+        /* ... (Phần CSS Table, Button giữ nguyên như phiên bản đẹp tôi gửi trước đó) ... */
+        .cart-table {
+            width: 100%;
             margin-bottom: 20px;
+            border-collapse: collapse;
         }
-</style>
+
+            .cart-table th {
+                padding: 15px;
+                background: #f8f9fa;
+                color: #555;
+                font-weight: 700;
+                text-align: center;
+                border-bottom: 2px solid #ddd;
+            }
+
+            .cart-table td {
+                padding: 15px;
+                vertical-align: middle;
+                text-align: center;
+                border-bottom: 1px solid #eee;
+            }
+
+        .cart-img {
+            width: 70px;
+            height: 70px;
+            object-fit: contain;
+            border: 1px solid #eee;
+        }
+
+        .cart-item-name {
+            font-weight: 700;
+            color: #333;
+            text-align: left;
+            margin-left: 15px;
+        }
+
+        .cart-price {
+            color: #d0011b;
+            font-weight: 700;
+        }
+
+        .qty-input {
+            width: 50px;
+            text-align: center;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .btn-remove {
+            color: #999;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+            .btn-remove:hover {
+                color: #d0011b;
+            }
+
+        .total-row {
+            background: #fdfdfd;
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .btn-checkout {
+            background: #d0011b;
+            color: #fff;
+            border: none;
+            padding: 10px 30px;
+            font-weight: 700;
+            border-radius: 4px;
+            text-transform: uppercase;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+            .btn-checkout:hover {
+                background: #b00118;
+                color: #fff;
+                text-decoration: none;
+            }
+
+        .btn-continue {
+            color: #555;
+            border: 1px solid #ddd;
+            padding: 10px 20px;
+            border-radius: 4px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .empty-cart {
+            text-align: center;
+            padding: 60px 0;
+        }
+    </style>
+}
 
 <div class="container">
     <div class="cart-container">
         <h2 class="cart-header">@ViewBag.Title</h2>
-
+        @* ... (Phần nội dung HTML giữ nguyên) ... *@
         @if (Model != null && Model.Any())
         {
             <div class="table-responsive">
                 <table class="cart-table">
-                    <thead>
-                        <tr>
-                            <th style="text-align: left;">Sản phẩm</th>
-                            <th>Đơn giá</th>
-                            <th>Số lượng</th>
-                            <th>Thành tiền</th>
-                            <th>Xóa</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th style="text-align: left;">Sản phẩm</th><th>Đơn giá</th><th>Số lượng</th><th>Thành tiền</th><th>Xóa</th></tr></thead>
                     <tbody>
                         @foreach (var item in Model)
                         {
                             <tr>
-                                <td style="text-align: left;">
-                                    <div style="display: flex; align-items: center;">
-                                        <img src="@Url.Content(item.ImageUrl ?? "~/Content/images/no-image.png")" class="cart-img" />
-                                        <div style="margin-left: 15px;">
-                                            <div class="cart-item-name">@item.Name</div>
-                                        </div>
-                                    </div>
-                                </td>
+                                <td style="text-align: left;"><div style="display:flex; align-items:center;"><img src="@Url.Content(item.ImageUrl??"~/Content/images/no-image.png")" class="cart-img" /><div class="cart-item-name">@item.Name</div></div></td>
                                 <td>@item.Price.ToString("N0")₫</td>
-                                <td>
-                                    @using (Html.BeginForm("UpdateQuantity", "Cart", FormMethod.Post))
-                                    {
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="productId" value="@item.ProductId" />
-                                        <input type="number" name="quantity" value="@item.Quantity" min="1" class="qty-input" onchange="this.form.submit()" />
-                                    }
-                                </td>
+                                <td>@using (Html.BeginForm("UpdateQuantity", "Cart", FormMethod.Post))
+                                {@Html.AntiForgeryToken()<input type="hidden" name="productId" value="@item.ProductId" /><input type="number" name="quantity" value="@item.Quantity" min="1" class="qty-input" onchange="this.form.submit()" />}</td>
                                 <td class="cart-price">@item.Subtotal.ToString("N0")₫</td>
-                                <td>
-                                    @using (Html.BeginForm("RemoveItem", "Cart", FormMethod.Post))
-                                    {
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="productId" value="@item.ProductId" />
-                                        <button type="submit" class="btn-remove" onclick="return confirm('Xóa sản phẩm này khỏi giỏ?');">
-                                            <i class="glyphicon glyphicon-trash"></i>
-                                        </button>
-                                    }
-                                </td>
+                                <td>@using (Html.BeginForm("RemoveItem", "Cart", FormMethod.Post))
+                                {@Html.AntiForgeryToken()<input type="hidden" name="productId" value="@item.ProductId" /><button type="submit" class="btn-remove" onclick="return confirm('Xóa?');"><i class="glyphicon glyphicon-trash"></i></button>}</td>
                             </tr>
                         }
-                        <tr class="total-row">
-                            <td colspan="3" style="text-align: right; padding-right: 20px;">TỔNG THANH TOÁN:</td>
-                            <td colspan="2" style="color: #d0011b;">@Model.Sum(i => i.Subtotal).ToString("N0")₫</td>
-                        </tr>
+                        <tr class="total-row"><td colspan="3" style="text-align:right; padding-right:20px;">TỔNG:</td><td colspan="2" style="color:#d0011b;">@Model.Sum(i => i.Subtotal).ToString("N0")₫</td></tr>
                     </tbody>
                 </table>
             </div>
-
-            <div class="row" style="margin-top: 30px;">
-                <div class="col-md-6 col-xs-6">
-                    <a href="@Url.Action("Index", "Home")" class="btn btn-default btn-lg">
-                        <i class="glyphicon glyphicon-arrow-left"></i> Mua thêm
-                    </a>
-                </div>
-                <div class="col-md-6 col-xs-6 text-right">
-                    @* Nếu bạn có CheckoutController thì trỏ về đó *@
-                    <a href="@Url.Action("Index", "Checkout")" class="btn btn-success btn-lg">
-                        Thanh toán <i class="glyphicon glyphicon-arrow-right"></i>
-                    </a>
-                </div>
+            <div style="margin-top:20px; display:flex; justify-content:space-between;">
+                <a href="@Url.Action("Index", "Home")" class="btn-continue"><i class="glyphicon glyphicon-arrow-left"></i> Tiếp tục mua</a>
+                <a href="@Url.Action("Index", "Checkout")" class="btn-checkout">Thanh toán <i class="glyphicon glyphicon-arrow-right"></i></a>
             </div>
         }
         else
         {
-            <div class="empty-cart">
-                <i class="glyphicon glyphicon-shopping-cart"></i>
-                <h3>Giỏ hàng của bạn đang trống!</h3>
-                <p>Hãy dạo một vòng và chọn cho mình những món đồ ưng ý nhé.</p>
-                <a href="@Url.Action("Index", "Home")" class="btn btn-primary btn-lg" style="margin-top: 20px;">Quay lại Trang chủ</a>
-            </div>
+            <div class="empty-cart"><i class="glyphicon glyphicon-shopping-cart" style="font-size:60px; color:#eee;"></i><p>Giỏ hàng trống</p><a href="@Url.Action("Index","Home")" class="btn-checkout">Mua sắm ngay</a></div>
         }
     </div>
 </div>

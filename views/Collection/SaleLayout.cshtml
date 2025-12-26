@@ -1,198 +1,173 @@
-﻿@model IEnumerable<PhoneStore_New.Models.Product>
+﻿@using PhoneStore_New.Models.ViewModels
+@model IEnumerable<ProductCardViewModel>
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
 
-    // Lấy trạng thái từ Controller
     bool isRunning = ViewBag.IsSaleRunning ?? false;
     DateTime endTime = ViewBag.EndTime ?? DateTime.Now;
     DateTime startTime = ViewBag.StartTime ?? DateTime.Now;
-
-    // Tính số giây còn lại
     double secondsLeft = (endTime - DateTime.Now).TotalSeconds;
     if (secondsLeft < 0) { secondsLeft = 0; }
 }
 
-<style>
-    /* CSS cho Banner Flash Sale */
-    .flash-sale-header {
-        background: linear-gradient(135deg, #d0011b 0%, #ff4d4d 100%);
-        color: white;
-        padding: 50px 20px;
-        text-align: center;
-        margin-bottom: 40px;
-        border-radius: 0 0 50px 50px;
-        box-shadow: 0 10px 25px rgba(208, 1, 27, 0.3);
-    }
+@section styles {
+    <style>
+        body { background-color: #f5f5fa; }
+        .container { width: 98%; max-width: 1400px; }
 
-    .flash-title {
-        font-weight: 900;
-        font-size: 3em;
-        text-transform: uppercase;
-        margin: 0;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-    }
-
-    .flash-subtitle {
-        font-size: 1.2em;
-        margin-top: 10px;
-        opacity: 0.9;
-    }
-
-    .countdown-box {
-        font-size: 36px;
-        font-weight: 800;
-        margin-top: 25px;
-        background: rgba(0,0,0,0.25);
-        display: inline-block;
-        padding: 15px 50px;
-        border-radius: 50px;
-        letter-spacing: 3px;
-        border: 2px solid rgba(255,255,255,0.3);
-    }
-
-    /* CSS cho Thẻ Sản phẩm Sale */
-    .sale-card {
-        border: 2px solid #fff0f0;
-        transition: all 0.3s;
-        position: relative;
-        overflow: hidden;
-        border-radius: 10px;
-    }
-
-        .sale-card:hover {
-            border-color: #d0011b;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            transform: translateY(-5px);
+        /* HEADER FLASH SALE */
+        .flash-header {
+            background: linear-gradient(135deg, #d0011b 0%, #ff6b6b 100%);
+            color: #fff;
+            padding: 50px 20px;
+            text-align: center;
+            border-radius: 0 0 50px 50px;
+            box-shadow: 0 10px 30px rgba(208, 1, 27, 0.2);
+            margin-bottom: 40px;
         }
 
-    .sale-badge-big {
-        position: absolute;
-        top: 10px;
-        right: -30px;
-        background: #ffe100;
-        color: #d0011b;
-        font-weight: bold;
-        padding: 5px 40px;
-        transform: rotate(45deg);
-        z-index: 10;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
+        .flash-title { font-size: 3rem; font-weight: 900; text-transform: uppercase; margin: 0; letter-spacing: 2px; text-shadow: 2px 2px 0 rgba(0,0,0,0.1); }
+        .flash-subtitle { font-size: 1.2rem; margin-top: 10px; opacity: 0.9; }
 
-    /* CSS cho trạng thái Tắt/Chờ */
-    .empty-state {
-        text-align: center;
-        padding: 80px 0;
-        color: #555;
-    }
+        /* COUNTDOWN */
+        .countdown-wrapper { display: inline-flex; gap: 15px; margin-top: 25px; background: rgba(0,0,0,0.2); padding: 10px 30px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.3); }
+        .time-box { text-align: center; }
+        .time-val { font-size: 28px; font-weight: 800; line-height: 1; display: block; }
+        .time-label { font-size: 11px; text-transform: uppercase; opacity: 0.8; }
+        .time-sep { font-size: 24px; font-weight: 700; margin-top: -2px; }
 
-    .empty-icon {
-        width: 120px;
-        opacity: 0.5;
-        margin-bottom: 30px;
-    }
+        /* PRODUCT CARD */
+        .product-grid-row { display: flex; flex-wrap: wrap; margin: 0 -5px; }
+        .product-col { width: 20%; padding: 5px; margin-bottom: 10px; }
+        @@media (max-width: 992px) { .product-col { width: 25%; } }
+        @@media (max-width: 768px) { .product-col { width: 50%; } }
 
-    .wait-title {
-        font-weight: 800;
-        color: #333;
-        font-size: 2em;
-        margin-bottom: 15px;
-    }
-</style>
+        .product-card { background: #fff; border: 2px solid #fff0f0; border-radius: 8px; transition: all 0.2s; position: relative; height: 100%; display: flex; flex-direction: column; padding-bottom: 10px; }
+        .product-card:hover { box-shadow: 0 5px 20px rgba(208, 1, 27, 0.15); transform: translateY(-5px); border-color: #d0011b; z-index: 5; }
+
+        .img-wrap { position: relative; padding-top: 100%; overflow: hidden; display: block; z-index: 1; }
+        .img-wrap img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; padding: 15px; transition: 0.3s; }
+        .product-card:hover img { transform: scale(1.05); }
+
+        .badge-flash { position: absolute; top: 10px; right: 10px; background: #ffe100; color: #d0011b; font-size: 12px; font-weight: 800; padding: 4px 8px; border-radius: 4px; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+
+        .info-wrap { padding: 10px; flex-grow: 1; display: flex; flex-direction: column; }
+        .prod-name { font-size: 14px; color: #333; margin: 0 0 5px; height: 40px; overflow: hidden; line-height: 1.4; font-weight: 600; text-decoration: none; }
+        .prod-name:hover { color: #d0011b; }
+
+        .price-box { margin-bottom: 5px; }
+        .price-final { color: #d0011b; font-size: 18px; font-weight: 800; }
+        .price-original { color: #999; font-size: 13px; text-decoration: line-through; margin-left: 5px; }
+
+        .progress { height: 6px; margin-bottom: 10px; background-color: #f5f5f5; border-radius: 4px; box-shadow: inset 0 1px 2px rgba(0,0,0,.1); }
+        .progress-bar-danger { background-color: #d9534f; }
+
+        .btn-flash-buy { margin-top: auto; width: 100%; background: #d0011b; color: #fff; border: none; padding: 8px; font-size: 13px; font-weight: 700; text-align: center; border-radius: 4px; text-transform: uppercase; text-decoration: none; transition: 0.2s; }
+        .btn-flash-buy:hover { background: #b00118; color: #fff; transform: scale(1.02); }
+
+        .empty-state { text-align: center; padding: 80px 0; color: #555; }
+        .wait-icon { font-size: 80px; color: #ddd; margin-bottom: 20px; }
+    </style>
+}
 
 @if (isRunning)
 {
-    // === TRƯỜNG HỢP 1: ĐANG DIỄN RA ===
-    <div class="flash-sale-header">
+    <div class="flash-header">
         <h1 class="flash-title">⚡ FLASH SALE ⚡</h1>
-        <p class="flash-subtitle">Săn deal giá sốc - Số lượng có hạn</p>
-        <div class="countdown-box" id="countdown">Loading...</div>
+        <p class="flash-subtitle">Săn deal giá sốc - Cơ hội duy nhất trong ngày</p>
+        <div class="countdown-wrapper" id="countdown-timer">
+            <div class="time-box"><span class="time-val" id="h-val">00</span><span class="time-label">Giờ</span></div>
+            <div class="time-sep">:</div>
+            <div class="time-box"><span class="time-val" id="m-val">00</span><span class="time-label">Phút</span></div>
+            <div class="time-sep">:</div>
+            <div class="time-box"><span class="time-val" id="s-val">00</span><span class="time-label">Giây</span></div>
+        </div>
     </div>
 
     <div class="container">
-        <div class="row">
-            @if (Model != null && Model.Any())
-            {
-                foreach (var item in Model)
+        @if (Model != null && Model.Any())
+        {
+            <div class="product-grid-row">
+                @foreach (var item in Model)
                 {
-                    <div class="col-md-3 col-sm-6" style="margin-bottom: 30px;">
-                        <div class="product-card sale-card">
-                            <div class="sale-badge-big">-@item.DiscountPercentage%</div>
-                            <div class="image-wrapper">
-                                <a href="@Url.Action("Detail", "Product", new { id = item.ProductId })">
-                                    <img src="@Url.Content(item.ImageUrl ?? "~/Content/images/no-image.png")" />
-                                </a>
-                            </div>
-                            <div class="content">
-                                <h3><a href="@Url.Action("Detail", "Product", new { id = item.ProductId })">@item.Name</a></h3>
-                                <div class="price-container">
-                                    @{ decimal final = item.Price * (1 - (decimal)item.DiscountPercentage / 100); }
-                                    <span class="original-price" style="text-decoration: line-through; color: #999;">@item.Price.ToString("N0")₫</span>
-                                    <span class="sale-price" style="color: #d0011b; font-size: 20px; font-weight: bold; margin-left: 10px;">@final.ToString("N0")₫</span>
+                    // --- FIX LỖI GIÁ ---
+                    decimal finalPrice = item.FinalPrice; // Đã được tính ở Controller
+                                                          // Nếu Controller chưa tính đúng, ta tính lại ở View để chắc chắn
+                    if (item.DiscountPercentage > 0 && finalPrice >= item.OriginalPrice)
+                    {
+                        finalPrice = item.OriginalPrice * (1 - (decimal)item.DiscountPercentage / 100);
+                    }
+
+                    <div class="product-col">
+                        <div class="product-card">
+                            <span class="badge-flash">⚡ -@item.DiscountPercentage%</span>
+
+                            <a href="@Url.Action("Detail", "Product", new { id = item.ProductId })" class="img-wrap">
+                                <img src="@Url.Content(item.ImageUrl ?? "~/Content/images/no-image.png")" alt="@item.Name">
+                            </a>
+
+                            <div class="info-wrap">
+                                <a href="@Url.Action("Detail", "Product", new { id = item.ProductId })" class="prod-name">@item.Name</a>
+
+                                <div class="price-box">
+                                    <span class="price-final">@finalPrice.ToString("N0")₫</span>
+                                    <span class="price-original">@item.OriginalPrice.ToString("N0")₫</span>
                                 </div>
-                                <a href="@Url.Action("Detail", "Product", new { id = item.ProductId })" class="btn btn-danger btn-block" style="margin-top: 10px;">MUA NGAY</a>
+
+                                <div class="progress">
+                                    <div class="progress-bar progress-bar-danger progress-bar-striped active" style="width: 85%;"></div>
+                                </div>
+                                <div style="font-size: 11px; color: #d0011b; margin-bottom: 5px; font-weight: 600;">🔥 Sắp hết hàng</div>
+
+                                <a href="@Url.Action("Detail", "Product", new { id = item.ProductId })" class="btn-flash-buy">MUA NGAY</a>
                             </div>
                         </div>
                     </div>
                 }
-            }
-            else
-            {
-                <div class="empty-state">
-                    <h3>Chương trình đang chạy nhưng chưa có sản phẩm nào được thêm vào!</h3>
-                    <p>Vui lòng quay lại sau ít phút.</p>
-                </div>
-            }
-        </div>
-    </div>
-
-    // Script đếm ngược
-    <script>
-        var timeLeft = @((int)secondsLeft);
-
-        function updateTimer() {
-            var hours = Math.floor(timeLeft / 3600);
-            var minutes = Math.floor((timeLeft % 3600) / 60);
-            var seconds = Math.floor(timeLeft % 60);
-
-            var hStr = hours < 10 ? "0" + hours : hours;
-            var mStr = minutes < 10 ? "0" + minutes : minutes;
-            var sStr = seconds < 10 ? "0" + seconds : seconds;
-
-            document.getElementById("countdown").innerHTML = hStr + " : " + mStr + " : " + sStr;
-
-            if (timeLeft > 0) {
-                timeLeft--;
-            } else {
-                document.getElementById("countdown").innerHTML = "ĐÃ KẾT THÚC";
-                setTimeout(function() { location.reload(); }, 3000);
-            }
+            </div>
         }
-        setInterval(updateTimer, 1000);
-        updateTimer();
-    </script>
+        else
+        {
+            <div class="empty-state">
+                <h3>Chương trình đang chạy nhưng chưa có sản phẩm nào!</h3>
+            </div>
+        }
+    </div>
 }
 else
 {
-    // === TRƯỜNG HỢP 2: ĐÃ TẮT HOẶC CHƯA ĐẾN GIỜ ===
-    <div class="container">
+    <div class="container" style="margin-top: 50px;">
         <div class="empty-state">
-            <img src="https://cdn-icons-png.flaticon.com/512/2972/2972531.png" class="empty-icon" />
-
+            <i class="glyphicon glyphicon-time wait-icon"></i>
             @if (DateTime.Now < startTime)
             {
-                <h2 class="wait-title">SỰ KIỆN SẮP DIỄN RA</h2>
-                <p style="font-size: 18px;">Hãy quay lại vào lúc: <strong style="color: #d0011b">@startTime.ToString("HH:mm - dd/MM/yyyy")</strong></p>
+                <h2 style="font-weight:800; color:#333">SỰ KIỆN SẮP DIỄN RA</h2>
+                <p style="font-size:18px">Hãy quay lại vào lúc: <strong style="color:#d0011b">@startTime.ToString("HH:mm - dd/MM/yyyy")</strong></p>
             }
             else
             {
-                <h2 class="wait-title">CHƯƠNG TRÌNH ĐÃ KẾT THÚC</h2>
-                <p style="font-size: 18px;">Rất tiếc, đợt Flash Sale này đã kết thúc hoặc đang tạm đóng.</p>
-                <p>Hãy đón chờ các đợt khuyến mãi tiếp theo nhé!</p>
+                <h2 style="font-weight:800; color:#333">CHƯƠNG TRÌNH ĐÃ KẾT THÚC</h2>
+                <p style="font-size:18px">Rất tiếc, đợt Flash Sale này đã đóng.</p>
             }
-
-            <a href="@Url.Action("Index", "Home")" class="btn btn-primary btn-lg" style="margin-top: 30px; padding: 10px 40px; border-radius: 30px;">
-                <i class="glyphicon glyphicon-shopping-cart"></i> Tiếp tục mua sắm
-            </a>
+            <a href="@Url.Action("Index", "Home")" class="btn btn-primary btn-lg" style="margin-top:20px; border-radius:30px; padding:10px 40px;">Quay lại Trang chủ</a>
         </div>
     </div>
+}
+
+@section scripts {
+    <script>
+        var timeLeft = @((int)secondsLeft);
+        function updateTimer() {
+            var h = Math.floor(timeLeft / 3600);
+            var m = Math.floor((timeLeft % 3600) / 60);
+            var s = Math.floor(timeLeft % 60);
+            if (document.getElementById("h-val")) {
+                document.getElementById("h-val").innerText = h < 10 ? "0" + h : h;
+                document.getElementById("m-val").innerText = m < 10 ? "0" + m : m;
+                document.getElementById("s-val").innerText = s < 10 ? "0" + s : s;
+            }
+            if (timeLeft > 0) { timeLeft--; } else { if(document.querySelector(".flash-title")) { location.reload(); } }
+        }
+        if (timeLeft > 0) { setInterval(updateTimer, 1000); updateTimer(); }
+    </script>
 }

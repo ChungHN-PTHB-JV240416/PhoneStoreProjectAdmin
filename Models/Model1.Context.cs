@@ -42,5 +42,9 @@ namespace PhoneStore_New.Models
         public virtual DbSet<Page> Pages { get; set; }
         public virtual DbSet<sysdiagram> sysdiagrams { get; set; }
         public virtual DbSet<Cart> Carts { get; set; }
+        public virtual DbSet<ProductNavbarLink> ProductNavbarLinks { get; set; }
+        public virtual DbSet<ProductLog> ProductLogs { get; set; }
+        public virtual DbSet<Contact> Contacts { get; set; }
+        public virtual DbSet<ContactReply> ContactReplies { get; set; }
     }
 }

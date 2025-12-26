@@ -1,0 +1,170 @@
+﻿@model List<PhoneStore_New.Models.ViewModels.BrandSectionViewModel>
+
+@{
+    ViewBag.Title = "Tất cả sản phẩm";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section styles {
+    <style>
+        body { background-color: #f5f5fa; }
+        .container { width: 98%; max-width: 1400px; }
+
+        /* Banner Header của trang */
+        .page-banner {
+            background: linear-gradient(135deg, #333 0%, #000 100%);
+            color: #fff;
+            padding: 40px 0;
+            text-align: center;
+            margin-bottom: 40px;
+            border-radius: 0 0 50% 50% / 10%;
+        }
+        .page-banner h1 { margin: 0; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; }
+        .page-banner p { opacity: 0.8; margin-top: 10px; font-size: 16px; }
+
+        /* Section từng thương hiệu */
+        .brand-section {
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px 25px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .brand-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .brand-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #333;
+            text-transform: uppercase;
+            border-left: 5px solid #d0011b;
+            padding-left: 15px;
+            margin: 0;
+        }
+
+        .view-more-btn {
+            color: #555;
+            font-weight: 600;
+            text-decoration: none;
+            border: 1px solid #ddd;
+            padding: 8px 20px;
+            border-radius: 20px;
+            transition: 0.2s;
+            font-size: 13px;
+        }
+        .view-more-btn:hover {
+            background: #d0011b;
+            color: #fff;
+            border-color: #d0011b;
+            text-decoration: none;
+        }
+
+        /* Grid Sản phẩm (Copy từ Home) */
+        .product-grid-row { display: flex; flex-wrap: wrap; margin: 0 -5px; }
+        .product-col { width: 20%; padding: 5px; margin-bottom: 10px; } /* 5 cột */
+        @@media (max-width: 1200px) { .product-col { width: 25%; } }
+        @@media (max-width: 992px) { .product-col { width: 33.33%; } }
+        @@media (max-width: 768px) { .product-col { width: 50%; } }
+
+        .product-card { background: #fff; border: 1px solid #eee; border-radius: 4px; transition: all 0.2s; position: relative; height: 100%; display: flex; flex-direction: column; padding-bottom: 10px; }
+        .product-card:hover { box-shadow: 0 5px 15px rgba(0,0,0,0.1); transform: translateY(-3px); border-color: #d0011b; z-index: 5; }
+        
+        .img-wrap { position: relative; padding-top: 100%; overflow: hidden; display: block; z-index: 1; }
+        .img-wrap img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; padding: 15px; transition: 0.3s; }
+        .product-card:hover img { transform: scale(1.05); }
+        
+        .badge-discount { position: absolute; top: 10px; right: 10px; background: #ffe97a; color: #d0011b; font-size: 12px; font-weight: bold; padding: 3px 6px; border-radius: 4px; z-index: 10; }
+        .badge-vip { position: absolute; top: 10px; left: 10px; background: #007bff; color: #fff; font-size: 11px; font-weight: bold; padding: 3px 6px; border-radius: 4px; z-index: 10; }
+        
+        .info-wrap { padding: 10px; flex-grow: 1; display: flex; flex-direction: column; }
+        .prod-name { font-size: 14px; color: #333; margin: 0 0 5px; height: 40px; overflow: hidden; line-height: 1.4; font-weight: 600; text-decoration: none; }
+        .prod-name:hover { color: #d0011b; }
+        
+        .price-box { margin-bottom: 5px; }
+        .price-final { color: #d0011b; font-size: 16px; font-weight: 700; display: block; }
+        .price-original { color: #999; font-size: 12px; text-decoration: line-through; margin-right: 5px; }
+        
+        .btn-add-cart { margin-top: auto; width: 100%; background: #fff; color: #d0011b; border: 1px solid #d0011b; padding: 5px; font-size: 12px; font-weight: 600; text-align: center; border-radius: 4px; opacity: 0; transition: 0.2s; display: block; text-decoration: none; }
+        .product-card:hover .btn-add-cart { opacity: 1; background: #d0011b; color: #fff; }
+    </style>
+}
+
+@* BANNER ĐẦU TRANG *@
+<div class="page-banner">
+    <div class="container">
+        <h1>Thế Giới Công Nghệ</h1>
+        <p>Khám phá bộ sưu tập sản phẩm chính hãng từ các thương hiệu hàng đầu</p>
+    </div>
+</div>
+
+<div class="container">
+    @if (Model != null && Model.Any())
+    {
+        foreach (var brandSection in Model)
+        {
+            <div class="brand-section">
+                @* Header của từng Thương hiệu *@
+                <div class="brand-header">
+                    <h2 class="brand-title">@brandSection.BrandName</h2>
+                    <a href="@Url.Action("Index", "Collection", new { id = brandSection.BrandId })" class="view-more-btn">
+                        Xem tất cả @brandSection.BrandName <i class="glyphicon glyphicon-arrow-right"></i>
+                    </a>
+                </div>
+
+                @* Grid sản phẩm *@
+                <div class="product-grid-row">
+                    @foreach (var p in brandSection.Products)
+                    {
+                        <div class="product-col">
+                            <div class="product-card">
+                                @if (p.DiscountPercentage > 0)
+                                {
+                                    <span class="badge-discount">-@p.DiscountPercentage%</span>
+                                }
+                                @if (p.IsVipPrice)
+                                {
+                                    <span class="badge-vip">VIP</span>
+                                }
+
+                                <a href="@Url.Action("Detail", "Product", new { id = p.ProductId })" class="img-wrap">
+                                    <img src="@Url.Content(p.ImageUrl ?? "~/Content/images/no-image.png")" alt="@p.Name">
+                                </a>
+
+                                <div class="info-wrap">
+                                    <a href="@Url.Action("Detail", "Product", new { id = p.ProductId })" class="prod-name">@p.Name</a>
+                                    
+                                    <div class="price-box">
+                                        <span class="price-final">@p.FormattedFinalPrice</span>
+                                        @if (p.FinalPrice < p.OriginalPrice)
+                                        {
+                                            <span class="price-original">@p.FormattedOriginalPrice</span>
+                                        }
+                                    </div>
+
+                                    <a href="@Url.Action("Detail", "Product", new { id = p.ProductId })" class="btn-add-cart">
+                                        MUA NGAY
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="alert alert-warning text-center" style="margin: 50px 0;">
+            <h4>Chưa có dữ liệu sản phẩm nào!</h4>
+            <a href="@Url.Action("Index", "Home")" class="btn btn-default">Về trang chủ</a>
+        </div>
+    }
+</div>

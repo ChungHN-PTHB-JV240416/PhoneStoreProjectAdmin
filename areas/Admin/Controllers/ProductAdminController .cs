@@ -1,13 +1,13 @@
-﻿using System.Linq;
-using System.Web.Mvc;
-using System.Data.Entity;
-using PhoneStore_New.Areas.Admin.Models.ViewModels;
-using PhoneStore_New.Models;
+﻿using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.Entity;
 using System.IO;
+using System.Linq;
+using System.Net;
 using System.Web;
-using System;
-using PhoneStore_New.Models.ViewModels;
+using System.Web.Mvc;
+using PhoneStore_New.Models;
 
 namespace PhoneStore_New.Areas.Admin.Controllers
 {
@@ -16,179 +16,224 @@ namespace PhoneStore_New.Areas.Admin.Controllers
     {
         private readonly PhoneStoreDBEntities db = new PhoneStoreDBEntities();
 
-        // === ACTION 1: DANH SÁCH SẢN PHẨM ===
-        public ActionResult Products(string search_query, string message)
+        // GET: Admin/ProductAdmin/Products
+        public ActionResult Products()
         {
-            // Include NavbarItem để có thể hiển thị tên danh mục nếu cần sau này
-            var products = db.Products.Include(p => p.NavbarItem).AsQueryable();
-
-            if (!string.IsNullOrEmpty(search_query))
-            {
-                products = products.Where(p => p.Name.Contains(search_query));
-            }
-
-            var productList = products
-                                .OrderByDescending(p => p.ProductId)
-                                .Select(p => new ProductAdminViewModel
-                                {
-                                    ProductId = p.ProductId,
-                                    Name = p.Name,
-                                    Price = p.Price,
-                                    StockQuantity = p.StockQuantity,
-                                    DiscountPercentage = p.DiscountPercentage ?? 0,
-                                    ImageUrl = p.ImageUrl
-                                }).ToList();
-
-            var viewModel = new ProductAdminListViewModel
-            {
-                Products = productList,
-                SearchQuery = search_query,
-                Message = (TempData["Message"] as string) ?? message
-            };
-
-            return View(viewModel);
+            var products = db.Products.Include(p => p.ProductNavbarLinks.Select(l => l.NavbarItem));
+            return View(products.ToList());
         }
 
-        // === HÀM PHỤ: TẠO DROPDOWN DANH MỤC TỪ MENU (NAVBAR) ===
-        private void PopulateNavbarDropDownList(object selectedId = null)
+        // GET: Admin/ProductAdmin/Details/5
+        public ActionResult Details(int? id)
         {
-            // Lấy danh sách từ NavbarItems thay vì Categories cũ
-            var items = db.NavbarItems
-                          .OrderBy(n => n.ItemOrder)
-                          .Select(n => new
-                          {
-                              ItemId = n.ItemId,
-                              // Hiển thị tên kèm Bố cục để Admin dễ phân biệt
-                              DisplayText = n.ItemText + (
-                                  n.LayoutType == 0 ? " (Lưới SP)" :
-                                  n.LayoutType == 2 ? " (Flash Sale)" :
-                                  n.LayoutType == 4 ? " (Gallery)" :
-                                  " (Khác)")
-                          })
-                          .ToList();
+            if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
 
-            // Vẫn giữ tên ViewBag.Categories để không phải sửa file View .cshtml
-            ViewBag.Categories = new SelectList(items, "ItemId", "DisplayText", selectedId);
+            // Include cả Log và Danh mục để hiển thị
+            Product product = db.Products
+                                .Include("ProductNavbarLinks.NavbarItem")
+                                .Include("ProductLogs")
+                                .FirstOrDefault(p => p.ProductId == id);
+
+            if (product == null) return HttpNotFound();
+            return View(product);
         }
 
-        // === ACTION 2: TRANG THÊM/SỬA SẢN PHẨM (GET) ===
-        // GET: Admin/ProductAdmin/EditProduct/5
-        public ActionResult EditProduct(int id)
+        // GET: Admin/ProductAdmin/Create
+        public ActionResult Create()
         {
-            // Nếu id = 0 là Thêm mới
-            if (id == 0) 
-            {
-                PopulateNavbarDropDownList(); // Load danh sách Menu
-                ViewBag.Title = "Thêm Sản phẩm mới";
-                return View(new ProductAdminEditViewModel());
-            }
+            var categories = db.NavbarItems
+                               .Where(n => !n.ItemText.Contains("Thương Hiệu"))
+                               .OrderBy(n => n.ItemOrder)
+                               .Select(n => new { ItemId = n.ItemId, ItemText = n.ItemText })
+                               .ToList();
 
-            // Nếu id > 0 là Sửa
-            var productEntity = db.Products.Find(id);
-            if (productEntity == null) return HttpNotFound();
-
-            PopulateNavbarDropDownList(productEntity.CategoryId); // Load danh sách Menu và chọn mục hiện tại
-
-            ViewBag.Title = "Sửa Sản phẩm: " + productEntity.Name;
-
-            var viewModel = new ProductAdminEditViewModel
-            {
-                ProductId = productEntity.ProductId,
-                Name = productEntity.Name,
-                Description = productEntity.Description,
-                Price = productEntity.Price,
-                StockQuantity = productEntity.StockQuantity,
-                CategoryId = productEntity.CategoryId, // Đây chính là ID của NavbarItem
-                DiscountPercentage = productEntity.DiscountPercentage ?? 0,
-                CurrentImageUrl = productEntity.ImageUrl,
-                PurchasePrice = productEntity.PurchasePrice,
-                vip_price = productEntity.vip_price
-            };
-
-            return View(viewModel);
+            ViewBag.NavbarItemIds = new MultiSelectList(categories, "ItemId", "ItemText");
+            return View();
         }
 
-        // === ACTION 3: LƯU SẢN PHẨM (POST) ===
-        // POST: Admin/ProductAdmin/Save
+        // POST: Admin/ProductAdmin/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Save(ProductAdminEditViewModel model, HttpPostedFileBase imageFile)
+        [ValidateInput(false)]
+        public ActionResult Create(Product product, HttpPostedFileBase ImageUpload, int[] SelectedNavbarItemIds)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                // Nếu lỗi, load lại dropdown
-                PopulateNavbarDropDownList(model.CategoryId);
-                return View("EditProduct", model);
-            }
-
-            string imageUrl = model.CurrentImageUrl;
-
-            if (imageFile != null && imageFile.ContentLength > 0)
-            {
-                var uploadDir = Server.MapPath("~/uploads/");
-                if (!Directory.Exists(uploadDir)) Directory.CreateDirectory(uploadDir);
-
-                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
-                var path = Path.Combine(uploadDir, fileName);
-                imageFile.SaveAs(path);
-                imageUrl = "~/uploads/" + fileName;
-            }
-
-            if (model.ProductId == 0) // Thêm mới
-            {
-                var newProduct = new Product
+                // 1. Xử lý ảnh
+                if (ImageUpload != null && ImageUpload.ContentLength > 0)
                 {
-                    Name = model.Name,
-                    Description = model.Description,
-                    Price = model.Price,
-                    StockQuantity = model.StockQuantity,
-                    CategoryId = model.CategoryId, // Lưu liên kết với NavbarItem
-                    DiscountPercentage = model.DiscountPercentage,
-                    ImageUrl = imageUrl,
-                    CreatedAt = DateTime.Now,
-                    PurchasePrice = model.PurchasePrice,
-                    vip_price = model.vip_price
-                };
-                db.Products.Add(newProduct);
-                TempData["Message"] = "Sản phẩm đã được thêm thành công.";
-            }
-            else // Cập nhật
-            {
-                var productToUpdate = db.Products.Find(model.ProductId);
-                if (productToUpdate != null)
-                {
-                    productToUpdate.Name = model.Name;
-                    productToUpdate.Description = model.Description;
-                    productToUpdate.Price = model.Price;
-                    productToUpdate.StockQuantity = model.StockQuantity;
-                    productToUpdate.CategoryId = model.CategoryId; // Cập nhật liên kết
-                    productToUpdate.DiscountPercentage = model.DiscountPercentage;
-                    productToUpdate.ImageUrl = imageUrl;
-                    productToUpdate.PurchasePrice = model.PurchasePrice;
-                    productToUpdate.vip_price = model.vip_price;
+                    string fileName = Path.GetFileNameWithoutExtension(ImageUpload.FileName);
+                    string extension = Path.GetExtension(ImageUpload.FileName);
+                    fileName = fileName + "_" + DateTime.Now.ToString("yymmssfff") + extension;
+                    string path = Path.Combine(Server.MapPath("~/Content/images/products/"), fileName);
 
-                    db.Entry(productToUpdate).State = EntityState.Modified;
-                    TempData["Message"] = "Sản phẩm đã được cập nhật thành công.";
+                    string folder = Server.MapPath("~/Content/images/products/");
+                    if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+
+                    ImageUpload.SaveAs(path);
+                    product.ImageUrl = "~/Content/images/products/" + fileName;
                 }
+
+                product.CreatedAt = DateTime.Now;
+                db.Products.Add(product);
+                db.SaveChanges(); // Lưu để có ProductId
+
+                // 2. Lưu đa danh mục
+                if (SelectedNavbarItemIds != null)
+                {
+                    foreach (var navId in SelectedNavbarItemIds)
+                    {
+                        db.ProductNavbarLinks.Add(new ProductNavbarLink { ProductId = product.ProductId, NavbarItemId = navId });
+                    }
+                }
+
+                // 3. Ghi Log tạo mới
+                var log = new ProductLog
+                {
+                    ProductId = product.ProductId,
+                    ActionType = "Tạo mới",
+                    UpdatedBy = User.Identity.Name ?? "Admin",
+                    CreatedAt = DateTime.Now,
+                    LogDescription = $"Tạo mới sản phẩm '{product.Name}'. Giá bán: {product.Price:N0}"
+                };
+                db.ProductLogs.Add(log);
+
+                db.SaveChanges();
+                TempData["Message"] = "Thêm mới sản phẩm thành công!";
+                return RedirectToAction("Products");
             }
 
+            var categories = db.NavbarItems.Where(n => !n.ItemText.Contains("Thương Hiệu")).OrderBy(n => n.ItemOrder).ToList();
+            ViewBag.NavbarItemIds = new MultiSelectList(categories, "ItemId", "ItemText", SelectedNavbarItemIds);
+            return View(product);
+        }
+
+        // GET: Admin/ProductAdmin/Edit/5
+        public ActionResult Edit(int? id)
+        {
+            if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            Product product = db.Products.Include("ProductNavbarLinks").FirstOrDefault(p => p.ProductId == id);
+            if (product == null) return HttpNotFound();
+
+            var categories = db.NavbarItems
+                               .Where(n => !n.ItemText.Contains("Thương Hiệu"))
+                               .OrderBy(n => n.ItemOrder)
+                               .ToList();
+
+            var selectedIds = product.ProductNavbarLinks.Select(p => p.NavbarItemId).ToArray();
+            ViewBag.NavbarItemIds = new MultiSelectList(categories, "ItemId", "ItemText", selectedIds);
+            return View(product);
+        }
+
+        // POST: Admin/ProductAdmin/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [ValidateInput(false)]
+        public ActionResult Edit(Product product, HttpPostedFileBase ImageUpload, int[] SelectedNavbarItemIds)
+        {
+            if (ModelState.IsValid)
+            {
+                // 1. Lấy dữ liệu CŨ để so sánh (Dùng AsNoTracking)
+                var oldProduct = db.Products.AsNoTracking().FirstOrDefault(p => p.ProductId == product.ProductId);
+                if (oldProduct == null) return HttpNotFound();
+
+                // 2. Xử lý ảnh
+                if (ImageUpload != null && ImageUpload.ContentLength > 0)
+                {
+                    string fileName = Path.GetFileNameWithoutExtension(ImageUpload.FileName);
+                    string extension = Path.GetExtension(ImageUpload.FileName);
+                    fileName = fileName + "_" + DateTime.Now.ToString("yymmssfff") + extension;
+                    string path = Path.Combine(Server.MapPath("~/Content/images/products/"), fileName);
+                    ImageUpload.SaveAs(path);
+                    product.ImageUrl = "~/Content/images/products/" + fileName;
+                }
+                else
+                {
+                    product.ImageUrl = oldProduct.ImageUrl;
+                }
+                product.CreatedAt = oldProduct.CreatedAt;
+
+                // 3. LOGIC GHI LOG THAY ĐỔI
+                List<string> changes = new List<string>();
+                if (oldProduct.Name != product.Name) changes.Add($"Tên: {oldProduct.Name} -> {product.Name}");
+                if (oldProduct.Price != product.Price) changes.Add($"Giá bán: {oldProduct.Price:N0} -> {product.Price:N0}");
+                if (oldProduct.PurchasePrice != product.PurchasePrice) changes.Add($"Giá nhập: {oldProduct.PurchasePrice:N0} -> {product.PurchasePrice:N0}");
+                if (oldProduct.StockQuantity != product.StockQuantity) changes.Add($"Kho: {oldProduct.StockQuantity} -> {product.StockQuantity}");
+                if (oldProduct.DiscountPercentage != product.DiscountPercentage) changes.Add($"Giảm giá: {oldProduct.DiscountPercentage}% -> {product.DiscountPercentage}%");
+
+                // Check danh mục thay đổi
+                var oldCatIds = db.ProductNavbarLinks.Where(x => x.ProductId == product.ProductId).Select(x => x.NavbarItemId).ToList();
+                bool isCatChanged = false;
+                if (SelectedNavbarItemIds != null)
+                {
+                    if (oldCatIds.Count != SelectedNavbarItemIds.Length || !oldCatIds.All(SelectedNavbarItemIds.Contains)) isCatChanged = true;
+                }
+                else if (oldCatIds.Count > 0) isCatChanged = true;
+
+                if (isCatChanged) changes.Add("Cập nhật danh mục");
+
+                if (changes.Any())
+                {
+                    var log = new ProductLog
+                    {
+                        ProductId = product.ProductId,
+                        ActionType = "Cập nhật",
+                        UpdatedBy = User.Identity.Name ?? "Admin",
+                        CreatedAt = DateTime.Now,
+                        LogDescription = string.Join("; ", changes)
+                    };
+                    db.ProductLogs.Add(log);
+                }
+
+                // 4. Lưu sản phẩm
+                db.Entry(product).State = EntityState.Modified;
+
+                // 5. Cập nhật danh mục
+                var existingLinks = db.ProductNavbarLinks.Where(p => p.ProductId == product.ProductId);
+                db.ProductNavbarLinks.RemoveRange(existingLinks);
+                if (SelectedNavbarItemIds != null)
+                {
+                    foreach (var navId in SelectedNavbarItemIds)
+                    {
+                        db.ProductNavbarLinks.Add(new ProductNavbarLink { ProductId = product.ProductId, NavbarItemId = navId });
+                    }
+                }
+
+                db.SaveChanges();
+                TempData["Message"] = "Cập nhật sản phẩm thành công!";
+                return RedirectToAction("Products");
+            }
+
+            var categories = db.NavbarItems.Where(n => !n.ItemText.Contains("Thương Hiệu")).OrderBy(n => n.ItemOrder).ToList();
+            ViewBag.NavbarItemIds = new MultiSelectList(categories, "ItemId", "ItemText", SelectedNavbarItemIds);
+            return View(product);
+        }
+
+        // GET: Admin/ProductAdmin/Delete/5
+        public ActionResult Delete(int? id)
+        {
+            if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            Product product = db.Products.Find(id);
+            if (product == null) return HttpNotFound();
+            return View(product);
+        }
+
+        // POST: Admin/ProductAdmin/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public ActionResult DeleteConfirmed(int id)
+        {
+            Product product = db.Products.Find(id);
+            db.Products.Remove(product);
             db.SaveChanges();
+            TempData["Message"] = "Đã xóa sản phẩm thành công!";
             return RedirectToAction("Products");
         }
 
-        // === ACTION 4: XÓA SẢN PHẨM ===
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult DeleteProduct(int id)
+        protected override void Dispose(bool disposing)
         {
-            var product = db.Products.Find(id);
-            if (product != null)
-            {
-                db.Products.Remove(product);
-                db.SaveChanges();
-                TempData["Message"] = "Sản phẩm đã được xóa thành công.";
-            }
-            return RedirectToAction("Products");
+            if (disposing) db.Dispose();
+            base.Dispose(disposing);
         }
     }
 }

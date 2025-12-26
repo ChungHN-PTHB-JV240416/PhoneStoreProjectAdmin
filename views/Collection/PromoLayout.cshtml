@@ -1,0 +1,110 @@
+﻿@model IEnumerable<PhoneStore_New.Models.Product>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    int counter = 0;
+}
+
+@section styles {
+    <style>
+        body { background-color: #fff; } /* Trang quảng bá nên nền trắng cho sang */
+        .container { width: 98%; max-width: 1400px; }
+
+        .promo-hero {
+            text-align: center;
+            padding: 60px 0 40px;
+            background: #f8f9fa;
+            margin-bottom: 50px;
+        }
+        .promo-hero h1 { font-weight: 800; text-transform: uppercase; letter-spacing: 2px; font-size: 3rem; margin-bottom: 10px; }
+        .promo-hero p { color: #666; font-size: 1.2rem; }
+
+        /* Style từng khối sản phẩm feature */
+        .feature-block {
+            display: flex;
+            align-items: center;
+            margin-bottom: 80px;
+            padding: 0 20px;
+        }
+
+        .feature-img { flex: 1; padding: 20px; text-align: center; }
+        .feature-img img { max-width: 100%; max-height: 400px; object-fit: contain; transition: transform 0.5s; }
+        .feature-img:hover img { transform: scale(1.05) rotate(-2deg); }
+
+        .feature-info { flex: 1; padding: 40px; }
+        .feature-tag { color: #d0011b; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; display: block; }
+        .feature-title { font-size: 2.5rem; font-weight: 800; margin-bottom: 20px; color: #333; line-height: 1.2; }
+        .feature-desc { font-size: 1.1rem; color: #555; line-height: 1.6; margin-bottom: 30px; }
+        .feature-price { font-size: 2rem; color: #d0011b; font-weight: 700; margin-bottom: 30px; display: block; }
+
+        .btn-promo {
+            padding: 15px 40px;
+            background: #333;
+            color: #fff;
+            font-weight: 700;
+            text-transform: uppercase;
+            text-decoration: none;
+            border-radius: 50px;
+            transition: 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .btn-promo:hover { background: #d0011b; color: #fff; transform: translateY(-3px); text-decoration: none; }
+
+        /* Đảo chiều layout chẵn/lẻ */
+        .feature-block.reverse { flex-direction: row-reverse; }
+
+        @* Mobile *@
+        @@media (max-width: 768px) {
+            .feature-block, .feature-block.reverse { flex-direction: column; text-align: center; }
+            .feature-info { padding: 20px 0; }
+        }
+    </style>
+}
+
+<div class="promo-hero">
+    <div class="container">
+        <h1>Flagship Collection</h1>
+        <p>Đỉnh cao công nghệ - Tiên phong dẫn đầu</p>
+    </div>
+</div>
+
+<div class="container">
+    @if (Model != null && Model.Any())
+    {
+        foreach (var item in Model)
+        {
+            // Logic đảo chiều: Chẵn bên phải, Lẻ bên trái
+            string reverseClass = (counter % 2 != 0) ? "reverse" : "";
+
+            <div class="feature-block @reverseClass">
+                <div class="feature-img">
+                    <a href="@Url.Action("Detail", "Product", new { id = item.ProductId })">
+                        <img src="@Url.Content(item.ImageUrl ?? "~/Content/images/no-image.png")" alt="@item.Name" />
+                    </a>
+                </div>
+                <div class="feature-info">
+                    <span class="feature-tag">Sản phẩm nổi bật</span>
+                    <h2 class="feature-title">@item.Name</h2>
+                    <div class="feature-desc">
+                        @Html.Raw(string.IsNullOrEmpty(item.Description) ? "Trải nghiệm sức mạnh vượt trội với thiết kế sang trọng, hiệu năng đỉnh cao và camera sắc nét. Đây không chỉ là một chiếc điện thoại, mà là một kiệt tác công nghệ." : item.Description)
+                    </div>
+
+                    <span class="feature-price">
+                        @{ decimal final = item.Price * (1 - (decimal)(item.DiscountPercentage ?? 0) / 100); }
+                        @final.ToString("N0")₫
+                    </span>
+
+                    <a href="@Url.Action("Detail", "Product", new { id = item.ProductId })" class="btn-promo">
+                        Mua Ngay <i class="glyphicon glyphicon-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+            counter++;
+        }
+    }
+    else
+    {
+        <div class="text-center" style="padding: 50px;">
+            <h3>Chưa có sản phẩm nổi bật nào trong danh mục này.</h3>
+        </div>
+    }
+</div>

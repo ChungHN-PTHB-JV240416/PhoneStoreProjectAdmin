@@ -1,164 +1,607 @@
 ﻿@model PhoneStore_New.Models.ViewModels.HomeViewModel
 @{
     ViewBag.Title = "Trang Chủ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // Lấy thời gian đếm ngược
+    DateTime endTime = ViewBag.FlashSaleEndTime ?? DateTime.Now;
+    double secondsLeft = (endTime - DateTime.Now).TotalSeconds;
+    if (secondsLeft < 0) { secondsLeft = 0; }
 }
 
-<style>
-    /* CSS cho Slider */
-    #bannerCarousel {
-        margin-bottom: 30px;
-        background-color: #f0f0f0;
-        border-radius: 8px;
-        overflow: hidden;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-
-    .carousel-inner .item img {
-        width: 100%;
-        min-height: 350px;
-        max-height: 450px;
-        object-fit: cover;
-        display: block;
-    }
-
-    /* === SỬA ĐỔI CSS CHO HIỂN THỊ THEO NHÓM === */
-    .brand-section {
-        margin-bottom: 40px; /* Khoảng cách giữa các thương hiệu */
-    }
-
-    .brand-title {
-        font-size: 2.5em; /* Kích thước tiêu đề thương hiệu */
-        font-weight: 700;
-        color: #333;
-        padding-bottom: 10px;
-        border-bottom: 3px solid #007bff; /* Đường gạch chân màu xanh */
-        margin-bottom: 25px;
-        display: inline-block; /* Để đường gạch chân vừa vặn với chữ */
-    }
-
-    /* CSS cho Grid Sản phẩm */
-    .product-grid {
-        display: grid;
-        /* Dùng biến ProductsPerRow từ ViewModel để chia cột */
-        grid-template-columns: repeat(@(Model.ProductsPerRow > 0 ? Model.ProductsPerRow : 4), 1fr);
-        gap: 20px;
-    }
-
-    /* Responsive cho di động */
-    @@media (max-width: 992px) {
-        .product-grid {
-            grid-template-columns: repeat(3, 1fr); /* 3 cột cho tablet */
+@section styles {
+    <style>
+        body {
+            background-color: #f5f5fa;
         }
-    }
-    @@media (max-width: 768px) {
-        .product-grid {
-            grid-template-columns: repeat(2, 1fr); /* 2 cột cho di động lớn */
-        }
-    }
-    @@media (max-width: 480px) {
-        .product-grid {
-            grid-template-columns: repeat(1, 1fr); /* 1 cột cho di động nhỏ */
-        }
-    }
 
-    /* Các style của product-card giữ nguyên */
-    .product-card {
-        border: 1px solid #e0e0e0;
-        border-radius: 8px;
-        overflow: hidden;
-        text-align: center;
-        background-color: #fff;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-        position: relative;
-        padding-bottom: 15px;
-    }
-</style>
+        .container {
+            width: 98%;
+            max-width: 1400px;
+        }
+
+        /* HERO SECTION */
+        .hero-wrapper {
+            margin-top: 20px;
+            display: flex;
+            gap: 20px;
+            height: 380px;
+            margin-bottom: 30px;
+        }
+
+        /* Sidebar */
+        .hero-category {
+            flex: 0 0 260px;
+            width: 260px;
+            background: #fff;
+            border-radius: 8px;
+            padding: 15px;
+            overflow-y: auto;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            display: none;
+            border: none;
+        }
+
+        @@media (min-width: 992px) {
+            .hero-category {
+                display: block;
+            }
+        }
+
+        .cat-list {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+
+            .cat-list li a {
+                display: block;
+                padding: 8px 0;
+                color: #333;
+                transition: 0.2s;
+                text-decoration: none;
+                border-bottom: 1px dashed #eee;
+                font-size: 14px;
+            }
+
+                .cat-list li a:hover {
+                    color: #d0011b;
+                    padding-left: 8px;
+                    font-weight: 600;
+                }
+
+        /* Filter Form */
+        .filter-header {
+            font-weight: 700;
+            font-size: 14px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            display: block;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 8px;
+            color: #333;
+        }
+
+        .price-range-inputs {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+
+        .price-input {
+            width: 100%;
+            padding: 8px;
+            font-size: 13px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .btn-apply-filter {
+            width: 100%;
+            background: #d0011b;
+            color: #fff;
+            border: none;
+            padding: 8px;
+            font-size: 13px;
+            text-transform: uppercase;
+            font-weight: 700;
+            border-radius: 4px;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+            .btn-apply-filter:hover {
+                background: #b00118;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            }
+
+        /* Banner */
+        .hero-banner {
+            flex: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .carousel, .carousel-inner, .carousel-inner .item, .carousel-inner .item img {
+            height: 100%;
+            width: 100%;
+            object-fit: cover;
+        }
+
+        /* === FLASH SALE SECTION (MỚI) === */
+        .flash-sale-section {
+            background: linear-gradient(90deg, #d0011b 0%, #ff6b6b 100%);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(208, 1, 27, 0.2);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .flash-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            padding-bottom: 15px;
+        }
+
+        .flash-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .flash-icon {
+            font-size: 30px;
+            animation: blink 1s infinite;
+            color: #ffe100;
+        }
+
+        .flash-title {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 800;
+            text-transform: uppercase;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        /* Đồng hồ đếm ngược */
+        .countdown-timer {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-left: 20px;
+        }
+
+        .timer-text {
+            font-size: 13px;
+            font-weight: 600;
+            opacity: 0.9;
+            margin-right: 5px;
+            text-transform: uppercase;
+        }
+
+        .timer-box {
+            background: #000;
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 16px;
+            min-width: 35px;
+            text-align: center;
+        }
+
+        .timer-sep {
+            font-weight: 700;
+            font-size: 18px;
+            margin-top: -3px;
+        }
+
+        .flash-view-all {
+            color: #fff;
+            background: rgba(255,255,255,0.2);
+            padding: 6px 15px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 600;
+            transition: 0.2s;
+            border: 1px solid rgba(255,255,255,0.4);
+        }
+
+            .flash-view-all:hover {
+                background: #fff;
+                color: #d0011b;
+                text-decoration: none;
+            }
+
+        @@keyframes blink {
+            50% {
+                opacity: 0.5;
+                transform: scale(1.2);
+            }
+        }
+
+        /* === NORMAL SECTIONS === */
+        .section-box {
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #eee;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: #333;
+            margin: 0;
+            text-transform: uppercase;
+            border-left: 4px solid #d0011b;
+            padding-left: 10px;
+        }
+
+        .view-all {
+            font-size: 13px;
+            color: #555;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+            .view-all:hover {
+                color: #d0011b;
+                text-decoration: none;
+            }
+
+        /* PRODUCT CARD */
+        .product-grid-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -5px;
+        }
+
+        .product-col {
+            width: 20%;
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+
+        @@media (max-width: 992px) {
+            .product-col {
+                width: 25%;
+            }
+        }
+
+        @@media (max-width: 768px) {
+            .product-col {
+                width: 50%;
+            }
+        }
+
+        .product-card {
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            transition: all 0.2s;
+            position: relative;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 10px;
+            overflow: hidden;
+        }
+
+            .product-card:hover {
+                box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+                transform: translateY(-3px);
+                border-color: #d0011b;
+                z-index: 5;
+            }
+
+        .img-wrap {
+            position: relative;
+            padding-top: 100%;
+            overflow: hidden;
+            display: block;
+            z-index: 1;
+        }
+
+            .img-wrap img {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                padding: 15px;
+                transition: 0.3s;
+            }
+
+        .product-card:hover img {
+            transform: scale(1.05);
+        }
+
+        .badge-discount {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #ffe97a;
+            color: #d0011b;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 3px 6px;
+            border-radius: 4px;
+            z-index: 10;
+        }
+
+        .badge-vip {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: #007bff;
+            color: #fff;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 3px 6px;
+            border-radius: 4px;
+            z-index: 10;
+        }
+
+        .info-wrap {
+            padding: 10px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .prod-name {
+            font-size: 14px;
+            color: #333;
+            margin: 0 0 5px;
+            height: 38px;
+            overflow: hidden;
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+            .prod-name:hover {
+                color: #d0011b;
+            }
+
+        .price-final {
+            color: #d0011b;
+            font-size: 16px;
+            font-weight: 700;
+            display: block;
+        }
+
+        .price-original {
+            color: #999;
+            font-size: 12px;
+            text-decoration: line-through;
+            margin-right: 5px;
+        }
+
+        .btn-add-cart {
+            margin-top: 8px;
+            width: 100%;
+            background: #fff;
+            color: #d0011b;
+            border: 1px solid #d0011b;
+            padding: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            text-align: center;
+            border-radius: 4px;
+            opacity: 0;
+            transition: 0.2s;
+            display: block;
+            text-decoration: none;
+            text-transform: uppercase;
+        }
+
+        .product-card:hover .btn-add-cart {
+            opacity: 1;
+            background: #d0011b;
+            color: #fff;
+        }
+    </style>
+}
 
 <div class="container">
+    @* === 1. HERO SECTION === *@
+    <div class="hero-wrapper">
+        <div class="hero-category">
+            <span class="filter-header"><i class="glyphicon glyphicon-tag"></i> THƯƠNG HIỆU</span>
+            <ul class="cat-list">
+                @if (Model.SidebarItems != null)
+                {
+                    foreach (var item in Model.SidebarItems)
+                    {
+                        <li><a href="@Url.Action("Index", "Collection", new { id = item.ItemId })"><i class="glyphicon glyphicon-menu-right" style="font-size:10px; color:#ccc"></i> @item.ItemText</a></li>
+                    }
+                }
+            </ul>
 
-    @* PHẦN BANNER SLIDER *@
-    @if (Model.Banners != null && Model.Banners.Any())
-    {
-        <div id="bannerCarousel" class="carousel slide" data-ride="carousel">
-            <ol class="carousel-indicators">
-                @for (int i = 0; i < Model.Banners.Count; i++)
-                {
-                    <li data-target="#bannerCarousel" data-slide-to="@i" class="@(i == 0 ? "active" : "")"></li>
-                }
-            </ol>
-            <div class="carousel-inner" role="listbox">
-                @for (int i = 0; i < Model.Banners.Count; i++)
-                {
-                    var banner = Model.Banners[i];
-                    <div class="item @(i == 0 ? "active" : "")">
-                        <a href="@Url.Content(banner.LinkUrl ?? "#")">
-                            <img src="@Url.Content(banner.ImageUrl)" alt="@banner.Title">
-                        </a>
-                    </div>
-                }
+            <form method="get" action="@Url.Action("Index", "Shop")" style="margin-top: 30px;">
+                <span class="filter-header"><i class="glyphicon glyphicon-usd"></i> KHOẢNG GIÁ</span>
+                <div class="price-range-inputs">
+                    <input type="number" name="minPrice" class="price-input" placeholder="Từ..." min="0">
+                    <input type="number" name="maxPrice" class="price-input" placeholder="Đến..." min="0">
+                </div>
+                <button type="submit" class="btn-apply-filter">
+                    <i class="glyphicon glyphicon-search"></i> TÌM KIẾM
+                </button>
+            </form>
+        </div>
+
+        <div class="hero-banner">
+            @if (Model.Banners != null && Model.Banners.Any())
+            {
+                <div id="mainCarousel" class="carousel slide" data-ride="carousel">
+                    <ol class="carousel-indicators">
+                        @for (int i = 0; i < Model.Banners.Count; i++)
+                        {
+                            <li data-target="#mainCarousel" data-slide-to="@i" class="@(i==0?"active":"")"></li>
+}
+                </ol>
+                <div class="carousel-inner">
+                    @for (int i = 0; i < Model.Banners.Count; i++)
+                    {<div class="item @(i==0?"active":"")"><a href="@(Model.Banners[i].LinkUrl??"#")"><img src="@Url.Content(Model.Banners[i].ImageUrl)" alt="Banner"></a></div>}
             </div>
-            <a class="left carousel-control" href="#bannerCarousel" role="button" data-slide="prev">
-                <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
-                <span class="sr-only">Previous</span>
-            </a>
-            <a class="right carousel-control" href="#bannerCarousel" role="button" data-slide="next">
-                <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
-                <span class="sr-only">Next</span>
-            </a>
         </div>
     }
+        </div>
+    </div>
 
-
-    @* HIỂN THỊ SẢN PHẨM THEO TỪNG NHÓM THƯƠNG HIỆU *@
-
-    @if (Model.ProductsByBrand != null && Model.ProductsByBrand.Any())
+    @* === 2. SECTIONS === *@
+    @if (Model.Sections != null && Model.Sections.Any())
     {
-        foreach (var brandGroup in Model.ProductsByBrand)
+        foreach (var sec in Model.Sections)
         {
-            <div class="brand-section">
+            // --- GIAO DIỆN FLASH SALE ---
+            if (sec.LayoutType == 2)
+            {
+                <div class="flash-sale-section">
+                    <div class="flash-header">
+                        <div class="flash-title-wrap">
+                            <i class="glyphicon glyphicon-flash flash-icon"></i>
+                            <h3 class="flash-title">@sec.Title</h3>
 
-                <h2 class="brand-title">@brandGroup.Key</h2>
-
-                <div class="product-grid">
-
-                    @foreach (var product in brandGroup.Value)
-                    {
-                        <div class="product-card">
-
-                            @if (product.IsVipPrice)
-                            {
-                                <span class="product-badge" style="background-color: #007bff;">👑 GIÁ VIP</span>
-                            }
-                            else if (product.DiscountPercentage > 0)
-                            {
-                                <span class="product-badge">-@product.DiscountPercentage%</span>
-                            }
-
-                            <div class="content">
-                                <img src="@Url.Content(product.ImageUrl)" alt="@product.Name">
-                                <h3>@product.Name</h3>
-                                <div class="price-container">
-
-                                    @if (product.FinalPrice < product.OriginalPrice)
-                                    {
-                                        <p class="original-price">@product.FormattedOriginalPrice</p>
-                                    }
-
-                                    <p class="sale-price">@product.FormattedFinalPrice</p>
-
-                                </div>
+                            @* ĐỒNG HỒ ĐẾM NGƯỢC *@
+                            <div class="countdown-timer" id="home-countdown">
+                                <span class="timer-text">Kết thúc sau:</span>
+                                <div class="timer-box" id="h-val">00</div><div class="timer-sep">:</div>
+                                <div class="timer-box" id="m-val">00</div><div class="timer-sep">:</div>
+                                <div class="timer-box" id="s-val">00</div>
                             </div>
-                            <a href="@Url.Action("Detail", "Product", new { id = product.ProductId })" class="btn btn-primary btn-block">Xem chi tiết</a>
                         </div>
-                    }
+                        @if (!string.IsNullOrEmpty(sec.ViewAllUrl))
+                        {<a href="@sec.ViewAllUrl" class="flash-view-all">Xem tất cả ></a>}
+                    </div>
 
+                    <div class="product-grid-row">
+                        @foreach (var p in sec.Products)
+                        {<div class="product-col">@_ProductCard(p, true)</div>}
+                    </div>
                 </div>
-            </div> }
-    }
-    else
-    {
-        <p class="text-center alert alert-info">Hiện tại không có sản phẩm nào để hiển thị.</p>
-    }
+            }
+            else
+            {
+                // --- GIAO DIỆN THƯỜNG ---
+                <div class="section-box">
+                    <div class="section-header">
+                        <h3 class="section-title">@sec.Title</h3>
+                        @if (!string.IsNullOrEmpty(sec.ViewAllUrl))
+                        {<a href="@sec.ViewAllUrl" class="view-all">Xem tất cả ></a>}
+                    </div>
 
+                    <div class="product-grid-row">
+                        @foreach (var p in sec.Products)
+                        {<div class="product-col">@_ProductCard(p, false)</div>}
+                    </div>
+                </div>
+            }
+        }
+    }
 </div>
+
+@* Helper vẽ thẻ sản phẩm *@
+@helper _ProductCard(PhoneStore_New.Models.ViewModels.ProductCardViewModel p, bool isFlashSale)
+{
+    <div class="product-card" style="@(isFlashSale ? "border:none;" : "")">
+        @if (p.DiscountPercentage > 0)
+        {
+            <span class="badge-discount" style="@(isFlashSale ? "background:#ffe100; color:#d0011b;" : "")">
+                @(isFlashSale ? "⚡" : "") -@p.DiscountPercentage%
+            </span>
+        }
+        @if (p.IsVipPrice)
+        {<span class="badge-vip">VIP</span>}
+
+        <a href="@Url.Action("Detail", "Product", new { id = p.ProductId })" class="img-wrap">
+            <img src="@Url.Content(p.ImageUrl ?? "~/Content/images/no-image.png")" alt="@p.Name">
+        </a>
+
+        <div class="info-wrap">
+            <a href="@Url.Action("Detail", "Product", new { id = p.ProductId })" class="prod-name">@p.Name</a>
+            <div class="price-box">
+                <span class="price-final">@p.FormattedFinalPrice</span>
+                @if (p.FinalPrice < p.OriginalPrice)
+                {<span class="price-original">@p.FormattedOriginalPrice</span>}
+            </div>
+
+            @if (isFlashSale)
+            {
+                <div class="progress" style="height:5px; margin:5px 0 10px; background:#e9ecef; border-radius:5px;">
+                    <div class="progress-bar" style="width:85%; background:#fff;"></div>
+                </div>
+            }
+
+            <a href="@Url.Action("Detail", "Product", new { id = p.ProductId })" class="btn-add-cart" style="@(isFlashSale ? "background:#fff; color:#d0011b; opacity:1;" : "")">
+                @(isFlashSale ? "MUA NGAY" : "Thêm vào giỏ")
+            </a>
+        </div>
+    </div>
+}
+@* --- NÚT XEM TẤT CẢ Ở CUỐI TRANG HOME --- *@
+<div class="text-center" style="margin: 40px 0 60px 0;">
+    <a href="@Url.Action("ShowAllProducts", "Collection")" class="btn btn-default btn-lg" style="padding: 15px 60px; border-radius: 50px; border: 2px solid #333; font-weight: 700; text-transform: uppercase; transition: 0.3s;">
+        Xem toàn bộ sản phẩm <i class="glyphicon glyphicon-th-large" style="margin-left: 10px;"></i>
+    </a>
+</div>
+
+@section scripts {
+    <script>
+        var timeLeft = @((int)secondsLeft);
+
+        function updateHomeTimer() {
+            var h = Math.floor(timeLeft / 3600);
+            var m = Math.floor((timeLeft % 3600) / 60);
+            var s = Math.floor(timeLeft % 60);
+
+            var hEl = document.getElementById("h-val");
+            var mEl = document.getElementById("m-val");
+            var sEl = document.getElementById("s-val");
+
+            if (hEl && mEl && sEl) {
+                hEl.innerText = h < 10 ? "0" + h : h;
+                mEl.innerText = m < 10 ? "0" + m : m;
+                sEl.innerText = s < 10 ? "0" + s : s;
+            }
+
+            if (timeLeft > 0) {
+                timeLeft--;
+            }
+        }
+
+        if (timeLeft > 0) {
+            setInterval(updateHomeTimer, 1000);
+            updateHomeTimer();
+        }
+    </script>
+}

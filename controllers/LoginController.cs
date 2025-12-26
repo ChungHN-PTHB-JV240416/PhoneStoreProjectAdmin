@@ -1,11 +1,14 @@
-﻿using System;
+﻿using PhoneStore_New.Models;
+using PhoneStore_New.Models.ViewModels;
+using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
+using System.Net;
+using System.Net.Mail;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Security;
-using PhoneStore_New.Models;
-using PhoneStore_New.Models.ViewModels;
 
 namespace PhoneStore_New.Controllers
 {
@@ -227,35 +230,48 @@ namespace PhoneStore_New.Controllers
         [AllowAnonymous]
         public ActionResult ForgotPassword()
         {
-            ViewBag.BackgroundUrl = db.Settings.FirstOrDefault(s => s.SettingKey == "background_image_url")?.SettingValue ?? DEFAULT_BACKGROUND_URL;
             return View();
         }
 
-        // POST: /Login/ForgotPassword
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
         public ActionResult ForgotPassword(string email)
         {
-            ViewBag.BackgroundUrl = db.Settings.FirstOrDefault(s => s.SettingKey == "background_image_url")?.SettingValue ?? DEFAULT_BACKGROUND_URL;
-
             var user = db.Users.FirstOrDefault(u => u.Email == email);
             if (user == null)
             {
-                ViewBag.Error = "Email này chưa được đăng ký trong hệ thống.";
+                ViewBag.Error = "Email không tồn tại trong hệ thống.";
                 return View();
             }
 
-            // Ở ĐÂY SẼ LÀ CODE GỬI EMAIL THỰC TẾ (Cần cấu hình SMTP Server)
-            // Tạm thời mình sẽ giả lập là gửi thành công để bạn test giao diện trước.
+            // Tạo mật khẩu mới (8 ký tự)
+            string newPass = Guid.NewGuid().ToString().Substring(0, 8);
+            user.PasswordHash = System.Web.Helpers.Crypto.HashPassword(newPass);
+            db.SaveChanges();
 
-            /* * Ví dụ logic thực tế:
-             * 1. Tạo token random
-             * 2. Lưu token vào DB
-             * 3. Gửi link reset password chứa token qua email
-             */
+            // Gửi Email
+            try
+            {
+                var msg = new MailMessage();
+                msg.From = new MailAddress(ConfigurationManager.AppSettings["EmailUserName"], ConfigurationManager.AppSettings["EmailFrom"]);
+                msg.To.Add(user.Email);
+                msg.Subject = "Cấp lại mật khẩu PhoneStore";
+                msg.Body = $"Mật khẩu mới của bạn là: <b>{newPass}</b><br/>Vui lòng đổi lại ngay sau khi đăng nhập.";
+                msg.IsBodyHtml = true;
 
-            ViewBag.Success = "Yêu cầu đã được tiếp nhận! Nếu email hợp lệ, chúng tôi sẽ gửi hướng dẫn đặt lại mật khẩu cho bạn.";
+                using (var client = new SmtpClient(ConfigurationManager.AppSettings["EmailHost"], int.Parse(ConfigurationManager.AppSettings["EmailPort"])))
+                {
+                    client.EnableSsl = true;
+                    client.Credentials = new NetworkCredential(ConfigurationManager.AppSettings["EmailUserName"], ConfigurationManager.AppSettings["EmailPassword"]);
+                    client.Send(msg);
+                }
+                ViewBag.Success = "Đã gửi mật khẩu mới vào email của bạn.";
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = "Lỗi gửi mail: " + ex.Message;
+            }
             return View();
         }
 

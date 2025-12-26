@@ -19,6 +19,7 @@ namespace PhoneStore_New.Models
         {
             this.NavbarItems1 = new HashSet<NavbarItem>();
             this.Products = new HashSet<Product>();
+            this.ProductNavbarLinks = new HashSet<ProductNavbarLink>();
         }
     
         public int ItemId { get; set; }
@@ -34,5 +35,7 @@ namespace PhoneStore_New.Models
         public virtual NavbarItem NavbarItem1 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Product> Products { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<ProductNavbarLink> ProductNavbarLinks { get; set; }
     }
 }

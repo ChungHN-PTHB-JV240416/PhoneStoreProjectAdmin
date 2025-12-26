@@ -35,6 +35,14 @@
         <EntityTypeShape EntityType="PhoneStoreDBModel.Cart" Width="1.5" PointX="8.25" PointY="0.75" />
         <AssociationConnector Association="PhoneStoreDBModel.FK__Carts__ProductId__0A688BB1" />
         <AssociationConnector Association="PhoneStoreDBModel.FK__Carts__UserId__09746778" />
+        <EntityTypeShape EntityType="PhoneStoreDBModel.ProductNavbarLink" Width="1.5" PointX="11.5" PointY="8" />
+        <AssociationConnector Association="PhoneStoreDBModel.FK__ProductNa__Navba__1C873BEC" />
+        <AssociationConnector Association="PhoneStoreDBModel.FK__ProductNa__Produ__1B9317B3" />
+        <EntityTypeShape EntityType="PhoneStoreDBModel.ProductLog" Width="1.5" PointX="5.25" PointY="16.125" />
+        <AssociationConnector Association="PhoneStoreDBModel.FK__ProductLo__Produ__2057CCD0" />
+        <EntityTypeShape EntityType="PhoneStoreDBModel.Contact" Width="1.5" PointX="12.375" PointY="10.75" />
+        <EntityTypeShape EntityType="PhoneStoreDBModel.ContactReply" Width="1.5" PointX="14.625" PointY="11.125" />
+        <AssociationConnector Association="PhoneStoreDBModel.FK__ContactRe__Conta__3552E9B6" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

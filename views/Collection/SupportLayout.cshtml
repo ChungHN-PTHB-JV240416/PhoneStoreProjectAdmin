@@ -1,0 +1,367 @@
+﻿@model PhoneStore_New.Models.NavbarItem
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = Model.ItemText ?? "Chăm sóc khách hàng";
+}
+
+@section styles {
+    <style>
+        body {
+            background-color: #f5f5fa;
+        }
+
+        .container {
+            width: 98%;
+            max-width: 1400px;
+        }
+
+        .support-header {
+            background: #fff;
+            padding: 40px;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+            .support-header h2 {
+                margin: 0;
+                font-weight: 800;
+                color: #333;
+                text-transform: uppercase;
+            }
+
+            .support-header p {
+                margin-top: 10px;
+                color: #777;
+            }
+
+        /* Style cho nút xem hộp thư */
+        .btn-check-ticket {
+            margin-top: 20px;
+            background-color: #ff9800; /* Màu cam nổi bật */
+            color: #fff;
+            font-weight: 700;
+            padding: 10px 25px;
+            border-radius: 30px;
+            border: none;
+            transition: 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+            .btn-check-ticket:hover {
+                background-color: #e68900;
+                color: #fff;
+                text-decoration: none;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            }
+
+        .support-grid {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .col-left {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .col-right {
+            flex: 2;
+            min-width: 400px;
+        }
+
+        /* Box Contact Info */
+        .contact-box {
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            height: 100%;
+        }
+
+        .contact-item {
+            margin-bottom: 25px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .contact-icon {
+            width: 40px;
+            height: 40px;
+            background: #fff0f0;
+            color: #d0011b;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            margin-right: 15px;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .contact-text h5 {
+            margin: 0 0 5px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .contact-text p {
+            margin: 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* Form Style */
+        .form-box {
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+
+        .form-control {
+            height: 45px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            background: #f9f9f9;
+        }
+
+            .form-control:focus {
+                border-color: #d0011b;
+                background: #fff;
+                box-shadow: none;
+            }
+
+        textarea.form-control {
+            height: auto;
+        }
+
+        .btn-send {
+            background: #d0011b;
+            color: #fff;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 4px;
+            transition: 0.3s;
+        }
+
+            .btn-send:hover {
+                background: #b00118;
+            }
+
+        /* FAQ Style */
+        .faq-title {
+            font-weight: 700;
+            font-size: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #d0011b;
+            padding-left: 15px;
+        }
+
+        .panel-group .panel {
+            border-radius: 4px;
+            border: 1px solid #eee;
+            box-shadow: none;
+            margin-bottom: 10px;
+        }
+
+        .panel-heading {
+            background: #fff;
+            padding: 15px;
+            cursor: pointer;
+        }
+
+        .panel-title a {
+            font-weight: 600;
+            color: #333;
+            text-decoration: none;
+            display: block;
+        }
+
+            .panel-title a:hover {
+                color: #d0011b;
+            }
+
+        .panel-body {
+            border-top: 1px solid #eee;
+            padding: 20px;
+            color: #555;
+            line-height: 1.6;
+        }
+    </style>
+}
+
+<div class="container">
+    <div class="support-header">
+        <h2>@Model.ItemText</h2>
+        <p>Chúng tôi luôn sẵn sàng lắng nghe và hỗ trợ bạn 24/7</p>
+
+        @* === THÊM MỚI: NÚT DẪN ĐẾN HỘP THƯ HỖ TRỢ === *@
+        @if (Request.IsAuthenticated)
+        {
+            <a href="@Url.Action("MyTickets", "Profile")" class="btn-check-ticket">
+                <i class="glyphicon glyphicon-inbox"></i> Xem Hộp thư Hỗ trợ của bạn
+            </a>
+        }
+        else
+        {
+            <div style="margin-top: 15px;">
+                <small>Bạn đã gửi yêu cầu trước đó? <a href="@Url.Action("Index", "Login")">Đăng nhập</a> để xem phản hồi.</small>
+            </div>
+        }
+        @* ============================================= *@
+    </div>
+
+    <div class="support-grid">
+        @* CỘT TRÁI: THÔNG TIN LIÊN HỆ *@
+        <div class="col-left">
+            <div class="contact-box">
+                <h4 style="margin-bottom: 30px; font-weight: 800;">THÔNG TIN LIÊN HỆ</h4>
+
+                <div class="contact-item">
+                    <div class="contact-icon"><i class="glyphicon glyphicon-map-marker"></i></div>
+                    <div class="contact-text">
+                        <h5>Địa chỉ</h5>
+                        <p>123 Đường Nguyễn Văn Linh, Quận Thanh Khê, TP. Đà Nẵng</p>
+                    </div>
+                </div>
+
+                <div class="contact-item">
+                    <div class="contact-icon"><i class="glyphicon glyphicon-phone-alt"></i></div>
+                    <div class="contact-text">
+                        <h5>Hotline Hỗ trợ</h5>
+                        <p>1900 123 456 (8:00 - 22:00)</p>
+                    </div>
+                </div>
+
+                <div class="contact-item">
+                    <div class="contact-icon"><i class="glyphicon glyphicon-envelope"></i></div>
+                    <div class="contact-text">
+                        <h5>Email</h5>
+                        <p>hotro@phonestore.vn</p>
+                    </div>
+                </div>
+
+                <div class="contact-item">
+                    <div class="contact-icon"><i class="glyphicon glyphicon-time"></i></div>
+                    <div class="contact-text">
+                        <h5>Giờ làm việc</h5>
+                        <p>Thứ 2 - Chủ Nhật: 8:00 - 22:00</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* CỘT PHẢI: FORM GỬI YÊU CẦU & FAQ *@
+        <div class="col-right">
+
+            @* 1. FORM LIÊN HỆ *@
+            <div class="form-box">
+                <h4 class="faq-title">GỬI YÊU CẦU HỖ TRỢ</h4>
+
+                @if (TempData["Message"] != null)
+                {
+                    <div class="alert alert-success">
+                        <i class="glyphicon glyphicon-ok"></i> @TempData["Message"]
+                        <br />
+                        @if (Request.IsAuthenticated)
+                        {
+                            <a href="@Url.Action("MyTickets", "Profile")" style="font-weight:bold; text-decoration:underline;">Xem tiến độ xử lý tại đây</a>
+                        }
+                    </div>
+                }
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger">
+                        <i class="glyphicon glyphicon-warning-sign"></i> @TempData["Error"]
+                    </div>
+                }
+
+                @using (Html.BeginForm("SubmitContact", "Collection", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+
+                    <div class="row">
+                        <div class="col-md-6 form-group">
+                            <input type="text" name="fullName" class="form-control" placeholder="Họ tên của bạn" required>
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <input type="email" name="email" class="form-control" placeholder="Email liên hệ" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <input type="text" name="phone" class="form-control" placeholder="Số điện thoại" required>
+                    </div>
+
+                    <div class="form-group">
+                        <textarea name="message" class="form-control" rows="4" placeholder="Nội dung cần hỗ trợ..." required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-send">
+                        Gửi Yêu Cầu
+                    </button>
+                }
+            </div>
+
+            @* 2. FAQ *@
+            <div class="form-box">
+                <h4 class="faq-title">CÂU HỎI THƯỜNG GẶP</h4>
+                <div class="panel-group" id="accordion">
+
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-toggle="collapse" data-parent="#accordion" href="#collapse1">
+                                    <i class="glyphicon glyphicon-question-sign"></i> 1. Chính sách bảo hành bao lâu?
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapse1" class="panel-collapse collapse in">
+                            <div class="panel-body">
+                                Tất cả sản phẩm điện thoại bán ra đều được bảo hành chính hãng 12 tháng. Phụ kiện bảo hành 6 tháng 1 đổi 1 nếu có lỗi nhà sản xuất.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-toggle="collapse" data-parent="#accordion" href="#collapse2">
+                                    <i class="glyphicon glyphicon-refresh"></i> 2. Tôi có thể đổi trả hàng không?
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapse2" class="panel-collapse collapse">
+                            <div class="panel-body">
+                                Chúng tôi hỗ trợ đổi trả trong vòng 30 ngày đầu nếu sản phẩm có lỗi phần cứng từ nhà sản xuất. Vui lòng giữ nguyên hộp và phụ kiện.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-toggle="collapse" data-parent="#accordion" href="#collapse3">
+                                    <i class="glyphicon glyphicon-plane"></i> 3. Thời gian giao hàng mất bao lâu?
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapse3" class="panel-collapse collapse">
+                            <div class="panel-body">
+                                Nội thành: Giao trong 2-4 giờ. Ngoại thành và các tỉnh: 2-4 ngày làm việc tùy khu vực.
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

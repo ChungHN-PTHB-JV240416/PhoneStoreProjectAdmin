@@ -37,6 +37,30 @@
           <Property Name="Name" Type="nvarchar" MaxLength="50" Nullable="false" />
           <Property Name="ParentId" Type="int" />
         </EntityType>
+        <EntityType Name="ContactReplies">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ContactId" Type="int" Nullable="false" />
+          <Property Name="Message" Type="ntext" Nullable="false" />
+          <Property Name="IsAdmin" Type="bit" />
+          <Property Name="CreatedAt" Type="datetime" />
+        </EntityType>
+        <EntityType Name="Contacts">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="FullName" Type="nvarchar" MaxLength="100" />
+          <Property Name="Email" Type="varchar" MaxLength="100" />
+          <Property Name="Phone" Type="varchar" MaxLength="20" />
+          <Property Name="Message" Type="ntext" />
+          <Property Name="CreatedAt" Type="datetime" />
+          <Property Name="IsRead" Type="bit" Nullable="false" />
+          <Property Name="UserId" Type="int" />
+          <Property Name="Status" Type="int" />
+        </EntityType>
         <EntityType Name="NavbarItems">
           <Key>
             <PropertyRef Name="ItemId" />
@@ -112,6 +136,27 @@
           <Property Name="Name" Type="nvarchar" MaxLength="255" Nullable="false" />
           <Property Name="Handle" Type="nvarchar" MaxLength="255" Nullable="false" />
           <Property Name="IsPublished" Type="bit" Nullable="false" />
+        </EntityType>
+        <EntityType Name="ProductLogs">
+          <Key>
+            <PropertyRef Name="LogId" />
+          </Key>
+          <Property Name="LogId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ProductId" Type="int" Nullable="false" />
+          <Property Name="ActionType" Type="nvarchar" MaxLength="50" />
+          <Property Name="OldValue" Type="nvarchar(max)" />
+          <Property Name="NewValue" Type="nvarchar(max)" />
+          <Property Name="LogDescription" Type="nvarchar(max)" />
+          <Property Name="UpdatedBy" Type="nvarchar" MaxLength="100" />
+          <Property Name="CreatedAt" Type="datetime" />
+        </EntityType>
+        <EntityType Name="ProductNavbarLinks">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ProductId" Type="int" Nullable="false" />
+          <Property Name="NavbarItemId" Type="int" Nullable="false" />
         </EntityType>
         <EntityType Name="Products">
           <Key>
@@ -226,6 +271,62 @@
             </Principal>
             <Dependent Role="Carts">
               <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__ContactRe__Conta__3552E9B6">
+          <End Role="Contacts" Type="Self.Contacts" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="ContactReplies" Type="Self.ContactReplies" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Contacts">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ContactReplies">
+              <PropertyRef Name="ContactId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__ProductLo__Produ__2057CCD0">
+          <End Role="Products" Type="Self.Products" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="ProductLogs" Type="Self.ProductLogs" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Products">
+              <PropertyRef Name="ProductId" />
+            </Principal>
+            <Dependent Role="ProductLogs">
+              <PropertyRef Name="ProductId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__ProductNa__Navba__1C873BEC">
+          <End Role="NavbarItems" Type="Self.NavbarItems" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="ProductNavbarLinks" Type="Self.ProductNavbarLinks" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="NavbarItems">
+              <PropertyRef Name="ItemId" />
+            </Principal>
+            <Dependent Role="ProductNavbarLinks">
+              <PropertyRef Name="NavbarItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__ProductNa__Produ__1B9317B3">
+          <End Role="Products" Type="Self.Products" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="ProductNavbarLinks" Type="Self.ProductNavbarLinks" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Products">
+              <PropertyRef Name="ProductId" />
+            </Principal>
+            <Dependent Role="ProductNavbarLinks">
+              <PropertyRef Name="ProductId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -357,6 +458,8 @@
           <EntitySet Name="Banners" EntityType="Self.Banners" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Carts" EntityType="Self.Carts" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Categories" EntityType="Self.Categories" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ContactReplies" EntityType="Self.ContactReplies" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Contacts" EntityType="Self.Contacts" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="NavbarItems" EntityType="Self.NavbarItems" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="OrderItems" EntityType="Self.OrderItems" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Orders" EntityType="Self.Orders" Schema="dbo" store:Type="Tables" />
@@ -364,6 +467,8 @@
           <EntitySet Name="PriceRanges" EntityType="Self.PriceRanges" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ProductCollectionItems" EntityType="Self.ProductCollectionItems" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ProductCollections" EntityType="Self.ProductCollections" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ProductLogs" EntityType="Self.ProductLogs" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ProductNavbarLinks" EntityType="Self.ProductNavbarLinks" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Products" EntityType="Self.Products" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Reviews" EntityType="Self.Reviews" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Settings" EntityType="Self.Settings" Schema="dbo" store:Type="Tables" />
@@ -378,6 +483,22 @@
           <AssociationSet Name="FK__Carts__UserId__09746778" Association="Self.FK__Carts__UserId__09746778">
             <End Role="Users" EntitySet="Users" />
             <End Role="Carts" EntitySet="Carts" />
+          </AssociationSet>
+          <AssociationSet Name="FK__ContactRe__Conta__3552E9B6" Association="Self.FK__ContactRe__Conta__3552E9B6">
+            <End Role="Contacts" EntitySet="Contacts" />
+            <End Role="ContactReplies" EntitySet="ContactReplies" />
+          </AssociationSet>
+          <AssociationSet Name="FK__ProductLo__Produ__2057CCD0" Association="Self.FK__ProductLo__Produ__2057CCD0">
+            <End Role="Products" EntitySet="Products" />
+            <End Role="ProductLogs" EntitySet="ProductLogs" />
+          </AssociationSet>
+          <AssociationSet Name="FK__ProductNa__Navba__1C873BEC" Association="Self.FK__ProductNa__Navba__1C873BEC">
+            <End Role="NavbarItems" EntitySet="NavbarItems" />
+            <End Role="ProductNavbarLinks" EntitySet="ProductNavbarLinks" />
+          </AssociationSet>
+          <AssociationSet Name="FK__ProductNa__Produ__1B9317B3" Association="Self.FK__ProductNa__Produ__1B9317B3">
+            <End Role="Products" EntitySet="Products" />
+            <End Role="ProductNavbarLinks" EntitySet="ProductNavbarLinks" />
           </AssociationSet>
           <AssociationSet Name="FK_Categories_Parent" Association="Self.FK_Categories_Parent">
             <End Role="Categories" EntitySet="Categories" />
@@ -463,6 +584,7 @@
           <NavigationProperty Name="NavbarItem1" Relationship="PhoneStoreDBModel.FK_NavbarItems_Parent" FromRole="NavbarItem1" ToRole="NavbarItem" />
           <Property Name="LayoutType" Type="Int32" Nullable="false" />
           <NavigationProperty Name="Products" Relationship="PhoneStoreDBModel.FK_Products_NavbarItems" FromRole="NavbarItem" ToRole="Product" />
+          <NavigationProperty Name="ProductNavbarLinks" Relationship="PhoneStoreDBModel.FK__ProductNa__Navba__1C873BEC" FromRole="NavbarItem" ToRole="ProductNavbarLink" />
         </EntityType>
         <EntityType Name="OrderItem">
           <Key>
@@ -524,6 +646,8 @@
           <NavigationProperty Name="ProductCollectionItems" Relationship="PhoneStoreDBModel.FK_CollectionItems_Product" FromRole="Product" ToRole="ProductCollectionItem" />
           <NavigationProperty Name="NavbarItem" Relationship="PhoneStoreDBModel.FK_Products_NavbarItems" FromRole="Product" ToRole="NavbarItem" />
           <NavigationProperty Name="Carts" Relationship="PhoneStoreDBModel.FK__Carts__ProductId__0A688BB1" FromRole="Product" ToRole="Cart" />
+          <NavigationProperty Name="ProductNavbarLinks" Relationship="PhoneStoreDBModel.FK__ProductNa__Produ__1B9317B3" FromRole="Product" ToRole="ProductNavbarLink" />
+          <NavigationProperty Name="ProductLogs" Relationship="PhoneStoreDBModel.FK__ProductLo__Produ__2057CCD0" FromRole="Product" ToRole="ProductLog" />
         </EntityType>
         <EntityType Name="Review">
           <Key>
@@ -738,6 +862,26 @@
             <End Role="User" EntitySet="Users" />
             <End Role="Cart" EntitySet="Carts" />
           </AssociationSet>
+          <EntitySet Name="ProductNavbarLinks" EntityType="PhoneStoreDBModel.ProductNavbarLink" />
+          <AssociationSet Name="FK__ProductNa__Navba__1C873BEC" Association="PhoneStoreDBModel.FK__ProductNa__Navba__1C873BEC">
+            <End Role="NavbarItem" EntitySet="NavbarItems" />
+            <End Role="ProductNavbarLink" EntitySet="ProductNavbarLinks" />
+          </AssociationSet>
+          <AssociationSet Name="FK__ProductNa__Produ__1B9317B3" Association="PhoneStoreDBModel.FK__ProductNa__Produ__1B9317B3">
+            <End Role="Product" EntitySet="Products" />
+            <End Role="ProductNavbarLink" EntitySet="ProductNavbarLinks" />
+          </AssociationSet>
+          <EntitySet Name="ProductLogs" EntityType="PhoneStoreDBModel.ProductLog" />
+          <AssociationSet Name="FK__ProductLo__Produ__2057CCD0" Association="PhoneStoreDBModel.FK__ProductLo__Produ__2057CCD0">
+            <End Role="Product" EntitySet="Products" />
+            <End Role="ProductLog" EntitySet="ProductLogs" />
+          </AssociationSet>
+          <EntitySet Name="Contacts" EntityType="PhoneStoreDBModel.Contact" />
+          <EntitySet Name="ContactReplies" EntityType="PhoneStoreDBModel.ContactReply" />
+          <AssociationSet Name="FK__ContactRe__Conta__3552E9B6" Association="PhoneStoreDBModel.FK__ContactRe__Conta__3552E9B6">
+            <End Role="Contact" EntitySet="Contacts" />
+            <End Role="ContactReply" EntitySet="ContactReplies" />
+          </AssociationSet>
         </EntityContainer>
         <EntityType Name="ProductCollectionItem">
           <Key>
@@ -878,6 +1022,112 @@
             </Principal>
             <Dependent Role="Cart">
               <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="ProductNavbarLink">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ProductId" Type="Int32" Nullable="false" />
+          <Property Name="NavbarItemId" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="NavbarItem" Relationship="PhoneStoreDBModel.FK__ProductNa__Navba__1C873BEC" FromRole="ProductNavbarLink" ToRole="NavbarItem" />
+          <NavigationProperty Name="Product" Relationship="PhoneStoreDBModel.FK__ProductNa__Produ__1B9317B3" FromRole="ProductNavbarLink" ToRole="Product" />
+        </EntityType>
+        <Association Name="FK__ProductNa__Navba__1C873BEC">
+          <End Type="PhoneStoreDBModel.NavbarItem" Role="NavbarItem" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="PhoneStoreDBModel.ProductNavbarLink" Role="ProductNavbarLink" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="NavbarItem">
+              <PropertyRef Name="ItemId" />
+            </Principal>
+            <Dependent Role="ProductNavbarLink">
+              <PropertyRef Name="NavbarItemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__ProductNa__Produ__1B9317B3">
+          <End Type="PhoneStoreDBModel.Product" Role="Product" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="PhoneStoreDBModel.ProductNavbarLink" Role="ProductNavbarLink" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Product">
+              <PropertyRef Name="ProductId" />
+            </Principal>
+            <Dependent Role="ProductNavbarLink">
+              <PropertyRef Name="ProductId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="ProductLog">
+          <Key>
+            <PropertyRef Name="LogId" />
+          </Key>
+          <Property Name="LogId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ProductId" Type="Int32" Nullable="false" />
+          <Property Name="ActionType" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="OldValue" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="NewValue" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="LogDescription" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="UpdatedBy" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="CreatedAt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="Product" Relationship="PhoneStoreDBModel.FK__ProductLo__Produ__2057CCD0" FromRole="ProductLog" ToRole="Product" />
+        </EntityType>
+        <Association Name="FK__ProductLo__Produ__2057CCD0">
+          <End Type="PhoneStoreDBModel.Product" Role="Product" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="PhoneStoreDBModel.ProductLog" Role="ProductLog" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Product">
+              <PropertyRef Name="ProductId" />
+            </Principal>
+            <Dependent Role="ProductLog">
+              <PropertyRef Name="ProductId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="Contact">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="FullName" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Email" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="Phone" Type="String" MaxLength="20" FixedLength="false" Unicode="false" />
+          <Property Name="Message" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="CreatedAt" Type="DateTime" Precision="3" />
+          <Property Name="IsRead" Type="Boolean" Nullable="false" />
+          <Property Name="UserId" Type="Int32" />
+          <Property Name="Status" Type="Int32" />
+          <NavigationProperty Name="ContactReplies" Relationship="PhoneStoreDBModel.FK__ContactRe__Conta__3552E9B6" FromRole="Contact" ToRole="ContactReply" />
+        </EntityType>
+        <EntityType Name="ContactReply">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ContactId" Type="Int32" Nullable="false" />
+          <Property Name="Message" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="IsAdmin" Type="Boolean" />
+          <Property Name="CreatedAt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="Contact" Relationship="PhoneStoreDBModel.FK__ContactRe__Conta__3552E9B6" FromRole="ContactReply" ToRole="Contact" />
+        </EntityType>
+        <Association Name="FK__ContactRe__Conta__3552E9B6">
+          <End Type="PhoneStoreDBModel.Contact" Role="Contact" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="PhoneStoreDBModel.ContactReply" Role="ContactReply" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Contact">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ContactReply">
+              <PropertyRef Name="ContactId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -1100,6 +1350,55 @@
                 <ScalarProperty Name="ProductId" ColumnName="ProductId" />
                 <ScalarProperty Name="UserId" ColumnName="UserId" />
                 <ScalarProperty Name="CartId" ColumnName="CartId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ProductNavbarLinks">
+            <EntityTypeMapping TypeName="PhoneStoreDBModel.ProductNavbarLink">
+              <MappingFragment StoreEntitySet="ProductNavbarLinks">
+                <ScalarProperty Name="NavbarItemId" ColumnName="NavbarItemId" />
+                <ScalarProperty Name="ProductId" ColumnName="ProductId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ProductLogs">
+            <EntityTypeMapping TypeName="PhoneStoreDBModel.ProductLog">
+              <MappingFragment StoreEntitySet="ProductLogs">
+                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+                <ScalarProperty Name="UpdatedBy" ColumnName="UpdatedBy" />
+                <ScalarProperty Name="LogDescription" ColumnName="LogDescription" />
+                <ScalarProperty Name="NewValue" ColumnName="NewValue" />
+                <ScalarProperty Name="OldValue" ColumnName="OldValue" />
+                <ScalarProperty Name="ActionType" ColumnName="ActionType" />
+                <ScalarProperty Name="ProductId" ColumnName="ProductId" />
+                <ScalarProperty Name="LogId" ColumnName="LogId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Contacts">
+            <EntityTypeMapping TypeName="PhoneStoreDBModel.Contact">
+              <MappingFragment StoreEntitySet="Contacts">
+                <ScalarProperty Name="Status" ColumnName="Status" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
+                <ScalarProperty Name="IsRead" ColumnName="IsRead" />
+                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+                <ScalarProperty Name="Message" ColumnName="Message" />
+                <ScalarProperty Name="Phone" ColumnName="Phone" />
+                <ScalarProperty Name="Email" ColumnName="Email" />
+                <ScalarProperty Name="FullName" ColumnName="FullName" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ContactReplies">
+            <EntityTypeMapping TypeName="PhoneStoreDBModel.ContactReply">
+              <MappingFragment StoreEntitySet="ContactReplies">
+                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+                <ScalarProperty Name="IsAdmin" ColumnName="IsAdmin" />
+                <ScalarProperty Name="Message" ColumnName="Message" />
+                <ScalarProperty Name="ContactId" ColumnName="ContactId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

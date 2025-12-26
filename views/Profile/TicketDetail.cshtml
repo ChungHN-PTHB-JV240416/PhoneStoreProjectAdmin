@@ -1,0 +1,181 @@
+﻿@model PhoneStore_New.Models.Contact
+@{
+    ViewBag.Title = "Chi tiết phiếu #" + Model.Id;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section styles {
+    <style>
+        body {
+            background-color: #f5f5fa;
+        }
+
+        .container {
+            width: 98%;
+            max-width: 1200px;
+        }
+
+        .ticket-wrapper {
+            margin-top: 30px;
+            margin-bottom: 50px;
+        }
+
+        /* Khung chat */
+        .chat-box {
+            background: #fff;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            height: 500px;
+            overflow-y: auto; /* Cho phép cuộn */
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        /* Tin nhắn chung */
+        .message-bubble {
+            padding: 10px 15px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            max-width: 75%;
+            position: relative;
+            clear: both;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* Tin nhắn của ADMIN */
+        .msg-admin {
+            float: left;
+            background-color: #e9ecef;
+            color: #333;
+            border-bottom-left-radius: 2px;
+        }
+
+        /* Tin nhắn của USER */
+        .msg-user {
+            float: right;
+            background-color: #d0011b; /* Đỏ */
+            color: #fff;
+            border-bottom-right-radius: 2px;
+        }
+
+        .sender-name {
+            font-weight: 700;
+            font-size: 12px;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .time-stamp {
+            font-size: 11px;
+            display: block;
+            margin-top: 5px;
+            opacity: 0.8;
+            text-align: right;
+        }
+
+        .clearfix::after {
+            content: "";
+            clear: both;
+            display: table;
+        }
+    </style>
+}
+
+<div class="container ticket-wrapper">
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+
+            <a href="@Url.Action("MyTickets", "Profile")" class="btn btn-default btn-sm" style="margin-bottom: 15px;">
+                <i class="glyphicon glyphicon-arrow-left"></i> Quay lại danh sách
+            </a>
+
+            @* 1. THÔNG TIN PHIẾU *@
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Phiếu hỗ trợ #@Model.Id
+                        <span class="pull-right" style="font-size: 12px;">
+                            @if (Model.Status == 0)
+                            {<span>(Chờ xử lý)</span> }
+                            else if (Model.Status == 1)
+                            { <span>(Đang hỗ trợ)</span> }
+                            else
+                            { <span>(Đã xong)</span>}
+                        </span>
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <p><strong>Nội dung bạn yêu cầu:</strong></p>
+                    <div class="well well-sm" style="margin-bottom: 0; font-style: italic;">
+                        @Model.Message
+                    </div>
+                </div>
+            </div>
+
+            @* 2. KHUNG CHAT (CÓ ID="chatWindow") *@
+            <h4><i class="glyphicon glyphicon-comment"></i> Lịch sử trao đổi</h4>
+
+            <div class="chat-box" id="chatWindow">
+                @if (ViewBag.Replies != null)
+                {
+                    foreach (var reply in ViewBag.Replies as List<PhoneStore_New.Models.ContactReply>)
+                    {
+                        bool isAdmin = reply.IsAdmin == true;
+                        <div class="message-bubble @(isAdmin ? "msg-admin" : "msg-user")">
+                            <span class="sender-name">@(isAdmin ? "Quản trị viên (Hỗ trợ)" : "Bạn")</span>
+                            @reply.Message
+                            <span class="time-stamp">@(reply.CreatedAt.HasValue ? reply.CreatedAt.Value.ToString("HH:mm dd/MM") : "")</span>
+                        </div>
+                    }
+                    <div class="clearfix"></div>
+                }
+                else
+                {
+                    <p class="text-center text-muted" style="margin-top: 50px;">Chưa có phản hồi nào.</p>
+                }
+            </div>
+
+            @* 3. FORM GỬI PHẢN HỒI *@
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    @using (Html.BeginForm("UserReply", "Profile", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="contactId" value="@Model.Id" />
+
+                        <div class="form-group">
+                            @* THÊM ID="msgInput" VÀO ĐÂY *@
+                            <textarea id="msgInput" name="message" class="form-control" rows="3" placeholder="Nhập phản hồi của bạn tại đây..." required></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary pull-right">
+                            <i class="glyphicon glyphicon-send"></i> Gửi phản hồi
+                        </button>
+                    }
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        $(document).ready(function () {
+            // 1. Kéo thanh cuộn của khung chat xuống cuối cùng
+            var chatBox = $("#chatWindow");
+            if (chatBox.length > 0) {
+                chatBox.scrollTop(chatBox[0].scrollHeight);
+            }
+
+            // 2. Focus vào ô nhập liệu -> Trình duyệt sẽ tự cuộn màn hình xuống chỗ này
+            // Chỉ focus nếu ô nhập liệu đang trống (để tránh phiền nếu user đang muốn đọc lại)
+            var input = $("#msgInput");
+            if (input.val() == "") {
+                input.focus();
+            }
+        });
+    </script>
+}

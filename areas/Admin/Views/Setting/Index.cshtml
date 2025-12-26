@@ -69,6 +69,18 @@
             content: "↳ ";
             font-weight: bold;
         }
+
+    /* Style cho nhãn Layout */
+    .label-gallery {
+        background-color: #f0ad4e;
+        color: #fff;
+    }
+    /* Màu vàng cam */
+    .label-list {
+        background-color: #5cb85c;
+        color: #fff;
+    }
+    /* Màu xanh lá */
 </style>
 
 <h2>Quản lý Giao diện và Cài đặt</h2>
@@ -78,6 +90,7 @@
     <p class="message @(Model.Message.Contains("thành công") ? "success" : "error")">@Model.Message</p>
 }
 
+@* --- 1. LOGO --- *@
 <div class="form-section">
     <h3>Quản lý Logo</h3>
     @using (Html.BeginForm("SaveFile", "Setting", FormMethod.Post, new { enctype = "multipart/form-data", @area = "Admin" }))
@@ -96,6 +109,7 @@
     }
 </div>
 
+@* --- 2. QR CODE --- *@
 <div class="form-section">
     <h3>Quản lý Mã QR</h3>
     @using (Html.BeginForm("SaveFile", "Setting", FormMethod.Post, new { enctype = "multipart/form-data", @area = "Admin" }))
@@ -113,6 +127,7 @@
     }
 </div>
 
+@* --- 3. CÀI ĐẶT CHUNG --- *@
 <div class="form-section">
     <h3>Cài đặt Văn bản và Bố cục</h3>
     @using (Html.BeginForm("SaveTextSettings", "Setting", FormMethod.Post, new { @area = "Admin" }))
@@ -150,6 +165,8 @@
         <button type="submit" class="btn btn-success" style="margin-top: 15px;">Lưu Cài đặt Chung</button>
     }
 </div>
+
+@* --- 4. FLASH SALE --- *@
 <div class="form-section" style="border-left: 5px solid #d0011b;">
     <h3 style="color: #d0011b;">⚡ Quản lý Flash Sale (Săn Sale)</h3>
     <p class="text-muted">Cài đặt thời gian tự động bật/tắt chương trình khuyến mãi.</p>
@@ -184,6 +201,8 @@
         <button type="submit" class="btn btn-danger" style="margin-top: 20px;">Lưu Cấu Hình Sale</button>
     }
 </div>
+
+@* --- 5. MENU & DANH MỤC (NAVBAR) --- *@
 <div class="form-section">
     <h3>Quản lý Thanh điều hướng (Menu & Danh mục)</h3>
     <h4 id="navbar-form-title">Thêm/Sửa mục</h4>
@@ -244,12 +263,17 @@
                 <tr data-id="@item.ItemId" data-text="@item.ItemText" data-url="@item.ItemUrl" data-order="@item.ItemOrder" data-parentid="" data-layout="@item.LayoutType">
                     <td><strong>@item.ItemText</strong></td>
                     <td>
+                        @* --- HIỂN THỊ LABEL CHO PARENT --- *@
                         @if (item.LayoutType == 0)
-                        {<span class="label label-primary">Lưới Sản phẩm</span> }
+                        {<span class="label label-primary">Lưới (Grid)</span> }
                         else if (item.LayoutType == 1)
-                        { <span class="label label-info">Thông tin</span> }
+                        { <span class="label label-info">Thông tin (Info)</span> }
                         else if (item.LayoutType == 2)
                         { <span class="label label-danger">Khuyến mãi</span> }
+                        else if (item.LayoutType == 4)
+                        { <span class="label label-gallery">Thư viện ảnh</span> }
+                        else if (item.LayoutType == 5)
+                        { <span class="label label-list">Danh sách (List)</span> } @* <-- ĐÃ THÊM *@
                         else
                         { <span class="label label-default">Khác</span>}
                     </td>
@@ -268,10 +292,19 @@
                     <tr class="navbar-child-item" data-id="@childItem.ItemId" data-text="@childItem.ItemText" data-url="@childItem.ItemUrl" data-order="@childItem.ItemOrder" data-parentid="@childItem.ParentId" data-layout="@childItem.LayoutType">
                         <td>@childItem.ItemText</td>
                         <td>
+                            @* --- HIỂN THỊ LABEL CHO CHILD --- *@
                             @if (childItem.LayoutType == 0)
-                            {<span class="label label-primary">Lưới SP</span> }
+                            {<span class="label label-primary">Lưới (Grid)</span> }
                             else if (childItem.LayoutType == 1)
-                            { <span class="label label-info">Info</span>}
+                            { <span class="label label-info">Info</span> }
+                            else if (childItem.LayoutType == 2)
+                            { <span class="label label-danger">Khuyến mãi</span> }
+                            else if (childItem.LayoutType == 4)
+                            { <span class="label label-gallery">Thư viện ảnh</span> }
+                            else if (childItem.LayoutType == 5)
+                            { <span class="label label-list">Danh sách (List)</span> } @* <-- ĐÃ THÊM *@
+                            else
+                            { <span class="label label-default">Khác</span>}
                         </td>
                         <td>@childItem.ItemUrl</td>
                         <td>@childItem.ItemOrder</td>
@@ -288,6 +321,7 @@
     </table>
 </div>
 
+@* --- 6. PRICE RANGE (KHOẢNG GIÁ) --- *@
 <div class="form-section">
     <h3>Quản lý Khoảng giá (Bộ lọc)</h3>
     @using (Html.BeginForm("ManagePriceRange", "Setting", FormMethod.Post, new { @area = "Admin" }))
@@ -338,23 +372,20 @@
     <script>
         $(document).ready(function () {
 
-            // === SCRIPT MỚI: TỰ ĐỘNG ĐIỀN LINK KHI CHỌN TRANG ===
+            // Tự động điền link và layout khi chọn trang
             $('#pageSelector').on('change', function () {
                 var selectedUrl = $(this).val();
                 if (selectedUrl) {
                     $('#navbarItemUrl').val(selectedUrl);
-
-                    // Nếu người dùng chọn Trang nội dung, tự động chuyển Bố cục sang "Thông tin" (Value = 1)
+                    // Mặc định chọn Layout Info (1) nếu chọn trang tĩnh
                     $('#navbarLayoutType').val('1');
-
-                    // Tự động điền tên nếu ô Tên mục đang trống
                     if ($('#navbarItemText').val() == '') {
                         $('#navbarItemText').val($(this).find('option:selected').text());
                     }
                 }
             });
 
-            // Logic chỉnh sửa Navbar Items (đã cập nhật để lấy ParentId và LayoutType)
+            // Edit Navbar
             $('.edit-navbar-btn').on('click', function () {
                 var row = $(this).closest('tr');
                 $('#navbarItemId').val(row.data('id'));
@@ -362,8 +393,6 @@
                 $('#navbarItemUrl').val(row.data('url'));
                 $('#navbarItemOrder').val(row.data('order'));
                 $('#navbarParentId').val(row.data('parentid'));
-
-                // Gán giá trị Bố cục từ data-layout vào dropdown
                 $('#navbarLayoutType').val(row.data('layout'));
 
                 $('#navbar-form-title').text('Sửa mục Navbar ID: ' + row.data('id'));
@@ -371,7 +400,7 @@
                 $('html, body').animate({ scrollTop: $('#navbarForm').offset().top - 50 }, 500);
             });
 
-            // Logic chỉnh sửa Price Range
+            // Edit Price Range
             $('.edit-price-range-btn').on('click', function () {
                 var row = $(this).closest('tr');
                 $('#priceRangeId').val(row.data('id'));
@@ -384,4 +413,4 @@
             });
         });
     </script>
-}   
+}

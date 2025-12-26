@@ -1,0 +1,272 @@
+﻿@model IEnumerable<PhoneStore_New.Models.Contact>
+@{
+    ViewBag.Title = "Hộp thư hỗ trợ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section styles {
+    <style>
+        body {
+            background-color: #f5f5fa;
+        }
+
+        .container {
+            width: 98%;
+            max-width: 1400px;
+        }
+
+        /* CSS Layout Dashboard (Đồng bộ) */
+        .profile-wrapper {
+            margin-top: 30px;
+            margin-bottom: 60px;
+        }
+
+        /* Menu bên trái */
+        .list-group-item {
+            border-radius: 0;
+            border-left: 3px solid transparent;
+            transition: 0.2s;
+            color: #555;
+        }
+
+            .list-group-item:hover {
+                background-color: #f9f9f9;
+                color: #333;
+            }
+
+            .list-group-item.active {
+                background-color: #fff;
+                color: #d0011b;
+                border-color: #ddd;
+                border-left: 3px solid #d0011b;
+                font-weight: bold;
+                z-index: 2;
+            }
+
+        .list-group-item-danger {
+            color: #d9534f;
+        }
+
+            .list-group-item-danger:hover {
+                background-color: #f2dede;
+                color: #a94442;
+            }
+
+        /* Nội dung bên phải */
+        .profile-content {
+            background: #fff;
+            border: 1px solid #e1e1e1;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+            min-height: 400px;
+        }
+
+        .profile-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            background: #fcfcfc;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+            .profile-header h3 {
+                margin: 0;
+                font-size: 18px;
+                text-transform: uppercase;
+                color: #333;
+                font-weight: 700;
+            }
+
+        .profile-body {
+            padding: 20px;
+        }
+
+        /* Table Styles */
+        .table-tickets thead th {
+            background-color: #f8f8f8;
+            border-bottom: 2px solid #ddd;
+            color: #555;
+            font-size: 13px;
+        }
+
+        .table-tickets tbody td {
+            vertical-align: middle;
+            font-size: 14px;
+        }
+
+        /* Status Labels */
+        .label-custom {
+            padding: 5px 10px;
+            font-size: 11px;
+            border-radius: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+        /* Chờ xử lý */
+        .status-processing {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        /* Admin đã trả lời */
+        .status-closed {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        /* Hoàn tất */
+
+        /* Nút xem chi tiết */
+        .btn-view-ticket {
+            padding: 5px 15px;
+            border: 1px solid #d0011b;
+            color: #d0011b;
+            background: #fff;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+
+            .btn-view-ticket:hover {
+                background: #d0011b;
+                color: #fff;
+                text-decoration: none;
+            }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+        }
+
+        .empty-icon {
+            font-size: 60px;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+
+        .message-preview {
+            max-width: 300px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: inline-block;
+            vertical-align: bottom;
+        }
+    </style>
+}
+
+<div class="container profile-wrapper">
+    <div class="row">
+        @* === CỘT TRÁI: MENU === *@
+        <div class="col-md-3">
+            <div class="list-group shadow-sm">
+                <a href="@Url.Action("Index", "Profile")" class="list-group-item">
+                    <i class="glyphicon glyphicon-user"></i> Thông tin tài khoản
+                </a>
+                <a href="@Url.Action("History", "Order")" class="list-group-item">
+                    <i class="glyphicon glyphicon-list-alt"></i> Lịch sử đơn hàng
+                </a>
+                @* ĐANG ACTIVE *@
+                <a href="@Url.Action("MyTickets", "Profile")" class="list-group-item active">
+                    <i class="glyphicon glyphicon-envelope"></i> Hộp thư hỗ trợ
+                </a>
+                <a href="@Url.Action("ChangePassword", "Profile")" class="list-group-item">
+                    <i class="glyphicon glyphicon-lock"></i> Đổi mật khẩu
+                </a>
+                <a href="javascript:document.getElementById('logoutForm').submit()" class="list-group-item list-group-item-danger">
+                    <i class="glyphicon glyphicon-log-out"></i> Đăng xuất
+                </a>
+            </div>
+        </div>
+
+        @* === CỘT PHẢI: DANH SÁCH PHIẾU HỖ TRỢ === *@
+        <div class="col-md-9">
+            <div class="profile-content">
+                <div class="profile-header">
+                    <h3><i class="glyphicon glyphicon-comment"></i> Yêu cầu hỗ trợ của tôi</h3>
+
+                    @* Nút gửi yêu cầu mới -> Trỏ về trang CSKH *@
+                    @* Lưu ý: Bạn cần thay ID=4 bằng ID thật của NavbarItem "Hỗ trợ" trong DB của bạn *@
+                    <a href="@Url.Action("ShowAllProducts", "Collection")" class="btn btn-sm btn-primary">
+                        <i class="glyphicon glyphicon-plus"></i> Gửi yêu cầu mới
+                    </a>
+                </div>
+                <div class="profile-body">
+                    @if (Model != null && Model.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover table-tickets">
+                                <thead>
+                                    <tr>
+                                        <th>Mã phiếu</th>
+                                        <th>Ngày gửi</th>
+                                        <th>Nội dung tóm tắt</th>
+                                        <th class="text-center">Trạng thái</th>
+                                        <th class="text-right">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var ticket in Model)
+                                    {
+                                        <tr>
+                                            <td><strong>#@ticket.Id</strong></td>
+                                            <td>@(ticket.CreatedAt.HasValue ? ticket.CreatedAt.Value.ToString("dd/MM/yyyy HH:mm") : "N/A")</td>
+                                            <td>
+                                                <span class="message-preview" title="@ticket.Message">
+                                                    @ticket.Message
+                                                </span>
+                                            </td>
+                                            <td class="text-center">
+                                                @if (ticket.Status == 0)
+                                                {
+                                                    <span class="label-custom status-pending">Chờ xử lý</span>
+                                                }
+                                                else if (ticket.Status == 1)
+                                                {
+                                                    @* Đổi thành Đã trả lời *@
+                                                    <span class="label-custom status-closed" style="background-color: #28a745; color: white; border: none;">Admin đã trả lời</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="label-custom" style="background:#777; color:#fff;">Đã kết thúc</span>
+                                                }
+                                            </td>
+                                            <td class="text-right">
+                                                <a href="@Url.Action("TicketDetail", "Profile", new { id = ticket.Id })" class="btn-view-ticket">
+                                                    Xem & Phản hồi
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <i class="glyphicon glyphicon-inbox empty-icon"></i>
+                            <h4>Bạn chưa có yêu cầu hỗ trợ nào.</h4>
+                            <p class="text-muted">Nếu gặp vấn đề, hãy gửi yêu cầu để chúng tôi hỗ trợ bạn.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@using (Html.BeginForm("Logout", "Login", FormMethod.Post, new { id = "logoutForm" }))
+{
+    @Html.AntiForgeryToken()
+}

@@ -127,6 +127,29 @@
             <li><a href="@Url.Action("Index", "VoucherAdmin", new { area = "Admin" })"><i class="fa fa-ticket"></i> Voucher</a></li>
             <li><a href="@Url.Action("Index", "BannerAdmin", new { area = "Admin" })"><i class="fa fa-image"></i> Banner</a></li>
             <li><a href="@Url.Action("Index", "Setting", new { area = "Admin" })"><i class="fa fa-cogs"></i> Cấu hình</a></li>
+            <li>
+                <a href="@Url.Action("Index", "PageAdmin", new { area = "Admin" })">
+                    <i class="fa fa-file-text fa-fw"></i> Trang nội dung
+                </a>
+            </li>
+
+            <li>
+                <a href="@Url.Action("Index", "Contact", new { area = "Admin" })">
+                    <i class="fa fa-comments fa-fw"></i> Hỗ trợ khách hàng
+
+                    @{
+                        // Gọi nhanh DB để đếm tin chưa đọc
+                        var dbContext = new PhoneStore_New.Models.PhoneStoreDBEntities();
+                        int unreadCount = dbContext.Contacts.Count(c => !c.IsRead);
+                    }
+
+                    @if (unreadCount > 0)
+                    {
+                        @* Số nảy màu đỏ *@
+                        <span class="pull-right badge" style="background-color: #d9534f;">@unreadCount</span>
+                    }
+                </a>
+            </li>
         </ul>
 
         <div class="sidebar-footer">

@@ -1,75 +1,156 @@
 ﻿@model IEnumerable<PhoneStore_New.Models.Order>
-@{ Layout = "~/Views/Shared/_Layout.cshtml"; }
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Lịch sử mua hàng";
+}
 
-<style>
-    .history-box {
-        background: white;
-        padding: 20px;
-        border-radius: 8px;
-        margin-top: 30px;
-    }
+@section styles {
+    <style>
+        body {
+            background-color: #f5f5fa;
+        }
 
-    .status-tag {
-        padding: 4px 10px;
-        border-radius: 4px;
-        font-size: 12px;
-        font-weight: bold;
-    }
+        .container {
+            width: 98%;
+            max-width: 1400px;
+        }
 
-    .s-pending {
-        background: #fff3cd;
-        color: #856404;
-    }
+        .history-container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            margin-top: 30px;
+            min-height: 500px;
+        }
 
-    .s-completed {
-        background: #d4edda;
-        color: #155724;
-    }
+        .page-header {
+            margin: 0 0 30px 0;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 15px;
+            font-weight: 800;
+            color: #333;
+            text-transform: uppercase;
+        }
 
-    .s-cancelled {
-        background: #f8d7da;
-        color: #721c24;
-    }
-</style>
+        /* Table Styles */
+        .table-custom {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+            .table-custom th {
+                background: #f8f9fa;
+                color: #555;
+                font-weight: 700;
+                padding: 15px;
+                text-align: left;
+                border-bottom: 2px solid #ddd;
+            }
+
+            .table-custom td {
+                padding: 15px;
+                border-bottom: 1px solid #eee;
+                vertical-align: middle;
+                color: #333;
+            }
+
+            .table-custom tr:hover {
+                background-color: #fafafa;
+            }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            display: inline-block;
+        }
+
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        /* Vàng */
+        .status-shipping {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+        /* Xanh dương */
+        .status-completed {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        /* Xanh lá */
+        .status-cancelled {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        /* Đỏ */
+
+        .total-price {
+            color: #d0011b;
+            font-weight: 700;
+            font-size: 15px;
+        }
+    </style>
+}
 
 <div class="container">
-    <div class="history-box">
+    <div class="history-container">
         <h2 class="page-header">@ViewBag.Title</h2>
 
         @if (!Model.Any())
         {
-            <div class="alert alert-warning text-center">Bạn chưa có đơn hàng nào.</div>
+            <div class="text-center" style="padding: 50px;">
+                <img src="https://cdn-icons-png.flaticon.com/512/4076/4076432.png" style="width: 80px; opacity: 0.5; margin-bottom: 20px;">
+                <h4>Bạn chưa có đơn hàng nào.</h4>
+                <a href="@Url.Action("Index", "Home")" class="btn btn-primary" style="margin-top: 15px;">Mua sắm ngay</a>
+            </div>
         }
         else
         {
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Mã đơn (#)</th>
-                        <th>Ngày đặt</th>
-                        <th>Trạng thái</th>
-                        <th>Tổng tiền</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var order in Model)
-                    {
+            <div class="table-responsive">
+                <table class="table-custom">
+                    <thead>
                         <tr>
-                            <td><b>#@order.OrderId</b></td>
-                            <td>@order.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
-                            <td>
-                                @{
-                                    string sClass = "s-pending"; string sText = "Chờ xử lý";
-                                    if (order.Status == "completed") { sClass = "s-completed"; sText = "Thành công"; }
-                                    else if (order.Status == "cancelled") { sClass = "s-cancelled"; sText = "Đã hủy"; }
-                                }
-                                <span class="status-tag @sClass">@sText</span>
-                            </td>
-                            <td style="color: #d0011b; font-weight: bold;">@order.TotalAmount.ToString("N0")₫</td>
+                            <th>Mã đơn (#)</th>
+                            <th>Ngày đặt</th>
+                            <th>Trạng thái</th>
+                            <th>Tổng tiền</th>
+                            <th class="text-center">Chi tiết</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model)
+                        {
+                            <tr>
+                                <td><b>#@order.OrderId</b></td>
+                                <td>@order.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    @{
+                                        string sClass = "status-pending";
+                                        string sText = "Chờ xử lý";
+                                        string st = (order.Status ?? "").ToLower();
+
+                                        if (st.Contains("complete") || st.Contains("success")) { sClass = "status-completed"; sText = "Hoàn thành"; }
+                                        else if (st.Contains("cancel")) { sClass = "status-cancelled"; sText = "Đã hủy"; }
+                                        else if (st.Contains("ship")) { sClass = "status-shipping"; sText = "Đang giao"; }
+                                    }
+                                    <span class="status-badge @sClass">@sText</span>
+                                </td>
+                                <td class="total-price">@order.TotalAmount.ToString("N0")₫</td>
+                                <td class="text-center">
+                                    @* Nếu bạn có trang chi tiết đơn hàng thì dẫn link vào đây *@
+                                    <a href="#" class="btn btn-xs btn-default" title="Xem chi tiết"><i class="glyphicon glyphicon-eye-open"></i></a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         }
     </div>
 </div>

@@ -2,7 +2,7 @@
 @using PhoneStore_New.Models
 @model HeaderViewModel
 
-@* === HELPER VẼ MENU (GIỮ NGUYÊN KHÔNG ĐỔI) === *@
+@* === HELPER VẼ MENU (GIỮ NGUYÊN) === *@
 @helper RenderMenu(List<NavbarItem> allItems, int? parentId)
 {
     if (allItems == null) { return; }
@@ -25,7 +25,7 @@
                     else
                     {
                         <li><a href="@Url.Content(item.ItemUrl ?? "#")">@item.ItemText</a></li>
-}
+                    }
                 }
             </ul>
         }
@@ -45,7 +45,7 @@
                     else
                     {
                         <li><a href="@Url.Content(item.ItemUrl ?? "#")">@item.ItemText</a></li>
-}
+                    }
                 }
             </ul>
         }
@@ -53,23 +53,49 @@
 }
 
 <style>
-    /* CSS CŨ */
-    .navbar-avatar {
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        object-fit: cover;
-        margin-right: 8px;
-        margin-top: -5px;
+    /* === 1. NAV BAR STYLE === */
+    .navbar-custom {
+        background-color: #fff;
+        border: none;
+        border-bottom: 1px solid #e5e5e5;
+        margin-bottom: 0;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.03);
     }
 
+    .header-container {
+        width: 98%;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    /* Logo */
     .navbar-brand-text {
         font-size: 24px;
-        font-weight: 700;
-        color: #333 !important;
+        font-weight: 800;
+        color: #d0011b !important;
+        text-transform: uppercase;
         padding-top: 15px;
+        letter-spacing: 1px;
     }
 
+    /* Menu Item */
+    .navbar-nav > li > a {
+        color: #333 !important;
+        font-weight: 600;
+        font-size: 14px;
+        padding-top: 20px;
+        padding-bottom: 20px;
+        text-transform: uppercase;
+    }
+
+        .navbar-nav > li > a:hover, .navbar-nav > li > a:focus, .navbar-nav > .open > a, .navbar-nav > .open > a:hover {
+            background-color: transparent !important;
+            color: #d0011b !important;
+        }
+
+    /* Submenu */
     .dropdown-submenu {
         position: relative;
     }
@@ -79,6 +105,7 @@
             left: 100%;
             margin-top: -6px;
             margin-left: -1px;
+            border-radius: 0;
         }
 
         .dropdown-submenu:hover > .dropdown-menu {
@@ -100,52 +127,122 @@
         }
 
         .dropdown-submenu:hover > a:after {
-            border-left-color: #fff;
+            border-left-color: #d0011b;
         }
 
-    /* === CSS MỚI CHO ICON GIỎ HÀNG SVG === */
-    .cart-wrapper {
-        position: relative;
-        padding: 10px 15px !important; /* Ghi đè padding mặc định của bootstrap */
-        display: flex;
-        align-items: center;
-        height: 50px; /* Bằng chiều cao navbar */
+    /* Search Bar */
+    .navbar-form {
+        padding-top: 5px;
     }
 
-    /* Icon SVG */
+        .navbar-form .form-control {
+            border-radius: 20px 0 0 20px;
+            border: 1px solid #ddd;
+            box-shadow: none;
+            width: 250px;
+        }
+
+        .navbar-form .btn-search {
+            border-radius: 0 20px 20px 0;
+            background-color: #d0011b;
+            color: #fff;
+            border: 1px solid #d0011b;
+        }
+
+            .navbar-form .btn-search:hover {
+                background-color: #b00118;
+                color: #fff;
+            }
+
+    /* Cart SVG */
+    .cart-wrapper {
+        position: relative;
+        padding: 18px 15px !important;
+        display: flex;
+        align-items: center;
+        height: 60px;
+    }
+
     .icon-cart-svg {
         width: 24px;
         height: 24px;
-        fill: #555; /* Màu xám đậm mặc định của bootstrap text */
+        fill: #333;
         transition: fill 0.2s;
     }
 
-    /* Hiệu ứng hover */
     .cart-wrapper:hover .icon-cart-svg {
-        fill: #333; /* Đen hơn khi hover */
+        fill: #d0011b;
     }
 
-    /* Badge số lượng màu đỏ */
     .cart-badge {
         position: absolute;
-        top: 8px;
-        right: 8px;
+        top: 12px;
+        right: 5px;
         background-color: #d0011b;
         color: white;
         font-size: 10px;
         font-weight: 700;
         padding: 1px 5px;
         border-radius: 10px;
-        border: 1px solid #fff;
+        border: 2px solid #fff;
         min-width: 18px;
         text-align: center;
         box-shadow: 0 1px 2px rgba(0,0,0,0.2);
     }
+
+    /* Avatar */
+    .navbar-avatar {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-right: 8px;
+        margin-top: -5px;
+        border: 1px solid #eee;
+    }
+
+    /* === CSS SỬA: SỐ NẢY CẠNH TÊN (TRÊN THANH NAVBAR) === */
+    .notify-badge {
+        background-color: #d0011b;
+        color: white;
+        font-size: 10px;
+        font-weight: bold;
+        padding: 2px 6px;
+        border-radius: 10px;
+        margin-left: 5px;
+        position: relative;
+        top: -10px; /* Đẩy lên cao */
+        box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+
+    /* === CSS MỚI: SỐ NẢY TRONG DROPDOWN (TUYỆT ĐỐI) === */
+    .dropdown-menu > li > a {
+        position: relative; /* Mốc tọa độ */
+        padding-right: 60px; /* Chừa khoảng trống bên phải để số không đè lên chữ */
+    }
+
+    .badge-absolute {
+        background-color: #d0011b !important;
+        color: #fff;
+        position: absolute; /* Bay lên */
+        top: 6px; /* Cách mép trên 6px (Cao hơn) */
+        right: 15px; /* Cách mép phải 15px */
+        font-size: 10px;
+        padding: 3px 8px;
+        border-radius: 10px;
+        font-weight: bold;
+    }
 </style>
 
-<div class="navbar navbar-default navbar-static-top">
-    <div class="container">
+<div class="navbar navbar-default navbar-custom navbar-static-top">
+    <div class="header-container">
+
         <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse-main">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span>
+            </button>
+
             @if (string.IsNullOrEmpty(Model.LogoUrl))
             {
                 <a class="navbar-brand navbar-brand-text" href="@Url.Action("Index", "Home")">Phone Store</a>
@@ -156,45 +253,36 @@
                     <img src="@Url.Content(Model.LogoUrl)" alt="Logo" height="40" style="display:inline-block; margin-top:-10px;">
                 </a>
             }
-
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse-main">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span>
-            </button>
         </div>
 
         <div class="collapse navbar-collapse" id="navbar-collapse-main">
-
-            @* 1. MENU CHÍNH (BÊN TRÁI) *@
+            @* 1. MENU CHÍNH *@
             @RenderMenu(Model.NavbarItems ?? new List<NavbarItem>(), null)
 
             @* 2. KHU VỰC BÊN PHẢI *@
             <ul class="nav navbar-nav navbar-right">
 
-                @* Ô TÌM KIẾM *@
                 @if (Model.ShowSearchBar)
                 {
                     <li>
                         @using (Html.BeginForm("Search", "Product", FormMethod.Get, new { @class = "navbar-form", @role = "search" }))
                         {
-                            <div class="form-group">
-                                <input type="text" name="keyword" class="form-control" placeholder="Tìm sản phẩm...">
+                            <div class="input-group">
+                                <input type="text" name="keyword" class="form-control" placeholder="Bạn tìm gì...">
+                                <span class="input-group-btn">
+                                    <button type="submit" class="btn btn-search"><span class="glyphicon glyphicon-search"></span></button>
+                                </span>
                             </div>
-                            <button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-search"></span></button>
                         }
                     </li>
                 }
 
-                @* === ICON GIỎ HÀNG SVG (ĐÃ FIX LINK /Cart/Index) === *@
+                @* GIỎ HÀNG *@
                 <li>
-                    @* Dùng href cứng để đảm bảo ra đúng link bạn muốn *@
-                    <a href="/Cart/Index" class="cart-wrapper" title="Xem giỏ hàng">
-
-                        @* Đây là SVG vẽ hình giỏ hàng, nét căng không bao giờ vỡ *@
+                    <a href="@Url.Action("Index", "Cart")" class="cart-wrapper" title="Xem giỏ hàng">
                         <svg class="icon-cart-svg" viewBox="0 0 24 24">
                             <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z" />
                         </svg>
-
                         @{
                             var cart = Session["Cart"] as List<PhoneStore_New.Models.ViewModels.CartItem>;
                             int count = cart != null ? cart.Sum(c => c.Quantity) : 0;
@@ -205,13 +293,24 @@
                         }
                     </a>
                 </li>
-                @* =============================================== *@
 
-                @* TÀI KHOẢN *@
+                @* TÀI KHOẢN & THÔNG BÁO *@
                 @if (Model.IsLoggedIn)
                 {
+                    // === LOGIC ĐẾM SỐ TIN NHẮN PHẢN HỒI (Status = 1: Đã trả lời) ===
+                    int replyCount = 0;
+                    if (Session["UserId"] != null)
+                    {
+                        using (var dbTemp = new PhoneStoreDBEntities())
+                        {
+                            int uid = (int)Session["UserId"];
+                            replyCount = dbTemp.Contacts.Count(c => c.UserId == uid && c.Status == 1);
+                        }
+                    }
+                    // =============================================================
+
                     <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" style="display:flex; align-items:center;">
                             @if (!string.IsNullOrEmpty(Model.UserAvatarUrl))
                             {
                                 <img src="@Url.Content(Model.UserAvatarUrl)" class="navbar-avatar" />
@@ -221,32 +320,54 @@
                                 <span class="glyphicon glyphicon-user" style="margin-right: 5px;"></span>
                             }
                             @Model.UserFirstName <span class="caret"></span>
+
+                            @* HIỂN THỊ SỐ NẢY CẠNH TÊN (Notify Badge) *@
+                            @if (replyCount > 0)
+                            {
+                                <span class="notify-badge">@replyCount</span>
+                            }
                         </a>
                         <ul class="dropdown-menu">
-                            <li>@Html.ActionLink("Hồ sơ cá nhân", "Index", "Profile", new { id = 12 }, null)</li>
-                            <li>@Html.ActionLink("Lịch sử Đơn hàng", "History", "Order", new { id = 11 }, null)</li>
+                            <li><a href="@Url.Action("Index", "Profile")"><i class="glyphicon glyphicon-user"></i> Hồ sơ cá nhân</a></li>
+
+                            @* MENU HỘP THƯ HỖ TRỢ - CÓ SỐ NẢY (Absolute Badge) *@
+                            <li>
+                                <a href="@Url.Action("MyTickets", "Profile")">
+                                    <i class="glyphicon glyphicon-envelope"></i> Hộp thư hỗ trợ
+                                    @if (replyCount > 0)
+                                    {
+                                        <span class="badge-absolute">@replyCount mới</span>
+                                    }
+                                </a>
+                            </li>
+
+                            <li><a href="@Url.Action("History", "Order")"><i class="glyphicon glyphicon-list-alt"></i> Đơn hàng của tôi</a></li>
+
                             @if (User.IsInRole("admin"))
                             {
                                 <li class="divider"></li>
-                                <li>@Html.ActionLink("Quản trị hệ thống", "Index", "Admin", new { area = "Admin" }, null)</li>
+                                <li><a href="@Url.Action("Index", "Admin", new { area = "Admin" })"><i class="glyphicon glyphicon-cog"></i> Quản trị hệ thống</a></li>
                             }
                             <li class="divider"></li>
                             <li>
-                                @using (Html.BeginForm("Logout", "Login", new { area = "" }, FormMethod.Post, new { id = "logoutForm" }))
-                                {
-                                    @Html.AntiForgeryToken()
-                                    <a href="javascript:document.getElementById('logoutForm').submit()" style="padding-left: 20px;">Đăng xuất</a>
-                                }
+                                <a href="javascript:document.getElementById('logoutFormHeader').submit()">
+                                    <i class="glyphicon glyphicon-log-out"></i> Đăng xuất
+                                </a>
                             </li>
                         </ul>
                     </li>
                 }
                 else
                 {
-                    <li>@Html.ActionLink("Đăng nhập", "Index", "Login")</li>
-                    <li>@Html.ActionLink("Đăng ký", "Register", "Login")</li>
+                    <li><a href="@Url.Action("Index", "Login")">Đăng nhập</a></li>
+                    <li><a href="@Url.Action("Register", "Login")">Đăng ký</a></li>
                 }
             </ul>
         </div>
     </div>
 </div>
+
+@using (Html.BeginForm("Logout", "Login", new { area = "" }, FormMethod.Post, new { id = "logoutFormHeader" }))
+{
+    @Html.AntiForgeryToken()
+}

@@ -1,69 +1,125 @@
 ﻿@model PhoneStore_New.Models.NavbarItem
 @{ Layout = "~/Views/Shared/_Layout.cshtml"; }
 
-<style>
-    .info-hero {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 80px 0;
-        text-align: center;
-        margin-bottom: 40px;
-        border-radius: 0 0 50% 50% / 4%;
-    }
-
-        .info-hero h1 {
-            font-size: 3.5rem;
-            font-weight: 700;
-            margin-bottom: 20px;
+@section styles {
+    <style>
+        /* Hero Section Gradient */
+        .info-hero {
+            background: linear-gradient(135deg, #2c3e50 0%, #000000 100%); /* Màu tối sang trọng */
+            color: white;
+            padding: 100px 0 80px;
+            text-align: center;
+            margin-bottom: 50px;
+            position: relative;
+            clip-path: polygon(0 0, 100% 0, 100% 85%, 50% 100%, 0 85%); /* Cắt vát */
         }
 
-    .info-content {
-        max-width: 800px;
-        margin: 0 auto;
-        font-size: 1.2rem;
-        line-height: 1.8;
-        color: #555;
-        text-align: justify;
-    }
+            .info-hero h1 {
+                font-size: 3.5rem;
+                font-weight: 800;
+                margin-bottom: 15px;
+                text-transform: uppercase;
+                letter-spacing: 2px;
+            }
 
-    .info-features {
-        display: flex;
-        justify-content: space-around;
-        margin-top: 50px;
-        text-align: center;
-    }
+            .info-hero p {
+                font-size: 1.2rem;
+                opacity: 0.8;
+                font-weight: 300;
+            }
 
-    .feature-box i {
-        font-size: 40px;
-        color: #764ba2;
-        margin-bottom: 15px;
-    }
-</style>
+        /* Nội dung chính */
+        .info-content {
+            max-width: 900px;
+            margin: 0 auto 60px;
+            font-size: 16px;
+            line-height: 1.8;
+            color: #444;
+            background: #fff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.05);
+        }
+
+        /* Các ô tính năng (Feature Box) */
+        .info-features {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 50px;
+            border-top: 1px solid #eee;
+            padding-top: 40px;
+            flex-wrap: wrap;
+        }
+
+        .feature-box {
+            flex: 1;
+            min-width: 200px;
+            text-align: center;
+            padding: 20px;
+        }
+
+            .feature-box i {
+                font-size: 40px;
+                color: #d0011b; /* Màu đỏ chủ đạo */
+                margin-bottom: 20px;
+                background: #fff5f5;
+                width: 80px;
+                height: 80px;
+                line-height: 80px;
+                border-radius: 50%;
+                transition: 0.3s;
+            }
+
+            .feature-box:hover i {
+                background: #d0011b;
+                color: #fff;
+                transform: translateY(-5px);
+            }
+
+            .feature-box h4 {
+                font-weight: 700;
+                text-transform: uppercase;
+                font-size: 16px;
+                margin-bottom: 10px;
+            }
+
+            .feature-box p {
+                font-size: 14px;
+                color: #777;
+            }
+    </style>
+}
 
 <div class="info-hero">
     <div class="container">
         <h1>@Model.ItemText</h1>
-        <p>Khám phá câu chuyện và giá trị cốt lõi của chúng tôi</p>
+        <p>Uy tín - Chất lượng - Tận tâm</p>
     </div>
 </div>
 
 <div class="container">
     <div class="info-content">
-        <p>Chào mừng bạn đến với <strong>@Model.ItemText</strong>. Đây là nơi chúng tôi chia sẻ niềm đam mê bất tận với những chiếc đồng hồ đẳng cấp. Không chỉ là một món phụ kiện, mỗi sản phẩm tại WatchStore đều là một kiệt tác nghệ thuật, lưu giữ thời gian và khẳng định phong cách của bạn.</p>
-        <p>Chúng tôi cam kết mang đến những sản phẩm chính hãng 100%, chế độ bảo hành vượt trội và trải nghiệm mua sắm tuyệt vời nhất.</p>
+        <p class="lead text-center" style="margin-bottom: 30px;">Chào mừng bạn đến với <strong>@Model.ItemText</strong>.</p>
+
+        @* Nội dung giả lập hoặc lấy từ DB nếu có *@
+        <p>Chúng tôi tự hào là đơn vị cung cấp các sản phẩm công nghệ chính hãng hàng đầu. Tại đây, mỗi sản phẩm không chỉ là một thiết bị, mà là một giải pháp công nghệ giúp nâng tầm cuộc sống của bạn.</p>
+        <p>Với triết lý "Khách hàng là trọng tâm", chúng tôi cam kết mang đến trải nghiệm mua sắm an toàn, tiện lợi và hài lòng nhất.</p>
 
         <div class="info-features">
             <div class="feature-box">
                 <i class="glyphicon glyphicon-star"></i>
                 <h4>Chính hãng 100%</h4>
+                <p>Cam kết hoàn tiền gấp đôi nếu phát hiện hàng giả.</p>
             </div>
             <div class="feature-box">
                 <i class="glyphicon glyphicon-wrench"></i>
-                <h4>Bảo hành 5 năm</h4>
+                <h4>Bảo hành 12 Tháng</h4>
+                <p>Hỗ trợ kỹ thuật trọn đời sản phẩm.</p>
             </div>
             <div class="feature-box">
                 <i class="glyphicon glyphicon-heart"></i>
-                <h4>Hậu mãi tận tâm</h4>
+                <h4>Hậu mãi Tận tâm</h4>
+                <p>Đổi trả trong 30 ngày, hỗ trợ 24/7.</p>
             </div>
         </div>
     </div>

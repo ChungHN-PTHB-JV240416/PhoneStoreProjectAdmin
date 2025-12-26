@@ -15,15 +15,25 @@
         .payment-option-item {
             display: flex;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 15px; /* Tăng khoảng cách chút cho thoáng */
+            cursor: pointer;
         }
+
+            .payment-option-item label {
+                margin-left: 10px;
+                cursor: pointer;
+                font-weight: normal;
+                display: flex;
+                align-items: center;
+            }
 
         .payment-options h3 {
             border-bottom: 2px solid #ddd;
             padding-bottom: 10px;
             margin-top: 20px;
         }
-        /* CSS MỚI CHO VOUCHER */
+
+        /* CSS CHO VOUCHER */
         .voucher-section {
             padding: 15px;
             background-color: #f9f9f9;
@@ -66,7 +76,7 @@
 
             <div class="row">
 
-                @* === Cột 1: TÓM TẮT ĐƠN HÀNG (ĐÃ CẬP NHẬT) === *@
+                @* === Cột 1: TÓM TẮT ĐƠN HÀNG === *@
                 <div class="col-md-6">
                     <div class="panel panel-default">
                         <div class="panel-heading">
@@ -92,7 +102,6 @@
                                     </tr>
                                 }
 
-                                @* === SỬA ĐỔI: CẬP NHẬT BẢNG TỔNG KẾT === *@
                                 <tr class="active">
                                     <td colspan="3">Tạm tính</td>
                                     <td id="subtotal-amount">@Model.FormattedSubtotalAmount</td>
@@ -105,27 +114,29 @@
                                     <td colspan="3">Tổng cộng</td>
                                     <td id="total-amount">@Model.FormattedTotalAmount</td>
                                 </tr>
-                                @* === KẾT THÚC SỬA ĐỔI === *@
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                @* === Cột 2: THÔNG TIN GIAO HÀNG & THANH TOÁN (ĐÃ CẬP NHẬT) === *@
+                @* === Cột 2: THÔNG TIN GIAO HÀNG & THANH TOÁN === *@
                 <div class="col-md-6">
                     <div class="shipping-form">
                         <h3>Thông tin giao hàng</h3>
                         @Html.LabelFor(m => m.FirstName)
                         @Html.TextBoxFor(m => m.FirstName, new { @class = "form-control", @required = "required" })
+
                         @Html.LabelFor(m => m.LastName)
                         @Html.TextBoxFor(m => m.LastName, new { @class = "form-control", @required = "required" })
+
                         @Html.LabelFor(m => m.PhoneNumber)
                         @Html.TextBoxFor(m => m.PhoneNumber, new { @class = "form-control", @required = "required" })
+
                         @Html.LabelFor(m => m.ShippingAddress)
                         @Html.TextBoxFor(m => m.ShippingAddress, new { @class = "form-control", @required = "required" })
                         @Html.ValidationMessageFor(m => m.ShippingAddress, "", new { @class = "text-danger" })
 
-                        @* === SỬA ĐỔI: THÊM KHUNG NHẬP VOUCHER === *@
+                        @* === KHUNG VOUCHER === *@
                         <div class="voucher-section">
                             <h4>Mã giảm giá</h4>
                             <div class="input-group">
@@ -137,20 +148,29 @@
                             <a href="#" id="remove-voucher-btn" style="display: @(string.IsNullOrEmpty(Model.VoucherCode) ? "none" : "inline-block"); margin-top: 10px;">Xóa mã</a>
                             <div id="voucher-message" class="voucher-message"></div>
                         </div>
-                        @* === KẾT THÚC SỬA ĐỔI === *@
 
                         <div class="payment-options">
                             <h3>Chọn phương thức thanh toán</h3>
+
+                            @* 1. COD *@
                             <div class="payment-option-item">
-                                @Html.RadioButtonFor(m => m.PaymentMethod, "cod", new { @id = "cash_on_delivery" })
+                                @Html.RadioButtonFor(m => m.PaymentMethod, "cod", new { @id = "cash_on_delivery", @checked = "checked" })
                                 <label for="cash_on_delivery">Thanh toán khi nhận hàng (COD)</label>
                             </div>
+
+                          
+
+                            @* 3. VNPAY (MỚI THÊM) *@
                             <div class="payment-option-item">
-                                @Html.RadioButtonFor(m => m.PaymentMethod, "transfer", new { @id = "bank_transfer" })
-                                <label for="bank_transfer">Chuyển khoản ngân hàng</label>
+                                @Html.RadioButtonFor(m => m.PaymentMethod, "vnpay", new { @id = "vnpay_gateway" })
+                                <label for="vnpay_gateway">
+                                    Thanh toán qua VNPAY
+                                    <img src="https://sandbox.vnpayment.vn/paymentv2/images/logo-vnpay-qr-small.png" alt="VNPAY Logo" style="height: 25px; margin-left: 10px;">
+                                </label>
                             </div>
                         </div>
 
+                        @* KHUNG HIỂN THỊ QR CODE (Chỉ hiện khi chọn Chuyển khoản) *@
                         <div id="transfer_details" class="qr-code-section">
                             <h4>Vui lòng chuyển khoản số tiền: <span id="total-amount-qr">@Model.FormattedTotalAmount</span></h4>
                             @if (!string.IsNullOrEmpty(Model.QrCodeUrl))
@@ -162,7 +182,7 @@
                             <input type="file" id="bill_image" name="bill_image" class="form-control" accept="image/*">
                         </div>
 
-                        <button type="submit" class="checkout-btn btn btn-success btn-lg" style="margin-top: 20px;">Hoàn tất đặt hàng</button>
+                        <button type="submit" class="checkout-btn btn btn-success btn-lg" style="margin-top: 20px; width: 100%;">Đặt hàng & Thanh toán</button>
                     </div>
                 </div>
             </div>
@@ -176,43 +196,48 @@
 
 @section scripts {
 
-    @* SCRIPT CŨ CHO PHƯƠNG THỨC THANH TOÁN *@
+    @* === SCRIPT XỬ LÝ ẨN HIỆN PAYMENT === *@
     <script>
         $(document).ready(function () {
             const transferRadio = $('#bank_transfer');
             const codRadio = $('#cash_on_delivery');
+            const vnpayRadio = $('#vnpay_gateway'); // Thêm cái này
             const transferSection = $('#transfer_details');
             const billImageInput = $('#bill_image');
 
             function toggleTransferSection() {
                 if (transferRadio.is(':checked')) {
-                    transferSection.show();
+                    // Nếu chọn chuyển khoản thường -> Hiện QR và bắt buộc up ảnh
+                    transferSection.slideDown();
                     billImageInput.attr('required', 'required');
                 } else {
-                    transferSection.hide();
+                    // Nếu chọn COD hoặc VNPAY -> Ẩn QR, không bắt buộc up ảnh
+                    transferSection.slideUp();
                     billImageInput.removeAttr('required');
                 }
             }
+
+            // Gán sự kiện thay đổi
             transferRadio.on('change', toggleTransferSection);
             codRadio.on('change', toggleTransferSection);
+            vnpayRadio.on('change', toggleTransferSection); // Thêm sự kiện cho VNPAY
+
+            // Chạy lần đầu khi load trang
             toggleTransferSection();
         });
     </script>
 
-    @* === SCRIPT AJAX MỚI CHO VOUCHER === *@
+    @* === SCRIPT AJAX CHO VOUCHER (GIỮ NGUYÊN) === *@
     <script>
         $(document).ready(function () {
-            // Lấy token chống giả mạo từ form chính
             var token = $('input[name="__RequestVerificationToken"]').val();
 
-            // Hàm cập nhật giá tiền trên giao diện
             function updatePriceFields(discount, total, qrTotal) {
                 $('#discount-amount').text(discount);
                 $('#total-amount').text(total);
                 $('#total-amount-qr').text(qrTotal);
             }
 
-            // Xử lý nút "Áp dụng"
             $('#apply-voucher-btn').on('click', function () {
                 var code = $('#voucher-code-input').val();
                 var msgBox = $('#voucher-message');
@@ -220,10 +245,7 @@
                 $.ajax({
                     url: '@Url.Action("ApplyVoucher", "Checkout")',
                     type: 'POST',
-                    data: {
-                        __RequestVerificationToken: token,
-                        voucherCode: code
-                    },
+                    data: { __RequestVerificationToken: token, voucherCode: code },
                     success: function (response) {
                         msgBox.text(response.message);
                         if (response.success) {
@@ -236,41 +258,32 @@
                         }
                     },
                     error: function () {
-                        msgBox.text('Có lỗi xảy ra, vui lòng thử lại.').removeClass('text-success').addClass('text-danger');
+                        msgBox.text('Lỗi kết nối server.').addClass('text-danger');
                     }
                 });
             });
 
-            // Xử lý nút "Xóa mã"
             $('#remove-voucher-btn').on('click', function (e) {
                 e.preventDefault();
                 var msgBox = $('#voucher-message');
-
                 $.ajax({
                     url: '@Url.Action("RemoveVoucher", "Checkout")',
                     type: 'POST',
-                    data: {
-                        __RequestVerificationToken: token
-                    },
+                    data: { __RequestVerificationToken: token },
                     success: function (response) {
                         msgBox.text(response.message).removeClass('text-danger').addClass('text-success');
                         updatePriceFields(response.formattedDiscount, response.formattedTotal, response.formattedTotal);
                         $('#voucher-code-input').val('');
                         $('#remove-voucher-btn').hide();
                         $('#apply-voucher-btn').show();
-                    },
-                    error: function () {
-                        msgBox.text('Có lỗi xảy ra, vui lòng thử lại.').removeClass('text-success').addClass('text-danger');
                     }
                 });
             });
 
-            // Hiển thị nút "Xóa" nếu trang tải lại mà đã có voucher
             if ($('#voucher-code-input').val() != '') {
                 $('#remove-voucher-btn').show();
                 $('#apply-voucher-btn').hide();
             }
-
         });
     </script>
 }

@@ -1,66 +1,101 @@
 ﻿@model IEnumerable<PhoneStore_New.Models.Product>
-
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
-    // ViewBag.Title đã được set từ Controller
+    ViewBag.Title = ViewBag.Title ?? "Danh sách sản phẩm";
+}
+
+@section styles {
+    <style>
+        body { background-color: #f5f5fa; }
+        .container { width: 98%; max-width: 1400px; }
+
+        .page-header-box {
+            background: #fff;
+            padding: 20px 25px;
+            border-radius: 8px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #d0011b;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-title { margin: 0; font-weight: 700; text-transform: uppercase; color: #333; font-size: 20px; }
+        .breadcrumb { background: transparent; padding: 0; margin: 0; font-size: 13px; }
+
+        /* PRODUCT CARD (Đồng bộ) */
+        .product-grid-row { display: flex; flex-wrap: wrap; margin: 0 -5px; }
+        .product-col { width: 20%; padding: 5px; margin-bottom: 10px; } /* 5 cột */
+        @@media (max-width: 992px) { .product-col { width: 25%; } }
+        @@media (max-width: 768px) { .product-col { width: 50%; } }
+
+        .product-card { background: #fff; border: 1px solid #eee; border-radius: 4px; transition: all 0.2s; position: relative; height: 100%; display: flex; flex-direction: column; padding-bottom: 10px; }
+        .product-card:hover { box-shadow: 0 5px 15px rgba(0,0,0,0.1); transform: translateY(-3px); border-color: #d0011b; z-index: 5; }
+
+        .img-wrap { position: relative; padding-top: 100%; overflow: hidden; display: block; z-index: 1; }
+        .img-wrap img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; padding: 15px; transition: 0.3s; }
+        .product-card:hover img { transform: scale(1.05); }
+
+        .badge-discount { position: absolute; top: 10px; right: 10px; background: #ffe97a; color: #d0011b; font-size: 12px; font-weight: bold; padding: 3px 6px; border-radius: 4px; z-index: 10; }
+
+        .info-wrap { padding: 10px; flex-grow: 1; display: flex; flex-direction: column; }
+        .prod-name { font-size: 14px; color: #333; margin: 0 0 5px; height: 40px; overflow: hidden; line-height: 1.4; font-weight: 600; text-decoration: none; }
+        .prod-name:hover { color: #d0011b; }
+
+        .price-box { margin-bottom: 5px; }
+        .price-final { color: #d0011b; font-size: 16px; font-weight: 700; display: block; }
+        .price-original { color: #999; font-size: 12px; text-decoration: line-through; margin-right: 5px; }
+
+        .btn-add-cart { margin-top: auto; width: 100%; background: #fff; color: #d0011b; border: 1px solid #d0011b; padding: 5px; font-size: 12px; font-weight: 600; text-align: center; border-radius: 4px; opacity: 0; transition: 0.2s; display: block; text-decoration: none; }
+        .product-card:hover .btn-add-cart { opacity: 1; background: #d0011b; color: #fff; }
+    </style>
 }
 
 <div class="container">
-    <div class="row">
-        <div class="col-md-12">
-            <h2 class="page-header">@ViewBag.Title</h2>
-
-            @* Breadcrumb (Đường dẫn) *@
-            <ol class="breadcrumb">
-                <li><a href="@Url.Action("Index", "Home")">Trang chủ</a></li>
-                <li class="active">@ViewBag.Title</li>
-            </ol>
-        </div>
+    <div class="page-header-box">
+        <h2 class="page-title">@ViewBag.Title</h2>
+        <ol class="breadcrumb">
+            <li><a href="@Url.Action("Index", "Home")">Trang chủ</a></li>
+            <li class="active">@ViewBag.Title</li>
+        </ol>
     </div>
 
-    <div class="row product-list">
-        @if (Model != null && Model.Any())
-        {
-            foreach (var item in Model)
+    @if (Model != null && Model.Any())
+    {
+        <div class="product-grid-row">
+            @foreach (var p in Model)
             {
-                <div class="col-md-3 col-sm-6 col-xs-12" style="margin-bottom: 30px;">
+                <div class="product-col">
                     <div class="product-card">
-                        <div class="image-wrapper">
-                            <a href="@Url.Action("Detail", "Product", new { id = item.ProductId })">
-                                <img src="@Url.Content(item.ImageUrl ?? "~/Content/images/no-image.png")" alt="@item.Name" />
-                            </a>
-                            @if (item.DiscountPercentage > 0)
-                            {
-                                <span class="product-badge">-@item.DiscountPercentage%</span>
-                            }
-                        </div>
-                        <div class="content">
-                            <h3><a href="@Url.Action("Detail", "Product", new { id = item.ProductId })">@item.Name</a></h3>
-
-                            <div class="price-container">
+                        @if (p.DiscountPercentage > 0)
+                        {<span class="badge-discount">-@p.DiscountPercentage%</span>}
+                        <a href="@Url.Action("Detail", "Product", new { id = p.ProductId })" class="img-wrap">
+                            <img src="@Url.Content(p.ImageUrl ?? "~/Content/images/no-image.png")" alt="@p.Name">
+                        </a>
+                        <div class="info-wrap">
+                            <a href="@Url.Action("Detail", "Product", new { id = p.ProductId })" class="prod-name">@p.Name</a>
+                            <div class="price-box">
                                 @{
-                                    decimal finalPrice = item.Price;
-                                    if (item.DiscountPercentage > 0)
-                                    {
-                                        finalPrice = item.Price * (1 - (decimal)item.DiscountPercentage / 100);
-                                        <span class="original-price">@item.Price.ToString("N0")₫</span>
-                                    }
+                                    decimal finalPrice = p.Price;
+                                    if (p.DiscountPercentage > 0) { finalPrice = p.Price * (1 - (decimal)p.DiscountPercentage / 100); }
                                 }
-                                <span class="sale-price">@finalPrice.ToString("N0")₫</span>
+                                <span class="price-final">@finalPrice.ToString("N0")₫</span>
+                                @if (p.DiscountPercentage > 0)
+                                {<span class="price-original">@p.Price.ToString("N0")₫</span>}
                             </div>
-
-                            <a href="@Url.Action("Detail", "Product", new { id = item.ProductId })" class="btn btn-primary btn-block">Xem chi tiết</a>
+                            <a href="@Url.Action("Detail", "Product", new { id = p.ProductId })" class="btn-add-cart">MUA NGAY</a>
                         </div>
                     </div>
                 </div>
             }
-        }
-        else
-        {
-            <div class="col-md-12 text-center">
-                <p class="alert alert-warning">Chưa có sản phẩm nào trong danh mục này.</p>
-                <a href="@Url.Action("Index", "Home")" class="btn btn-default">Quay lại trang chủ</a>
-            </div>
-        }
-    </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-warning text-center" style="margin-top: 20px;">
+            <p>Chưa có sản phẩm nào trong danh mục này.</p>
+            <a href="@Url.Action("Index", "Home")" class="btn btn-default">Quay lại trang chủ</a>
+        </div>
+    }
 </div>

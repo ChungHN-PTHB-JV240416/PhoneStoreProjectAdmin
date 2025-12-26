@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace PhoneStore_New.Models.ViewModels // Nhớ đảm bảo đúng namespace của project mới
@@ -37,5 +38,6 @@ namespace PhoneStore_New.Models.ViewModels // Nhớ đảm bảo đúng namespac
 
         // Thêm thuộc tính định dạng cho giá cuối cùng
         public string FormattedFinalPrice => string.Format("{0:N0} VNĐ", FinalPrice);
+        
     }
 }

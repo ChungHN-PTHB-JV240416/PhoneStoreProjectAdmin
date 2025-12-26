@@ -5,7 +5,7 @@
 }
 
 <style>
-    /* CSS Layout Dashboard (Đồng bộ) */
+    /* CSS Layout Dashboard (Giữ nguyên) */
     .profile-wrapper {
         margin-top: 30px;
         margin-bottom: 60px;
@@ -66,7 +66,6 @@
         padding: 30px;
     }
 
-    /* Detail Styles */
     .info-group {
         margin-bottom: 20px;
         border-bottom: 1px dashed #eee;
@@ -89,6 +88,21 @@
         color: #d0011b;
         font-weight: bold;
     }
+
+    /* CSS mới cho phần chọn thanh toán */
+    .payment-update-box {
+        background-color: #f0f8ff;
+        padding: 15px;
+        border: 1px solid #b0e0e6;
+        border-radius: 5px;
+        margin-top: 10px;
+    }
+
+    .radio-label {
+        margin-right: 20px;
+        font-weight: normal;
+        cursor: pointer;
+    }
 </style>
 
 <div class="container profile-wrapper">
@@ -99,16 +113,12 @@
                 <a href="@Url.Action("Index", "Profile")" class="list-group-item">
                     <i class="glyphicon glyphicon-user"></i> Thông tin tài khoản
                 </a>
-
-                @* ĐANG ACTIVE *@
                 <a href="@Url.Action("History", "Order")" class="list-group-item active">
                     <i class="glyphicon glyphicon-list-alt"></i> Lịch sử đơn hàng
                 </a>
-
                 <a href="@Url.Action("ChangePassword", "Profile")" class="list-group-item">
                     <i class="glyphicon glyphicon-lock"></i> Đổi mật khẩu
                 </a>
-
                 <a href="javascript:document.getElementById('logoutForm').submit()" class="list-group-item list-group-item-danger">
                     <i class="glyphicon glyphicon-log-out"></i> Đăng xuất
                 </a>
@@ -123,17 +133,55 @@
                 </div>
                 <div class="profile-body">
 
+                    @if (TempData["Message"] != null)
+                    {
+                        <div class="alert alert-info">@TempData["Message"]</div>
+                    }
+
                     <div class="row">
                         <div class="col-md-6">
                             <div class="info-group">
                                 <span class="info-label"><i class="glyphicon glyphicon-calendar"></i> Ngày đặt:</span>
                                 <span>@Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</span>
                             </div>
+
+                            @* === PHẦN CHỌN PHƯƠNG THỨC THANH TOÁN (LOGIC MỚI) === *@
                             <div class="info-group">
                                 <span class="info-label"><i class="glyphicon glyphicon-credit-card"></i> Thanh toán:</span>
-                                <span>@(Model.PaymentMethod == "cod" ? "Tiền mặt (COD)" : "Chuyển khoản")</span>
+
+                                @if (Model.Status == "pending")
+                                {
+                                    using (Html.BeginForm("UpdatePaymentMethod", "Order", FormMethod.Post))
+                                    {
+                                        @Html.Hidden("orderId", Model.OrderId)
+                                        <div class="payment-update-box">
+                                            <div style="margin-bottom: 10px;">
+                                                <label class="radio-label">
+                                                    <input type="radio" name="paymentMethod" value="cod" @(Model.PaymentMethod == "cod" ? "checked" : "")>
+                                                    Tiền mặt (COD)
+                                                </label>
+                                                <label class="radio-label">
+                                                    <input type="radio" name="paymentMethod" value="vnpay" @(Model.PaymentMethod == "vnpay" ? "checked" : "")>
+                                                    VNPAY
+                                                </label>
+                                            </div>
+                                            <button type="submit" class="btn btn-sm btn-primary">Cập nhật & Thanh toán</button>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    // Đã thanh toán hoặc hủy thì hiện text tĩnh
+                                    string methodText = "Không xác định";
+                                    if (Model.PaymentMethod == "cod") { methodText = "Tiền mặt (COD)"; }
+                                    else if (Model.PaymentMethod == "vnpay") { methodText = "VNPAY"; }
+                                    else if (Model.PaymentMethod == "transfer") { methodText = "Chuyển khoản"; }
+
+                                    <span>@methodText</span>
+                                }
                             </div>
                         </div>
+
                         <div class="col-md-6">
                             <div class="info-group">
                                 <span class="info-label"><i class="glyphicon glyphicon-map-marker"></i> Giao tới:</span>
@@ -144,9 +192,9 @@
                                 @{
                                     string statusText = Model.Status;
                                     string color = "#333";
-                                    if (Model.Status == "pending") { statusText = "Chờ xử lý"; color = "#f0ad4e"; }
+                                    if (Model.Status == "pending") { statusText = "Chờ thanh toán"; color = "#f0ad4e"; }
                                     else if (Model.Status == "cancelled") { statusText = "Đã hủy"; color = "#d9534f"; }
-                                    else if (Model.Status == "completed") { statusText = "Hoàn thành"; color = "#5cb85c"; }
+                                    else if (Model.Status == "paid" || Model.Status == "completed") { statusText = "Đã thanh toán"; color = "#5cb85c"; }
                                 }
                                 <strong style="color: @color">@statusText</strong>
                             </div>
@@ -187,6 +235,13 @@
                         <a href="@Url.Action("History", "Order")" class="btn btn-default">
                             <i class="glyphicon glyphicon-arrow-left"></i> Quay lại danh sách
                         </a>
+
+                        @if (Model.Status == "pending")
+                        {
+                            <a href="@Url.Action("Cancel", "Order", new { id = Model.OrderId })" class="btn btn-danger pull-right" onclick="return confirm('Bạn chắc chắn muốn hủy đơn này?')">
+                                <i class="glyphicon glyphicon-trash"></i> Hủy đơn hàng
+                            </a>
+                        }
                     </div>
 
                 </div>

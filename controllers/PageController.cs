@@ -1,16 +1,15 @@
 ﻿using System.Linq;
 using System.Web.Mvc;
-using PhoneStore_New.Models; // Đảm bảo đúng namespace
+using PhoneStore_New.Models;
 
 namespace PhoneStore_New.Controllers
 {
     public class PageController : Controller
     {
-        private readonly PhoneStoreDBEntities db = new PhoneStoreDBEntities(); // Đảm bảo đúng tên DbContext
+        private readonly PhoneStoreDBEntities db = new PhoneStoreDBEntities();
 
-        // GET: Page/View/{slug}
-        // Ví dụ: /Page/View/ve-chung-toi
-        public ActionResult View(string id) // 'id' ở đây chính là 'slug'
+        // URL sẽ là: /Page/PageShow/{slug}
+        public ActionResult PageShow(string id) // id nhận vào là slug
         {
             if (string.IsNullOrEmpty(id))
             {
@@ -21,20 +20,16 @@ namespace PhoneStore_New.Controllers
 
             if (page == null)
             {
-                // Nếu không tìm thấy trang, hoặc trang chưa được publish
                 return HttpNotFound();
             }
 
-            // Gửi toàn bộ đối tượng 'Page' cho View
-            return View(page);
+            // Vẫn dùng file View cũ là "Show.cshtml" để đỡ phải đổi tên file
+            return View("Show", page);
         }
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
-            {
-                db.Dispose();
-            }
+            if (disposing) db.Dispose();
             base.Dispose(disposing);
         }
     }
