@@ -46,5 +46,6 @@ namespace PhoneStore_New.Models
         public virtual DbSet<ProductLog> ProductLogs { get; set; }
         public virtual DbSet<Contact> Contacts { get; set; }
         public virtual DbSet<ContactReply> ContactReplies { get; set; }
+        public virtual DbSet<StockTransaction> StockTransactions { get; set; }
     }
 }

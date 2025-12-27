@@ -2,14 +2,18 @@
 
 @{
     ViewBag.Title = "Chi tiết: " + Model.Name;
-    // Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
 }
 
 <div class="admin-container">
     <div class="row">
         <div class="col-md-12">
-            <h2 style="border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 25px;">
+            <h2 class="page-header" style="margin-top: 10px;">
                 @ViewBag.Title
+                <div class="pull-right">
+                    <a href="@Url.Action("Edit", new { id = Model.ProductId })" class="btn btn-warning"><i class="glyphicon glyphicon-pencil"></i> Sửa & Nhập kho</a>
+                    <a href="@Url.Action("Products")" class="btn btn-default"><i class="glyphicon glyphicon-arrow-left"></i> Quay lại</a>
+                </div>
             </h2>
         </div>
     </div>
@@ -22,23 +26,26 @@
                          alt="@Model.Name" class="img-responsive img-thumbnail" style="max-height: 350px; margin: 0 auto;" />
 
                     <h3 style="margin-top: 20px; font-weight: bold;">@Model.Name</h3>
-                    @if (Model.StockQuantity > 0)
-                    {
-                        <span class="label label-success">Còn hàng (@Model.StockQuantity)</span>
-                    }
-                    else
-                    {
-                        <span class="label label-danger">Hết hàng</span>
-                    }
+
+                    <div style="margin-top: 10px;">
+                        @if (Model.StockQuantity > 0)
+                        {
+                            <span class="label label-success" style="font-size: 14px;">Còn hàng (@Model.StockQuantity)</span>
+                        }
+                        else
+                        {
+                            <span class="label label-danger" style="font-size: 14px;">Hết hàng</span>
+                        }
+                    </div>
                 </div>
             </div>
 
             <div class="panel panel-info">
-                <div class="panel-heading"><h3 class="panel-title">Danh mục sản phẩm</h3></div>
+                <div class="panel-heading"><h3 class="panel-title">Danh mục phân loại</h3></div>
                 <div class="panel-body">
                     @if (Model.ProductNavbarLinks != null && Model.ProductNavbarLinks.Any())
                     {
-                        <ul class="list-group">
+                        <ul class="list-group" style="margin-bottom: 0;">
                             @foreach (var link in Model.ProductNavbarLinks)
                             {
                                 <li class="list-group-item"><i class="glyphicon glyphicon-tag"></i> @link.NavbarItem.ItemText</li>
@@ -54,15 +61,15 @@
         </div>
 
         <div class="col-md-8">
+
             <div class="panel panel-primary">
                 <div class="panel-heading"><h3 class="panel-title">Thông tin chi tiết</h3></div>
                 <table class="table table-bordered table-striped">
                     <tbody>
-                        <tr><th style="width: 200px;">ID Sản phẩm</th><td>@Model.ProductId</td></tr>
-                        <tr><th>Tên sản phẩm</th><td>@Model.Name</td></tr>
+                        <tr><th style="width: 150px;">ID Sản phẩm</th><td>@Model.ProductId</td></tr>
+                        <tr><th>Tên sản phẩm</th><td><strong>@Model.Name</strong></td></tr>
                         <tr><th>Giá nhập</th><td>@(Model.PurchasePrice.HasValue ? Model.PurchasePrice.Value.ToString("N0") + "₫" : "Chưa nhập")</td></tr>
-                        <tr><th>Giá bán</th><td style="color: #d0011b; font-weight: bold;">@Model.Price.ToString("N0")₫</td></tr>
-                        <tr><th>Giá VIP</th><td>@(Model.vip_price.HasValue ? Model.vip_price.Value.ToString("N0") + "₫" : "-")</td></tr>
+                        <tr><th>Giá bán lẻ</th><td style="color: #d0011b; font-weight: bold; font-size: 16px;">@Model.Price.ToString("N0")₫</td></tr>
                         <tr><th>Giảm giá</th><td>@(Model.DiscountPercentage > 0 ? Model.DiscountPercentage + "%" : "-")</td></tr>
                         <tr><th>Ngày tạo</th><td>@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td></tr>
                         <tr>
@@ -73,17 +80,86 @@
                 </table>
             </div>
 
-            <div class="panel panel-warning" style="margin-top: 30px;">
+            <div class="panel panel-success">
                 <div class="panel-heading">
-                    <h3 class="panel-title"><i class="glyphicon glyphicon-time"></i> Lịch sử thay đổi (Audit Log)</h3>
+                    <h3 class="panel-title"><i class="glyphicon glyphicon-transfer"></i> Lịch sử Nhập / Xuất Kho</h3>
                 </div>
-                <div class="panel-body">
-                    <table class="table table-hover table-striped">
+                <div class="panel-body" style="max-height: 300px; overflow-y: auto;">
+                    <table class="table table-condensed table-hover">
                         <thead>
                             <tr>
-                                <th style="width: 160px;">Thời gian</th>
-                                <th style="width: 120px;">Người sửa</th>
-                                <th>Chi tiết thay đổi</th>
+                                <th>Ngày giờ</th>
+                                <th>Loại GD</th>
+                                <th>Số lượng</th>
+                                <th>Nhà cung cấp</th>
+                                <th>Người làm</th>
+                                <th>Ghi chú</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.StockTransactions != null && Model.StockTransactions.Any())
+                            {
+                                foreach (var trans in Model.StockTransactions.OrderByDescending(t => t.CreatedAt))
+                                {
+                                    <tr>
+                                        <td>@(trans.CreatedAt.HasValue ? trans.CreatedAt.Value.ToString("dd/MM HH:mm") : "")</td>
+                                        <td>
+                                            @if (trans.Type == 1)
+                                            {<span class="label label-success">Nhập</span> }
+                                            else
+                                            { <span class="label label-danger">Xuất trả</span>}
+                                        </td>
+                                        <td><strong>@trans.Quantity</strong></td>
+                                        <td>@(trans.Supplier != null ? trans.Supplier.Name : "-")</td>
+
+                                        @* === ĐÃ SỬA: HIỆN TÊN USER === *@
+                                    <td>
+                                        @if (trans.User != null)
+                                        {
+                                            @* SỬA LỖI: Ghép FirstName và LastName thay vì dùng FullName *@
+                                            string fullName = (trans.User.FirstName + " " + trans.User.LastName).Trim();
+
+                                            if (!string.IsNullOrEmpty(fullName))
+                                            {
+                                                <span>@fullName</span> <br />
+                                                <small class="text-muted">(@trans.User.Username)</small>
+                                            }
+                                            else
+                                            {
+                                                <span>@trans.User.Username</span>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">ID: @trans.UserId</span>
+                                        }
+                                    </td>
+
+                                        <td>@trans.Note</td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr><td colspan="6" class="text-center text-muted">Chưa có giao dịch kho nào.</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="panel panel-warning">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="glyphicon glyphicon-time"></i> Nhật ký thay đổi thông tin</h3>
+                </div>
+                <div class="panel-body" style="max-height: 300px; overflow-y: auto;">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th style="width: 140px;">Thời gian</th>
+                                <th style="width: 100px;">Người sửa</th>
+                                <th>Hành động</th>
+                                <th>Chi tiết</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -92,25 +168,32 @@
                                 foreach (var log in Model.ProductLogs.OrderByDescending(l => l.CreatedAt))
                                 {
                                     <tr>
-                                        <td>@log.CreatedAt.Value.ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td style="font-size: 12px;">@log.CreatedAt.Value.ToString("dd/MM/yyyy HH:mm")</td>
+
+                                        @* UpdatedBy là string (lưu tên) nên hiển thị trực tiếp *@
                                         <td><span class="label label-default">@log.UpdatedBy</span></td>
-                                        <td>@log.LogDescription</td>
+
+                                        <td>
+                                            @if (log.ActionType != null && log.ActionType.Contains("Nhập"))
+                                            {<span class="text-success bold">@log.ActionType</span> }
+                                        else if (log.ActionType != null && log.ActionType.Contains("Xuất"))
+                                        { <span class="text-danger bold">@log.ActionType</span> }
+                                    else
+                                    { <span>@log.ActionType</span>}
+                                        </td>
+                                        <td style="font-size: 13px;">@log.LogDescription</td>
                                     </tr>
                                 }
                             }
                             else
                             {
-                                <tr><td colspan="3" class="text-center text-muted">Chưa có lịch sử thay đổi nào.</td></tr>
+                                <tr><td colspan="4" class="text-center text-muted">Chưa có lịch sử thay đổi nào.</td></tr>
                             }
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <div class="form-group text-right" style="margin-top: 20px;">
-                <a href="@Url.Action("Edit", new { id = Model.ProductId })" class="btn btn-warning btn-lg"><i class="glyphicon glyphicon-pencil"></i> Sửa</a>
-                <a href="@Url.Action("Products")" class="btn btn-default btn-lg">Quay lại</a>
-            </div>
         </div>
     </div>
 </div>

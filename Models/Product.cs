@@ -23,6 +23,7 @@ namespace PhoneStore_New.Models
             this.Carts = new HashSet<Cart>();
             this.ProductNavbarLinks = new HashSet<ProductNavbarLink>();
             this.ProductLogs = new HashSet<ProductLog>();
+            this.StockTransactions = new HashSet<StockTransaction>();
         }
     
         public int ProductId { get; set; }
@@ -51,5 +52,7 @@ namespace PhoneStore_New.Models
         public virtual ICollection<ProductNavbarLink> ProductNavbarLinks { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ProductLog> ProductLogs { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<StockTransaction> StockTransactions { get; set; }
     }
 }

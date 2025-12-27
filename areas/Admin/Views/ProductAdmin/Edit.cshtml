@@ -2,58 +2,97 @@
 
 @{
     ViewBag.Title = "Sửa sản phẩm: " + Model.Name;
-    // Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
 }
 
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <style>
+    /* Style cho ảnh hiện tại */
     .current-image {
         max-width: 150px;
         margin-top: 10px;
-        border: 1px solid #ddd;
+        border: 1px solid #e0e0e0;
         padding: 5px;
-        border-radius: 4px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    /* Style cho Token (Badge) trong lịch sử */
+    .token-badge {
+        display: inline-block;
+        padding: 5px 12px;
+        font-size: 11px;
+        font-weight: 700;
+        border-radius: 20px; /* Bo tròn như viên thuốc */
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .token-in {
+        background-color: #e6fffa;
+        color: #00b894;
+        border: 1px solid #00b894;
+    }
+
+    .token-out {
+        background-color: #fff5f5;
+        color: #d63031;
+        border: 1px solid #d63031;
+    }
+
+    /* Style cho ô Tồn kho readonly */
+    .stock-readonly {
+        background-color: #f8f9fa;
+        font-weight: 800;
+        color: #2d3436;
+        font-size: 16px;
+        border-color: #dfe6e9;
+        cursor: not-allowed;
     }
 </style>
 
 <div class="admin-container">
-    <h2 style="border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 20px;">@ViewBag.Title</h2>
+    <h2 style="border-bottom: 2px solid #f1f1f1; padding-bottom: 15px; margin-bottom: 25px; font-weight: 700; color: #333;">
+        @ViewBag.Title
+    </h2>
 
-    @using (Html.BeginForm("Edit", "ProductAdmin", FormMethod.Post, new { enctype = "multipart/form-data" }))
-    {
-        @Html.AntiForgeryToken()
-        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    <div class="row">
+        <div class="col-md-7">
+            @using (Html.BeginForm("Edit", "ProductAdmin", FormMethod.Post, new { enctype = "multipart/form-data" }))
+            {
+                @Html.AntiForgeryToken()
+                @Html.HiddenFor(m => m.ProductId)
+                @Html.HiddenFor(m => m.ImageUrl)
+                @Html.HiddenFor(m => m.CreatedAt)
 
-        @Html.HiddenFor(m => m.ProductId)
-        @Html.HiddenFor(m => m.ImageUrl)
-        @Html.HiddenFor(m => m.CreatedAt)
-
-        <div class="row">
-            <div class="col-md-7">
-                <div class="panel panel-default">
-                    <div class="panel-heading">Thông tin chính</div>
-                    <div class="panel-body">
+                <div class="panel panel-default" style="box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: none;">
+                    <div class="panel-heading" style="background: #fff; border-bottom: 1px solid #eee; font-weight: bold; font-size: 16px;">
+                        <i class="glyphicon glyphicon-info-sign"></i> Thông tin sản phẩm
+                    </div>
+                    <div class="panel-body" style="padding: 25px;">
                         <div class="form-group">
                             @Html.LabelFor(m => m.Name, "Tên sản phẩm")
-                            @Html.TextBoxFor(m => m.Name, new { @class = "form-control", required = "required" })
-                            @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-danger" })
+                            @Html.TextBoxFor(m => m.Name, new { @class = "form-control", required = "required", style = "height: 45px;" })
                         </div>
 
                         <div class="row">
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    @Html.LabelFor(m => m.Price, "Giá bán (VNĐ)")
+                                    @Html.LabelFor(m => m.Price, "Giá bán")
                                     @Html.TextBoxFor(m => m.Price, new { @class = "form-control", type = "number", required = "required" })
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    @Html.LabelFor(m => m.PurchasePrice, "Giá nhập (VNĐ)")
+                                    @Html.LabelFor(m => m.PurchasePrice, "Giá nhập")
                                     @Html.TextBoxFor(m => m.PurchasePrice, new { @class = "form-control", type = "number" })
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label>Giá VIP (VNĐ)</label>
+                                    <label>Giá VIP</label>
                                     @Html.TextBoxFor(m => m.vip_price, new { @class = "form-control", type = "number" })
                                 </div>
                             </div>
@@ -62,8 +101,10 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    @Html.LabelFor(m => m.StockQuantity, "Tồn kho")
-                                    @Html.TextBoxFor(m => m.StockQuantity, new { @class = "form-control", type = "number", required = "required" })
+                                    @* KHÔNG CHO SỬA KHO TRỰC TIẾP *@
+                                    <label>Tồn kho hiện tại</label>
+                                    <input type="text" value="@Model.StockQuantity" class="form-control stock-readonly" readonly />
+                                    <p class="help-block" style="font-size: 12px; margin-top: 5px;"><i class="glyphicon glyphicon-arrow-right"></i> Dùng bảng bên phải để Nhập/Xuất kho.</p>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -76,41 +117,157 @@
 
                         <div class="form-group">
                             @Html.LabelFor(m => m.Description, "Mô tả chi tiết")
-                            @Html.TextAreaFor(m => m.Description, new { @class = "form-control", rows = "6" })
+                            @Html.TextAreaFor(m => m.Description, new { @class = "form-control", rows = "5" })
                         </div>
-                    </div>
-                </div>
-            </div>
 
-            <div class="col-md-5">
-                <div class="panel panel-info">
-                    <div class="panel-heading">Phân loại & Hình ảnh</div>
-                    <div class="panel-body">
                         <div class="form-group">
-                            <label for="SelectedNavbarItemIds">Danh mục (Chọn nhiều)</label>
-                            @Html.ListBox("SelectedNavbarItemIds", (MultiSelectList)ViewBag.NavbarItemIds, new { @class = "form-control", @style = "height: 250px;" })
-                            <p class="help-block"><small>Giữ phím <b>Ctrl</b> để chọn nhiều mục.</small></p>
+                            <label>Danh mục phân loại</label>
+                            @Html.ListBox("SelectedNavbarItemIds", (MultiSelectList)ViewBag.NavbarItemIds, new { @class = "form-control", @style = "height: 150px;" })
                         </div>
-                        <hr />
+
                         <div class="form-group">
-                            <label>Ảnh đại diện sản phẩm</label>
+                            <label>Ảnh đại diện</label>
                             <input type="file" name="ImageUpload" class="form-control" accept="image/*" />
-                        </div>
-                        @if (!string.IsNullOrEmpty(Model.ImageUrl))
-                        {
-                            <div class="form-group text-center">
-                                <label style="display:block; text-align:left;">Ảnh hiện tại:</label>
+                            @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                            {
                                 <img src="@Url.Content(Model.ImageUrl)" class="current-image" />
-                            </div>
-                        }
+                            }
+                        </div>
+
+                        <div class="text-right">
+                            <button type="submit" class="btn btn-primary btn-lg"><i class="glyphicon glyphicon-floppy-disk"></i> Lưu thông tin</button>
+                        </div>
                     </div>
                 </div>
-            </div>
+            }
         </div>
 
-        <div class="form-group text-center" style="margin-top: 20px;">
-            <button type="submit" class="btn btn-success btn-lg"><i class="glyphicon glyphicon-floppy-disk"></i> Lưu thay đổi</button>
-            <a href="@Url.Action("Products")" class="btn btn-default btn-lg">Quay lại</a>
+        <div class="col-md-5">
+            <div class="panel panel-info" style="box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: none;">
+                <div class="panel-heading" style="background: #d9edf7; color: #31708f; font-weight: bold; font-size: 16px;">
+                    <i class="glyphicon glyphicon-transfer"></i> Giao dịch Kho
+                </div>
+                <div class="panel-body" style="padding: 25px; background: #fdfdfd;">
+                    @using (Html.BeginForm("UpdateStock", "ProductAdmin", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="productId" value="@Model.ProductId" />
+
+                        <div class="form-group">
+                            <label>Hành động</label>
+                            <select name="type" class="form-control" style="font-weight: bold;">
+                                <option value="1">⬇️ Nhập hàng mới (Tăng kho)</option>
+                                <option value="2">⬆️ Xuất trả NCC (Giảm kho)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Nhà cung cấp <span class="text-danger">*</span></label>
+                            @if (ViewBag.SupplierList != null)
+                            {
+                                @Html.DropDownList("supplierId", (IEnumerable<SelectListItem>)ViewBag.SupplierList, "--- Chọn Nhà Cung Cấp ---", new { @class = "form-control", @required = "required" })
+                            }
+                            else
+                            {
+                                <div class="text-danger">Chưa có NCC. <a href="@Url.Action("Index", "Supplier")">Thêm NCC ngay</a></div>
+                            }
+                        </div>
+
+                        <div class="form-group">
+                            <label>Số lượng</label>
+                            <input type="number" name="quantity" class="form-control" min="1" required placeholder="Nhập số lượng..." style="border-left: 3px solid #00b894;" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Ghi chú</label>
+                            <textarea name="note" class="form-control" rows="2" placeholder="VD: Nhập lô hàng tháng 10..."></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-success btn-block" onclick="return confirm('Xác nhận thực hiện giao dịch kho?');">
+                            <i class="glyphicon glyphicon-check"></i> Thực hiện
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <div class="panel panel-default" style="border: none; box-shadow: none;">
+                <div class="panel-heading" style="background: none; border-bottom: 2px solid #eee; padding-left: 0; font-weight: bold;">
+                    Lịch sử kho gần đây
+                </div>
+                <table class="table table-hover" style="font-size: 12px; margin-top: 10px;">
+                    <thead>
+                        <tr style="color: #888;">
+                            <th>Ngày</th>
+                            <th>Trạng thái</th>
+                            <th>SL</th>
+                            <th>NCC</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.StockTransactions != null && Model.StockTransactions.Any())
+                        {
+                            foreach (var item in Model.StockTransactions.OrderByDescending(x => x.CreatedAt).Take(5))
+                            {
+                                <tr>
+                                    <td style="vertical-align: middle;">@(item.CreatedAt.HasValue ? item.CreatedAt.Value.ToString("dd/MM") : "")</td>
+                                    <td style="vertical-align: middle;">
+                                        @if (item.Type == 1)
+                                        {
+                                            <span class="token-badge token-in">Nhập kho</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="token-badge token-out">Xuất trả</span>
+                                        }
+                                    </td>
+                                    <td style="vertical-align: middle; font-weight: bold; font-size: 14px;">@item.Quantity</td>
+                                    <td style="vertical-align: middle; color: #555;">@(item.Supplier != null ? item.Supplier.Name : "-")</td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr><td colspan="4" class="text-center text-muted">Chưa có giao dịch.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="text-center" style="margin-top: 20px;">
+                <a href="@Url.Action("Products")" class="btn btn-default btn-block">Quay lại danh sách</a>
+            </div>
         </div>
-    }
+    </div>
 </div>
+
+@* === SCRIPT HIỂN THỊ THÔNG BÁO ĐẸP (SWEETALERT2) === *@
+@section scripts {
+    <script>
+        $(document).ready(function () {
+            // Kiểm tra xem có thông báo thành công không
+            var successMsg = '@Html.Raw(TempData["Message"])';
+            if (successMsg && successMsg !== "") {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Thành công!',
+                    text: successMsg,
+                    showConfirmButton: false,
+                    timer: 2000,
+                    toast: true,
+                    position: 'top-end'
+                });
+            }
+
+            // Kiểm tra xem có thông báo lỗi không
+            var errorMsg = '@Html.Raw(TempData["Error"])';
+            if (errorMsg && errorMsg !== "") {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Thất bại!',
+                    text: errorMsg,
+                    showConfirmButton: true
+                });
+            }
+        });
+    </script>
+}

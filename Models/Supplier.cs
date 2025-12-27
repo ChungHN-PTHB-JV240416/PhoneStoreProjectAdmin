@@ -14,6 +14,12 @@ namespace PhoneStore_New.Models
     
     public partial class Supplier
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public Supplier()
+        {
+            this.StockTransactions = new HashSet<StockTransaction>();
+        }
+    
         public int SupplierId { get; set; }
         public string Name { get; set; }
         public string ContactPerson { get; set; }
@@ -21,5 +27,8 @@ namespace PhoneStore_New.Models
         public string Email { get; set; }
         public string Address { get; set; }
         public Nullable<System.DateTime> CreatedAt { get; set; }
+    
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<StockTransaction> StockTransactions { get; set; }
     }
 }

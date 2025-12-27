@@ -247,6 +247,9 @@
     <Compile Include="Models\Setting.cs">
       <DependentUpon>Model1.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\StockTransaction.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\Supplier.cs">
       <DependentUpon>Model1.tt</DependentUpon>
     </Compile>

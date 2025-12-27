@@ -2,14 +2,7 @@
 
 @{
     ViewBag.Title = "Quản lý sản phẩm";
-
-    // --- KHẮC PHỤC LỖI LAYOUT NOT FOUND ---
-    // Tôi để dòng này thành comment (//) để web tự nhận diện Layout mặc định.
-    // Nếu giao diện bị trắng trơn, bạn hãy bỏ dấu // và sửa đường dẫn thành "~/Views/Shared/_Layout.cshtml"
-    // Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
-
-    // --- KHẮC PHỤC LỖI COMPILATION ERROR ---
-    // Lấy thông báo từ TempData thay vì Model
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
     string message = TempData["Message"] as string;
 }
 
@@ -19,7 +12,6 @@
             Danh sách sản phẩm
         </h2>
 
-        @* Hiển thị thông báo (An toàn, không lỗi) *@
         @if (!string.IsNullOrEmpty(message))
         {
             <div class="alert @(message.Contains("thành công") ? "alert-success" : "alert-danger")" role="alert">
@@ -30,6 +22,9 @@
         <div style="margin-bottom: 15px;">
             <a href="@Url.Action("Create")" class="btn btn-primary">
                 <i class="glyphicon glyphicon-plus"></i> Thêm mới sản phẩm
+            </a>
+            <a href="@Url.Action("Index", "Supplier")" class="btn btn-info pull-right">
+                <i class="glyphicon glyphicon-briefcase"></i> Quản lý Nhà cung cấp
             </a>
         </div>
 
@@ -42,7 +37,7 @@
                         <th>Giá bán</th>
                         <th>Giảm giá</th>
                         <th>Kho</th>
-                        <th style="width: 200px;">Danh mục (Đa chọn)</th>
+                        <th style="width: 200px;">Danh mục</th>
                         <th style="width: 220px; text-align: center;">Thao tác</th>
                     </tr>
                 </thead>
@@ -63,19 +58,12 @@
                                     @item.Price.ToString("N0")₫
                                 </td>
                                 <td style="vertical-align: middle;">
-                                    @if (item.DiscountPercentage > 0)
-                                    {
-                                        <span class="label label-danger">-@item.DiscountPercentage%</span>
-                                    }
-                                    else
-                                    {
-                                        <span>-</span>
-                                    }
+                                    @(item.DiscountPercentage > 0 ? $"-{item.DiscountPercentage}%" : "-")
                                 </td>
                                 <td style="vertical-align: middle;">
                                     @if (item.StockQuantity > 0)
                                     {
-                                        <span class="text-success">@item.StockQuantity</span>
+                                        <span class="text-success" style="font-weight:bold;">@item.StockQuantity</span>
                                     }
                                     else
                                     {
@@ -83,7 +71,6 @@
                                     }
                                 </td>
                                 <td style="vertical-align: middle;">
-                                    @* LOGIC HIỂN THỊ ĐA DANH MỤC *@
                                     @if (item.ProductNavbarLinks != null && item.ProductNavbarLinks.Any())
                                     {
                                         foreach (var link in item.ProductNavbarLinks)
@@ -99,14 +86,14 @@
                                     }
                                 </td>
                                 <td style="text-align: center; vertical-align: middle;">
-                                    <a href="@Url.Action("Edit", new { id = item.ProductId })" class="btn btn-warning btn-sm">
-                                        <i class="glyphicon glyphicon-pencil"></i> Sửa
+                                    <a href="@Url.Action("Edit", new { id = item.ProductId })" class="btn btn-warning btn-sm" title="Sửa & Nhập kho">
+                                        <i class="glyphicon glyphicon-pencil"></i>
                                     </a>
-                                    <a href="@Url.Action("Details", new { id = item.ProductId })" class="btn btn-info btn-sm">
-                                        <i class="glyphicon glyphicon-eye-open"></i> Xem
+                                    <a href="@Url.Action("Details", new { id = item.ProductId })" class="btn btn-info btn-sm" title="Xem chi tiết & Lịch sử">
+                                        <i class="glyphicon glyphicon-eye-open"></i>
                                     </a>
-                                    <a href="@Url.Action("Delete", new { id = item.ProductId })" class="btn btn-danger btn-sm">
-                                        <i class="glyphicon glyphicon-trash"></i> Xóa
+                                    <a href="@Url.Action("Delete", new { id = item.ProductId })" class="btn btn-danger btn-sm" title="Xóa">
+                                        <i class="glyphicon glyphicon-trash"></i>
                                     </a>
                                 </td>
                             </tr>

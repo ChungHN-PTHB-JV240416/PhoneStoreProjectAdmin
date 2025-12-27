@@ -2,7 +2,7 @@
 
 @{
     ViewBag.Title = "Thêm mới sản phẩm";
-    // Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
 }
 
 <div class="admin-container">
@@ -52,8 +52,10 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    @Html.LabelFor(m => m.StockQuantity, "Số lượng tồn kho")
-                                    @Html.TextBoxFor(m => m.StockQuantity, new { @class = "form-control", type = "number", required = "required" })
+                                    @* MẶC ĐỊNH KHO = 0 KHI TẠO MỚI *@
+                                    <label>Tồn kho ban đầu</label>
+                                    <input type="text" class="form-control" value="0" readonly style="background-color: #eee;" />
+                                    <p class="help-block text-warning"><i class="glyphicon glyphicon-info-sign"></i> Bạn cần tạo sản phẩm xong mới được Nhập hàng.</p>
                                 </div>
                             </div>
                             <div class="col-md-6">

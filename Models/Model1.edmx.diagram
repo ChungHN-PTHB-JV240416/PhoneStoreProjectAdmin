@@ -43,6 +43,10 @@
         <EntityTypeShape EntityType="PhoneStoreDBModel.Contact" Width="1.5" PointX="12.375" PointY="10.75" />
         <EntityTypeShape EntityType="PhoneStoreDBModel.ContactReply" Width="1.5" PointX="14.625" PointY="11.125" />
         <AssociationConnector Association="PhoneStoreDBModel.FK__ContactRe__Conta__3552E9B6" />
+        <EntityTypeShape EntityType="PhoneStoreDBModel.StockTransaction" Width="1.5" PointX="15" PointY="5.75" />
+        <AssociationConnector Association="PhoneStoreDBModel.FK__StockTran__Produ__467D75B8" />
+        <AssociationConnector Association="PhoneStoreDBModel.FK__StockTran__Suppl__477199F1" />
+        <AssociationConnector Association="PhoneStoreDBModel.FK_StockTransactions_Users" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>
