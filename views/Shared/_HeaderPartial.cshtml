@@ -2,7 +2,7 @@
 @using PhoneStore_New.Models
 @model HeaderViewModel
 
-@* === HELPER VẼ MENU (GIỮ NGUYÊN) === *@
+@* === GIỮ NGUYÊN HELPER VẼ MENU CỦA BẠN === *@
 @helper RenderMenu(List<NavbarItem> allItems, int? parentId)
 {
     if (allItems == null) { return; }
@@ -53,7 +53,7 @@
 }
 
 <style>
-    /* === 1. NAV BAR STYLE === */
+    /* === GIỮ NGUYÊN CSS CỦA BẠN === */
     .navbar-custom {
         background-color: #fff;
         border: none;
@@ -70,7 +70,6 @@
         padding-right: 15px;
     }
 
-    /* Logo */
     .navbar-brand-text {
         font-size: 24px;
         font-weight: 800;
@@ -80,7 +79,6 @@
         letter-spacing: 1px;
     }
 
-    /* Menu Item */
     .navbar-nav > li > a {
         color: #333 !important;
         font-weight: 600;
@@ -95,7 +93,6 @@
             color: #d0011b !important;
         }
 
-    /* Submenu */
     .dropdown-submenu {
         position: relative;
     }
@@ -130,7 +127,6 @@
             border-left-color: #d0011b;
         }
 
-    /* Search Bar */
     .navbar-form {
         padding-top: 5px;
     }
@@ -154,7 +150,6 @@
                 color: #fff;
             }
 
-    /* Cart SVG */
     .cart-wrapper {
         position: relative;
         padding: 18px 15px !important;
@@ -190,7 +185,6 @@
         box-shadow: 0 1px 2px rgba(0,0,0,0.2);
     }
 
-    /* Avatar */
     .navbar-avatar {
         width: 30px;
         height: 30px;
@@ -201,7 +195,6 @@
         border: 1px solid #eee;
     }
 
-    /* === CSS SỬA: SỐ NẢY CẠNH TÊN (TRÊN THANH NAVBAR) === */
     .notify-badge {
         background-color: #d0011b;
         color: white;
@@ -211,22 +204,21 @@
         border-radius: 10px;
         margin-left: 5px;
         position: relative;
-        top: -10px; /* Đẩy lên cao */
+        top: -10px;
         box-shadow: 0 1px 2px rgba(0,0,0,0.2);
     }
 
-    /* === CSS MỚI: SỐ NẢY TRONG DROPDOWN (TUYỆT ĐỐI) === */
     .dropdown-menu > li > a {
-        position: relative; /* Mốc tọa độ */
-        padding-right: 60px; /* Chừa khoảng trống bên phải để số không đè lên chữ */
+        position: relative;
+        padding-right: 60px;
     }
 
     .badge-absolute {
         background-color: #d0011b !important;
         color: #fff;
-        position: absolute; /* Bay lên */
-        top: 6px; /* Cách mép trên 6px (Cao hơn) */
-        right: 15px; /* Cách mép phải 15px */
+        position: absolute;
+        top: 6px;
+        right: 15px;
         font-size: 10px;
         padding: 3px 8px;
         border-radius: 10px;
@@ -297,7 +289,7 @@
                 @* TÀI KHOẢN & THÔNG BÁO *@
                 @if (Model.IsLoggedIn)
                 {
-                    // === LOGIC ĐẾM SỐ TIN NHẮN PHẢN HỒI (Status = 1: Đã trả lời) ===
+                    // === LOGIC CŨ CỦA BẠN: GỌI DB TRỰC TIẾP TẠI VIEW ===
                     int replyCount = 0;
                     if (Session["UserId"] != null)
                     {
@@ -307,10 +299,11 @@
                             replyCount = dbTemp.Contacts.Count(c => c.UserId == uid && c.Status == 1);
                         }
                     }
-                    // =============================================================
+                    // =================================================
 
                     <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" style="display:flex; align-items:center;">
+                            @* --- FIX LỖI: HIỂN THỊ ẢNH AVATAR --- *@
                             @if (!string.IsNullOrEmpty(Model.UserAvatarUrl))
                             {
                                 <img src="@Url.Content(Model.UserAvatarUrl)" class="navbar-avatar" />
@@ -319,9 +312,9 @@
                             {
                                 <span class="glyphicon glyphicon-user" style="margin-right: 5px;"></span>
                             }
+
                             @Model.UserFirstName <span class="caret"></span>
 
-                            @* HIỂN THỊ SỐ NẢY CẠNH TÊN (Notify Badge) *@
                             @if (replyCount > 0)
                             {
                                 <span class="notify-badge">@replyCount</span>
@@ -330,7 +323,6 @@
                         <ul class="dropdown-menu">
                             <li><a href="@Url.Action("Index", "Profile")"><i class="glyphicon glyphicon-user"></i> Hồ sơ cá nhân</a></li>
 
-                            @* MENU HỘP THƯ HỖ TRỢ - CÓ SỐ NẢY (Absolute Badge) *@
                             <li>
                                 <a href="@Url.Action("MyTickets", "Profile")">
                                     <i class="glyphicon glyphicon-envelope"></i> Hộp thư hỗ trợ
@@ -350,6 +342,7 @@
                             }
                             <li class="divider"></li>
                             <li>
+                                @* FORM LOGOUT CHUẨN ID *@
                                 <a href="javascript:document.getElementById('logoutFormHeader').submit()">
                                     <i class="glyphicon glyphicon-log-out"></i> Đăng xuất
                                 </a>
@@ -359,14 +352,16 @@
                 }
                 else
                 {
-                    <li><a href="@Url.Action("Index", "Login")">Đăng nhập</a></li>
-                    <li><a href="@Url.Action("Register", "Login")">Đăng ký</a></li>
+                    @* --- FIX LỖI: THÊM AREA="" ĐỂ LINK KHÔNG BỊ CHẾT --- *@
+                    <li><a href="@Url.Action("Index", "Login", new { area = "" })">Đăng nhập</a></li>
+                    <li><a href="@Url.Action("Register", "Login", new { area = "" })">Đăng ký</a></li>
                 }
             </ul>
         </div>
     </div>
 </div>
 
+@* FORM LOGOUT *@
 @using (Html.BeginForm("Logout", "Login", new { area = "" }, FormMethod.Post, new { id = "logoutFormHeader" }))
 {
     @Html.AntiForgeryToken()

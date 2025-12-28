@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Web.Mvc; // <--- BẮT BUỘC CÓ ĐỂ DÙNG SelectList
 using PhoneStore_New.Models;
 
 namespace PhoneStore_New.Models.ViewModels
@@ -25,8 +26,8 @@ namespace PhoneStore_New.Models.ViewModels
         // Cấu hình giao diện
         public int ProductsPerRow { get; set; }
 
-        // --- THÊM MỚI: Để map với form lọc ở View ---
-        public decimal? MinPrice { get; set; }
-        public decimal? MaxPrice { get; set; }
+        // --- CẬP NHẬT MỚI: Dùng Dropdown Khoảng giá Dynamic ---
+        public int? SelectedPriceRangeId { get; set; } // ID khoảng giá được chọn
+        public SelectList PriceRangeList { get; set; } // Danh sách đổ vào Dropdown
     }
 }
